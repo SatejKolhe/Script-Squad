@@ -6,6 +6,7 @@ import './Sidebar.css';
 const NAV_ITEMS = [
   { to: '/dashboard', icon: '⊞', label: 'Dashboard' },
   { to: '/projects', icon: '📁', label: 'Projects' },
+  { to: '/team', icon: '👥', label: 'Team' },
   { to: '/analytics', icon: '📊', label: 'Analytics' },
 ];
 

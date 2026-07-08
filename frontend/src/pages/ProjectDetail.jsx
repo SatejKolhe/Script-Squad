@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useTaskTimer } from '../hooks/useTaskTimer';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import {
   DndContext,
@@ -45,6 +46,12 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
     data: { type: 'task', task },
   });
 
+  const { elapsed } = useTaskTimer({
+    timerStartedAt: task.timerStartedAt,
+    totalTimeSpent: task.totalTimeSpent,
+    status: task.status,
+  });
+
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
@@ -53,6 +60,8 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
 
   const overdue = task.dueDate && isPast(new Date(task.dueDate)) && task.status !== 'done';
   const dueSoon = task.dueDate && isToday(new Date(task.dueDate)) && task.status !== 'done';
+  const isInProgress = task.status === 'inprogress';
+  const hasTime = isInProgress || (task.totalTimeSpent && task.totalTimeSpent > 0);
 
   return (
     <div
@@ -60,7 +69,7 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
       style={style}
       {...attributes}
       {...listeners}
-      className={`task-card ${isDragging ? 'dragging' : ''}`}
+      className={`task-card ${isDragging ? 'dragging' : ''} ${isInProgress ? 'task-card-inprogress' : ''}`}
     >
       <div className="task-card-header">
         <span className={`badge badge-${task.priority}`}>{task.priority}</span>
@@ -87,6 +96,16 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
       <h4 className="task-card-title">{task.title}</h4>
       {task.description && (
         <p className="task-card-desc">{task.description}</p>
+      )}
+
+      {/* ── Timer badge ───────────────────────────────────────────────────── */}
+      {hasTime && (
+        <div className={`task-timer ${isInProgress ? 'task-timer-running' : 'task-timer-paused'}`}>
+          {isInProgress && <span className="task-timer-dot" />}
+          <span className="task-timer-icon">{isInProgress ? '⏱' : '⏸'}</span>
+          <span className="task-timer-elapsed">{elapsed}</span>
+          {isInProgress && <span className="task-timer-label">running</span>}
+        </div>
       )}
 
       {task.dueDate && (
@@ -156,6 +175,7 @@ export default function ProjectDetail() {
   const [activeTask, setActiveTask] = useState(null);
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [teamMembers, setTeamMembers] = useState([]);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -163,6 +183,8 @@ export default function ProjectDetail() {
 
   useEffect(() => {
     loadProject();
+    // Fetch team members to display in header
+    api.get('/team').then((res) => setTeamMembers(res.data.data || [])).catch(() => {});
     // Socket.io
     socketRef.current = io('/', { path: '/socket.io' });
     socketRef.current.emit('join-project', id);
@@ -308,8 +330,8 @@ export default function ProjectDetail() {
 
     // Determine target column
     const overCol = COLUMNS.find((c) => c.id === overId)?.id || findTaskColumn(overId);
-    const activeTask = tasks.find((t) => t._id === activeId);
-    if (!activeTask || !overCol) return;
+    const draggedTask = tasks.find((t) => t._id === activeId);
+    if (!draggedTask || !overCol) return;
 
     // Build new column order
     const colTasks = tasks
@@ -327,16 +349,23 @@ export default function ProjectDetail() {
     const updatedTasks = reordered.map((t, i) => ({ ...t, status: overCol, order: i }));
 
     // Optimistic update
-    setTasks((prev) => {
-      const rest = prev.filter((t) => t.status !== overCol || t._id === activeId);
-      return [...prev.filter((t) => t.status !== overCol), ...updatedTasks];
-    });
+    setTasks((prev) => [
+      ...prev.filter((t) => t.status !== overCol),
+      ...updatedTasks,
+    ]);
 
-    // Persist
+    // Persist — the updated API now returns fresh task data (with timerStartedAt etc.)
     try {
-      await api.put('/tasks/reorder/bulk', {
+      const res = await api.put('/tasks/reorder/bulk', {
         tasks: updatedTasks.map((t) => ({ _id: t._id, status: t.status, order: t.order })),
       });
+      // Sync timer fields from server (timerStartedAt, totalTimeSpent)
+      if (res.data?.data) {
+        const serverMap = new Map(res.data.data.map((t) => [t._id, t]));
+        setTasks((prev) =>
+          prev.map((t) => (serverMap.has(t._id) ? { ...t, ...serverMap.get(t._id) } : t))
+        );
+      }
     } catch {
       toast.error('Failed to save order');
       loadProject();
@@ -371,6 +400,29 @@ export default function ProjectDetail() {
             <span className="badge badge-active">{project.status}</span>
             <span className="text-sm text-muted">{tasks.length} tasks</span>
             <span className="text-sm" style={{ color: project.color }}>{completionPct}% complete</span>
+            {/* Team member avatar stack */}
+            {teamMembers.length > 0 && (
+              <div className="project-members-stack">
+                {teamMembers.slice(0, 5).map((m) => (
+                  <div
+                    key={m._id}
+                    className="project-member-avatar"
+                    title={m.name}
+                    style={{ background: `hsl(${m._id.charCodeAt(0) * 37 % 360}, 60%, 55%)` }}
+                  >
+                    {m.avatar
+                      ? <img src={m.avatar} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+                      : m.name?.[0]?.toUpperCase()
+                    }
+                  </div>
+                ))}
+                {teamMembers.length > 5 && (
+                  <div className="project-member-avatar project-member-overflow">
+                    +{teamMembers.length - 5}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 

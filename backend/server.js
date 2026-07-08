@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/db');
+const { startDeadlineReminderJob } = require('./jobs/deadlineReminder');
 
 // Connect to MongoDB
 connectDB();
@@ -35,6 +36,10 @@ app.use((req, res, next) => {
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));
+app.use('/api/notifications', require('./routes/notifications'));
+app.use('/api/ai', require('./routes/ai'));
+app.use('/api/team', require('./routes/team'));
+
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -85,4 +90,6 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Script Squad API running on port ${PORT}`);
+  // Start deadline email reminder cron job
+  startDeadlineReminderJob();
 });
