@@ -132,6 +132,7 @@ router.put(
   }
 );
 
+
 // @route   POST /api/auth/forgot-password
 // @desc    Send password reset email
 // @access  Public
@@ -211,5 +212,6 @@ router.post(
     }
   }
 );
+
 
 module.exports = router;

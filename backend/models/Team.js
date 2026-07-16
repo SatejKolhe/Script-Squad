@@ -23,6 +23,6 @@ const teamSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-teamSchema.index({ owner: 1 }, { unique: true });
+teamSchema.index({ owner: 1 });
 
 module.exports = mongoose.model('Team', teamSchema);
