@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth, api } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
@@ -7,6 +7,71 @@ import './Dashboard.css';
 
 const PRIORITY_COLOR = { high: '#ef4444', medium: '#f59e0b', low: '#10b981' };
 const STATUS_LABEL = { todo: 'Todo', inprogress: 'In Progress', done: 'Done' };
+
+// Animated counter hook
+function useCountUp(target, duration = 800) {
+  const [value, setValue] = useState(0);
+  const prev = useRef(0);
+  useEffect(() => {
+    const start = prev.current;
+    const diff = target - start;
+    if (diff === 0) return;
+    const startTime = performance.now();
+    const step = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      setValue(Math.round(start + diff * eased));
+      if (progress < 1) requestAnimationFrame(step);
+      else prev.current = target;
+    };
+    requestAnimationFrame(step);
+  }, [target, duration]);
+  return value;
+}
+
+// Live global timer across all in-progress tasks
+function GlobalTimerWidget({ tasks }) {
+  const inProgress = tasks.filter((t) => t.status === 'inprogress');
+  const [ms, setMs] = useState(0);
+
+  useEffect(() => {
+    const compute = () => {
+      let total = 0;
+      for (const t of inProgress) {
+        total += t.totalTimeSpent || 0;
+        if (t.timerStartedAt) total += Date.now() - new Date(t.timerStartedAt).getTime();
+      }
+      return Math.max(0, total);
+    };
+    setMs(compute());
+    if (inProgress.length === 0) return;
+    const iv = setInterval(() => setMs(compute()), 1000);
+    return () => clearInterval(iv);
+  }, [tasks]);
+
+  const h = Math.floor(ms / 3600000);
+  const m = Math.floor((ms % 3600000) / 60000);
+  const s = Math.floor((ms % 60000) / 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+  const timeStr = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+
+  return (
+    <div className={`global-timer-widget ${inProgress.length > 0 ? 'timer-active' : ''}`}>
+      <div className="global-timer-header">
+        {inProgress.length > 0 && <span className="global-timer-dot" />}
+        <span className="global-timer-icon">{inProgress.length > 0 ? '⏱️' : '🕐'}</span>
+        <span className="global-timer-label">Active Session</span>
+      </div>
+      <div className="global-timer-clock">{timeStr}</div>
+      <div className="global-timer-sub">
+        {inProgress.length > 0
+          ? `${inProgress.length} task${inProgress.length > 1 ? 's' : ''} in progress`
+          : 'No active timers'}
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
   const { user } = useAuth();
@@ -74,6 +139,12 @@ export default function Dashboard() {
     ? Math.round((getStatusCount('done') / Math.max(stats.totalTasks, 1)) * 100)
     : 0;
 
+  // Animated stat values
+  const animTotal = useCountUp(stats?.totalTasks || 0);
+  const animInProgress = useCountUp(getStatusCount('inprogress'));
+  const animDone = useCountUp(getStatusCount('done'));
+  const animOverdue = useCountUp(stats?.overdue || 0);
+
   if (loading) {
     return (
       <div className="page-container">
@@ -84,10 +155,15 @@ export default function Dashboard() {
     );
   }
 
+  // Gather all tasks for the live timer widget
+  const inProgressTasks = recentTasks.filter((t) => t.status === 'inprogress');
+
   return (
     <div className="page-container animate-fadeIn">
       {/* Welcome Banner */}
       <div className="dashboard-banner">
+        <div className="banner-bg-glow banner-bg-glow-1" />
+        <div className="banner-bg-glow banner-bg-glow-2" />
         <div className="banner-content">
           <div className="banner-emoji">👋</div>
           <div>
@@ -99,19 +175,22 @@ export default function Dashboard() {
             </p>
           </div>
         </div>
-        <div className="banner-completion">
-          <div className="completion-ring">
-            <svg viewBox="0 0 80 80" className="ring-svg">
-              <circle cx="40" cy="40" r="32" className="ring-bg" />
-              <circle
-                cx="40" cy="40" r="32"
-                className="ring-fill"
-                strokeDasharray={`${completionRate * 2.01} 201`}
-              />
-            </svg>
-            <div className="ring-text">
-              <span className="ring-percent">{completionRate}%</span>
-              <span className="ring-label">Done</span>
+        <div className="banner-right">
+          <GlobalTimerWidget tasks={recentTasks} />
+          <div className="banner-completion">
+            <div className="completion-ring">
+              <svg viewBox="0 0 80 80" className="ring-svg">
+                <circle cx="40" cy="40" r="32" className="ring-bg" />
+                <circle
+                  cx="40" cy="40" r="32"
+                  className="ring-fill"
+                  strokeDasharray={`${completionRate * 2.01} 201`}
+                />
+              </svg>
+              <div className="ring-text">
+                <span className="ring-percent">{completionRate}%</span>
+                <span className="ring-label">Done</span>
+              </div>
             </div>
           </div>
         </div>
@@ -119,35 +198,39 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid-4 mt-4">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(99,102,241,0.12)' }}>📋</div>
+        <div className="stat-card stat-card-purple">
+          <div className="stat-icon stat-icon-purple">📋</div>
           <div>
-            <div className="stat-number">{stats?.totalTasks || 0}</div>
+            <div className="stat-number">{animTotal}</div>
             <div className="stat-label">Total Tasks</div>
           </div>
+          <div className="stat-card-bg-icon">📋</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(6,182,212,0.12)' }}>🚀</div>
+        <div className="stat-card stat-card-cyan">
+          <div className="stat-icon stat-icon-cyan">🚀</div>
           <div>
-            <div className="stat-number">{getStatusCount('inprogress')}</div>
+            <div className="stat-number">{animInProgress}</div>
             <div className="stat-label">In Progress</div>
           </div>
+          <div className="stat-card-bg-icon">🚀</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.12)' }}>✅</div>
+        <div className="stat-card stat-card-green">
+          <div className="stat-icon stat-icon-green">✅</div>
           <div>
-            <div className="stat-number">{getStatusCount('done')}</div>
+            <div className="stat-number">{animDone}</div>
             <div className="stat-label">Completed</div>
           </div>
+          <div className="stat-card-bg-icon">✅</div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(239,68,68,0.12)' }}>⚠️</div>
+        <div className="stat-card stat-card-red">
+          <div className="stat-icon stat-icon-red">⚠️</div>
           <div>
-            <div className="stat-number" style={{ color: stats?.overdue > 0 ? '#ef4444' : undefined }}>
-              {stats?.overdue || 0}
+            <div className="stat-number" style={{ color: (stats?.overdue || 0) > 0 ? '#ef4444' : undefined }}>
+              {animOverdue}
             </div>
             <div className="stat-label">Overdue</div>
           </div>
+          <div className="stat-card-bg-icon">⚠️</div>
         </div>
       </div>
 
@@ -236,7 +319,7 @@ export default function Dashboard() {
               </div>
             ) : (
               recentTasks.map((task) => (
-                <div key={task._id} className="task-row">
+                <div key={task._id} className={`task-row ${task.status === 'inprogress' ? 'task-row-active' : ''}`}>
                   <button
                     className={`task-check ${task.status === 'done' ? 'checked' : ''}`}
                     onClick={() =>
@@ -252,6 +335,12 @@ export default function Dashboard() {
                       {task.project && (
                         <span className="tag" style={{ borderColor: task.project.color, color: task.project.color }}>
                           {task.project.title}
+                        </span>
+                      )}
+                      {task.status === 'inprogress' && (
+                        <span className="task-row-live-badge">
+                          <span className="task-row-live-dot" />
+                          Live
                         </span>
                       )}
                       {task.dueDate && (

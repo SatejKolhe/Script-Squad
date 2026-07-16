@@ -39,6 +39,70 @@ const defaultTaskForm = {
   title: '', description: '', priority: 'medium', dueDate: '', status: 'todo',
 };
 
+// --- Format ms as HH:MM:SS clock ---
+function formatMsClock(ms) {
+  const totalSeconds = Math.floor(Math.max(0, ms) / 1000);
+  const hours   = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  const pad = (n) => String(n).padStart(2, '0');
+  if (hours > 0) return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+  return `${pad(minutes)}:${pad(seconds)}`;
+}
+
+// --- Project-level live time aggregator ---
+function ProjectTimePanel({ tasks }) {
+  const inProgressTasks = tasks.filter((t) => t.status === 'inprogress');
+  const [totalMs, setTotalMs] = useState(0);
+
+  useEffect(() => {
+    const compute = () => {
+      let ms = 0;
+      for (const t of tasks) {
+        ms += t.totalTimeSpent || 0;
+        if (t.status === 'inprogress' && t.timerStartedAt) {
+          ms += Date.now() - new Date(t.timerStartedAt).getTime();
+        }
+      }
+      return Math.max(0, ms);
+    };
+
+    setTotalMs(compute());
+    const interval = setInterval(() => setTotalMs(compute()), 1000);
+    return () => clearInterval(interval);
+  }, [tasks]);
+
+  const hours   = Math.floor(totalMs / 3600000);
+  const minutes = Math.floor((totalMs % 3600000) / 60000);
+  const seconds = Math.floor((totalMs % 60000) / 1000);
+  const pad = (n) => String(n).padStart(2, '0');
+
+  const timeStr = hours > 0
+    ? `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`
+    : `${pad(minutes)}:${pad(seconds)}`;
+
+  const isActive = inProgressTasks.length > 0;
+
+  return (
+    <div className={`project-time-panel ${isActive ? 'project-time-panel-active' : ''}`}>
+      <div className="project-time-panel-header">
+        {isActive && <span className="project-time-dot" />}
+        <span className="project-time-panel-icon">{isActive ? '⏱️' : '🕐'}</span>
+        <span className="project-time-panel-label">Time Invested</span>
+      </div>
+      <div className="project-time-panel-clock">{timeStr}</div>
+      {isActive && (
+        <div className="project-time-panel-sub">
+          {inProgressTasks.length} task{inProgressTasks.length > 1 ? 's' : ''} running
+        </div>
+      )}
+      {!isActive && totalMs === 0 && (
+        <div className="project-time-panel-sub">No time tracked yet</div>
+      )}
+    </div>
+  );
+}
+
 // --- Sortable Task Card ---
 function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSelf } = useSortable({
@@ -46,7 +110,7 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
     data: { type: 'task', task },
   });
 
-  const { elapsed } = useTaskTimer({
+  const { totalMs } = useTaskTimer({
     timerStartedAt: task.timerStartedAt,
     totalTimeSpent: task.totalTimeSpent,
     status: task.status,
@@ -98,13 +162,21 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
         <p className="task-card-desc">{task.description}</p>
       )}
 
-      {/* ── Timer badge ───────────────────────────────────────────────────── */}
+      {/* ── Enhanced Timer Display ─────────────────────────────────────────── */}
       {hasTime && (
-        <div className={`task-timer ${isInProgress ? 'task-timer-running' : 'task-timer-paused'}`}>
-          {isInProgress && <span className="task-timer-dot" />}
-          <span className="task-timer-icon">{isInProgress ? '⏱' : '⏸'}</span>
-          <span className="task-timer-elapsed">{elapsed}</span>
-          {isInProgress && <span className="task-timer-label">running</span>}
+        <div className={`task-timer-wrap ${isInProgress ? 'task-timer-wrap-running' : 'task-timer-wrap-paused'}`}>
+          {isInProgress && (
+            <div className="task-timer-header">
+              <span className="task-timer-dot" />
+              <span className="task-timer-status-text">LIVE TIMER</span>
+            </div>
+          )}
+          <div className="task-timer-clock">
+            {formatMsClock(totalMs)}
+          </div>
+          {!isInProgress && totalMs > 0 && (
+            <div className="task-timer-total-label">time invested</div>
+          )}
         </div>
       )}
 
@@ -312,7 +384,6 @@ export default function ProjectDetail() {
     if (activeId === overId) return;
 
     const activeCol = findTaskColumn(activeId);
-    // over could be column id or task id
     const overCol = COLUMNS.find((c) => c.id === overId)?.id || findTaskColumn(overId);
 
     if (!activeCol || !overCol || activeCol === overCol) return;
@@ -328,12 +399,10 @@ export default function ProjectDetail() {
     const activeId = active.id;
     const overId = over.id;
 
-    // Determine target column
     const overCol = COLUMNS.find((c) => c.id === overId)?.id || findTaskColumn(overId);
     const draggedTask = tasks.find((t) => t._id === activeId);
     if (!draggedTask || !overCol) return;
 
-    // Build new column order
     const colTasks = tasks
       .filter((t) => t.status === overCol)
       .sort((a, b) => a.order - b.order);
@@ -348,18 +417,15 @@ export default function ProjectDetail() {
 
     const updatedTasks = reordered.map((t, i) => ({ ...t, status: overCol, order: i }));
 
-    // Optimistic update
     setTasks((prev) => [
       ...prev.filter((t) => t.status !== overCol),
       ...updatedTasks,
     ]);
 
-    // Persist — the updated API now returns fresh task data (with timerStartedAt etc.)
     try {
       const res = await api.put('/tasks/reorder/bulk', {
         tasks: updatedTasks.map((t) => ({ _id: t._id, status: t.status, order: t.order })),
       });
-      // Sync timer fields from server (timerStartedAt, totalTimeSpent)
       if (res.data?.data) {
         const serverMap = new Map(res.data.data.map((t) => [t._id, t]));
         setTasks((prev) =>
@@ -424,6 +490,9 @@ export default function ProjectDetail() {
               </div>
             )}
           </div>
+
+          {/* ⏱ Project-level Time Panel */}
+          <ProjectTimePanel tasks={tasks} />
         </div>
 
         <div className="project-detail-actions">
