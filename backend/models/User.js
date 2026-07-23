@@ -31,6 +31,10 @@ const userSchema = new mongoose.Schema(
       enum: ['user', 'admin'],
       default: 'user',
     },
+    isWellbeingPublic: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

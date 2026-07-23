@@ -210,4 +210,66 @@ router.delete('/members/:userId', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/team/member/:userId
+// @desc    Get detailed profile of a specific team member
+// @access  Private
+router.get('/member/:userId', protect, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const team = await getOrCreateTeam(req.user._id);
+
+    // Verify if the requested user is in the team
+    if (!team.members.some((m) => m.toString() === userId)) {
+      return res.status(403).json({ success: false, message: 'User is not in your team' });
+    }
+
+    const memberId = new mongoose.Types.ObjectId(userId);
+
+    // Get user details
+    const member = await User.findById(memberId).select('-password');
+    if (!member) {
+      return res.status(404).json({ success: false, message: 'Member not found' });
+    }
+
+    // Get stats
+    const taskStats = await Task.aggregate([
+      { $match: { owner: memberId } },
+      {
+        $group: {
+          _id: '$status',
+          count: { $sum: 1 },
+        },
+      },
+    ]);
+    
+    const stats = { todo: 0, inprogress: 0, done: 0 };
+    taskStats.forEach(({ _id, count }) => {
+      stats[_id] = count;
+    });
+
+    // Get all tasks for this member (recent 50)
+    const tasks = await Task.find({ owner: memberId })
+      .populate('project', 'title color')
+      .sort({ createdAt: -1 })
+      .limit(50);
+
+    // Get projects owned by this member
+    const projects = await Project.find({ owner: memberId })
+      .sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: {
+        user: member,
+        stats,
+        tasks,
+        projects
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import './Team.css';
@@ -51,6 +52,7 @@ function TeamSkeleton() {
 function MemberCard({ memberData, onRemove }) {
   const { user, stats, inProgressTasks, projects } = memberData;
   const isActive = inProgressTasks && inProgressTasks.length > 0;
+  const navigate = useNavigate();
 
   return (
     <div className="member-card animate-bounceIn">
@@ -58,15 +60,20 @@ function MemberCard({ memberData, onRemove }) {
       <div className="member-card-body">
 
         {/* Identity */}
-        <div className="member-identity">
+        <div 
+          className="member-identity" 
+          onClick={() => navigate(`/team/${user._id}`)}
+          style={{ cursor: 'pointer' }}
+          title="View Profile"
+        >
           <MemberAvatar user={user} size={48} showActiveDot={isActive} />
           <div className="member-info">
-            <div className="member-name">{user.name}</div>
+            <div className="member-name" style={{ color: 'var(--primary-color)' }}>{user.name}</div>
             <div className="member-email">{user.email}</div>
           </div>
           <button
             className="member-remove-btn"
-            onClick={() => onRemove(user._id, user.name)}
+            onClick={(e) => { e.stopPropagation(); onRemove(user._id, user.name); }}
             title="Remove from team"
           >
             ✕ Remove

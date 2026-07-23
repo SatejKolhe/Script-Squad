@@ -39,7 +39,7 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/team', require('./routes/team'));
-
+app.use('/api/wellbeing', require('./routes/wellbeing'));
 
 // Health check
 app.get('/api/health', (req, res) => {

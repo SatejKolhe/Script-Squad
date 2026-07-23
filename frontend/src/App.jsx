@@ -12,6 +12,8 @@ import Projects from './pages/Projects';
 import ProjectDetail from './pages/ProjectDetail';
 import Analytics from './pages/Analytics';
 import Team from './pages/Team';
+import TeammateProfile from './pages/TeammateProfile';
+import DigitalWellbeing from './pages/DigitalWellbeing';
 import LandingPage from './pages/LandingPage';
 
 const ProtectedRoute = ({ children }) => {
@@ -44,7 +46,9 @@ function AppRoutes() {
         <Route path="projects" element={<Projects />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="team" element={<Team />} />
+        <Route path="team/:id" element={<TeammateProfile />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="wellbeing" element={<DigitalWellbeing />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
