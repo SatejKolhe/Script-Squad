@@ -272,4 +272,119 @@ router.get('/member/:userId', protect, async (req, res) => {
   }
 });
 
+// @route   POST /api/team/assign-task
+// @desc    Leader assigns a task to a team member
+// @access  Private
+router.post('/assign-task', protect, async (req, res) => {
+  try {
+    const { assigneeId, title, description, priority, dueDate } = req.body;
+
+    if (!assigneeId || !title) {
+      return res.status(400).json({ success: false, message: 'Assignee and title are required' });
+    }
+
+    // Verify the assignee is actually in the leader's team
+    const team = await getOrCreateTeam(req.user._id);
+    if (!team.members.some((m) => m.toString() === assigneeId)) {
+      return res.status(403).json({ success: false, message: 'User is not in your team' });
+    }
+
+    // Find or create a shared "Team Tasks" project owned by the leader
+    let project = await Project.findOne({
+      owner: req.user._id,
+      title: 'Team Tasks',
+    });
+    if (!project) {
+      project = await Project.create({
+        title: 'Team Tasks',
+        description: 'Tasks assigned by team leader',
+        owner: req.user._id,
+        color: '#7c3aed',
+      });
+    }
+
+    const task = await Task.create({
+      title: title.trim(),
+      description: description?.trim() || '',
+      project: project._id,
+      owner: req.user._id,          // creator = leader
+      assignee: assigneeId,          // assigned to member
+      priority: priority || 'medium',
+      dueDate: dueDate || null,
+      status: 'todo',
+    });
+
+    await task.populate('assignee', 'name email avatar');
+    await task.populate('project', 'title color');
+
+    res.status(201).json({ success: true, data: task, message: 'Task assigned successfully' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/team/assigned-tasks
+// @desc    Get all tasks assigned by the current user (as leader)
+// @access  Private
+router.get('/assigned-tasks', protect, async (req, res) => {
+  try {
+    const tasks = await Task.find({ owner: req.user._id, assignee: { $ne: null } })
+      .populate('assignee', 'name email avatar')
+      .populate('project', 'title color')
+      .sort({ createdAt: -1 })
+      .limit(100);
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PATCH /api/team/assigned-tasks/:taskId/status
+// @desc    Leader updates status of an assigned task
+// @access  Private
+router.patch('/assigned-tasks/:taskId/status', protect, async (req, res) => {
+  try {
+    const { status } = req.body;
+    if (!['todo', 'inprogress', 'done'].includes(status)) {
+      return res.status(400).json({ success: false, message: 'Invalid status' });
+    }
+
+    const task = await Task.findOne({ _id: req.params.taskId, owner: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    task.status = status;
+    await task.save();
+
+    await task.populate('assignee', 'name email avatar');
+    await task.populate('project', 'title color');
+
+    res.json({ success: true, data: task });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   DELETE /api/team/assigned-tasks/:taskId
+// @desc    Leader deletes an assigned task
+// @access  Private
+router.delete('/assigned-tasks/:taskId', protect, async (req, res) => {
+  try {
+    const task = await Task.findOneAndDelete({ _id: req.params.taskId, owner: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+    res.json({ success: true, message: 'Task deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 module.exports = router;
+
