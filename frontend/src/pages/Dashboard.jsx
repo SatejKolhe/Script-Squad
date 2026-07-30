@@ -120,12 +120,27 @@ export default function Dashboard() {
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
+    // Optimistically update UI
+    const prevTask = recentTasks.find((t) => t._id === taskId);
+    const wasNotDone = prevTask && prevTask.status !== 'done';
     try {
-      await api.put(`/tasks/${taskId}`, { status: newStatus });
+      const res = await api.put(`/tasks/${taskId}`, { status: newStatus });
       setRecentTasks((prev) =>
         prev.map((t) => (t._id === taskId ? { ...t, status: newStatus } : t))
       );
-      if (newStatus === 'done') toast.success('Task completed! 🎉');
+      if (newStatus === 'done' && wasNotDone) {
+        const xpGained = 10;
+        const updatedUser = res.data.updatedUser;
+        if (updatedUser) {
+          // Update localStorage + context via a lightweight state sync
+          const stored = JSON.parse(localStorage.getItem('ss_user') || '{}');
+          const merged = { ...stored, xp: updatedUser.xp, streak: updatedUser.streak, lastTaskCompletedAt: updatedUser.lastTaskCompletedAt };
+          localStorage.setItem('ss_user', JSON.stringify(merged));
+          // Force context re-read on next render by dispatching storage event
+          window.dispatchEvent(new StorageEvent('storage', { key: 'ss_user', newValue: JSON.stringify(merged) }));
+        }
+        toast.success(`Task done! +${xpGained} XP ⚡`);
+      }
     } catch (err) {
       toast.error('Failed to update task');
     }
@@ -194,6 +209,40 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* XP & Streak Banner */}
+      <div className="dashboard-xp-row">
+        <div className="dashboard-xp-card">
+          <span className="dashboard-xp-icon">⚡</span>
+          <div className="dashboard-xp-info">
+            <div className="dashboard-xp-value">{user?.xp || 0} XP</div>
+            <div className="dashboard-xp-label">Total earned</div>
+          </div>
+        </div>
+        <div className="dashboard-xp-card">
+          <span className="dashboard-xp-icon">🔥</span>
+          <div className="dashboard-xp-info">
+            <div className="dashboard-xp-value">{user?.streak || 0} day{user?.streak !== 1 ? 's' : ''}</div>
+            <div className="dashboard-xp-label">Current streak</div>
+          </div>
+        </div>
+        <div className="dashboard-xp-card dashboard-xp-card-bar">
+          <div className="dashboard-xp-level-row">
+            <span className="dashboard-xp-level-text">Level {Math.floor((user?.xp || 0) / 100) + 1}</span>
+            <span className="dashboard-xp-level-sub">{(user?.xp || 0) % 100}/100 XP</span>
+          </div>
+          <div className="dashboard-xp-bar-bg">
+            <div className="dashboard-xp-bar-fill" style={{ width: `${(user?.xp || 0) % 100}%` }} />
+          </div>
+        </div>
+        <Link to="/profile" className="dashboard-xp-card dashboard-xp-profile-link">
+          <span className="dashboard-xp-icon">🏆</span>
+          <div className="dashboard-xp-info">
+            <div className="dashboard-xp-value">View Profile</div>
+            <div className="dashboard-xp-label">Achievements →</div>
+          </div>
+        </Link>
       </div>
 
       {/* Stats Grid */}

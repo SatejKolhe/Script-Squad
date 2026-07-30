@@ -64,6 +64,19 @@ export const AuthProvider = ({ children }) => {
     }
   }, []);
 
+  // Listen for XP/streak updates dispatched from other components (e.g. Dashboard)
+  useEffect(() => {
+    const handleStorage = (e) => {
+      if (e.key === 'ss_user' && e.newValue) {
+        try {
+          setUser(JSON.parse(e.newValue));
+        } catch {}
+      }
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
+
   const register = useCallback(async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
     const { token, user: userData } = res.data;
@@ -94,11 +107,18 @@ export const AuthProvider = ({ children }) => {
   const updateProfile = useCallback(async (data) => {
     const res = await api.put('/auth/profile', data);
     const updated = res.data.user;
-    localStorage.setItem('ss_user', JSON.stringify(updated));
-    setUser(updated);
+    // Preserve xp/streak from current user if API doesn't return them
+    const merged = {
+      ...updated,
+      xp: updated.xp ?? user?.xp ?? 0,
+      streak: updated.streak ?? user?.streak ?? 0,
+      lastTaskCompletedAt: updated.lastTaskCompletedAt ?? user?.lastTaskCompletedAt ?? null,
+    };
+    localStorage.setItem('ss_user', JSON.stringify(merged));
+    setUser(merged);
     toast.success('Profile updated!');
-    return updated;
-  }, []);
+    return merged;
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, api }}>

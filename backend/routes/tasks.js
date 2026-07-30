@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
+const User = require('../models/User');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -253,6 +254,15 @@ router.put(
     }
 
     try {
+      // Fetch current task to detect status transition
+      const existing = await Task.findOne({ _id: req.params.id, owner: req.user._id });
+      if (!existing) {
+        return res.status(404).json({ success: false, message: 'Task not found' });
+      }
+
+      const wasNotDone = existing.status !== 'done';
+      const becomingDone = req.body.status === 'done';
+
       const task = await Task.findOneAndUpdate(
         { _id: req.params.id, owner: req.user._id },
         req.body,
@@ -264,8 +274,51 @@ router.put(
       if (!task) {
         return res.status(404).json({ success: false, message: 'Task not found' });
       }
-      res.json({ success: true, data: task });
+
+      // ── XP & Streak logic ────────────────────────────────────────────────
+      let updatedUser = null;
+      if (wasNotDone && becomingDone) {
+        const user = await User.findById(req.user._id);
+        if (user) {
+          const XP_PER_TASK = 10;
+          user.xp = (user.xp || 0) + XP_PER_TASK;
+
+          const now = new Date();
+          const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+          const yesterdayStart = new Date(todayStart);
+          yesterdayStart.setDate(yesterdayStart.getDate() - 1);
+
+          if (!user.lastTaskCompletedAt) {
+            // First ever completion
+            user.streak = 1;
+          } else {
+            const lastDate = new Date(user.lastTaskCompletedAt);
+            const lastDayStart = new Date(lastDate.getFullYear(), lastDate.getMonth(), lastDate.getDate());
+
+            if (lastDayStart.getTime() === todayStart.getTime()) {
+              // Already completed a task today — streak unchanged
+            } else if (lastDayStart.getTime() === yesterdayStart.getTime()) {
+              // Completed yesterday — extend streak
+              user.streak = (user.streak || 0) + 1;
+            } else {
+              // Gap in streak — reset
+              user.streak = 1;
+            }
+          }
+
+          user.lastTaskCompletedAt = now;
+          await user.save({ validateBeforeSave: false });
+          updatedUser = {
+            xp: user.xp,
+            streak: user.streak,
+            lastTaskCompletedAt: user.lastTaskCompletedAt,
+          };
+        }
+      }
+
+      res.json({ success: true, data: task, updatedUser });
     } catch (err) {
+      console.error(err);
       res.status(500).json({ success: false, message: 'Server error' });
     }
   }

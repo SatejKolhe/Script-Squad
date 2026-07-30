@@ -24,7 +24,11 @@ const sendToken = (user, statusCode, res) => {
       name: user.name,
       email: user.email,
       avatar: user.avatar,
+      bio: user.bio || '',
       role: user.role,
+      xp: user.xp || 0,
+      streak: user.streak || 0,
+      lastTaskCompletedAt: user.lastTaskCompletedAt || null,
       createdAt: user.createdAt,
     },
   });
@@ -120,9 +124,16 @@ router.put(
     }
 
     try {
+      const updateFields = {
+        name: req.body.name,
+        avatar: req.body.avatar,
+      };
+      if (typeof req.body.bio !== 'undefined') {
+        updateFields.bio = req.body.bio.slice(0, 300);
+      }
       const user = await User.findByIdAndUpdate(
         req.user._id,
-        { name: req.body.name, avatar: req.body.avatar },
+        updateFields,
         { new: true, runValidators: true }
       );
       res.json({ success: true, user });

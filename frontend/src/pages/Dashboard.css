@@ -507,3 +507,120 @@
   .dashboard-banner { flex-direction: column; align-items: flex-start; }
   .banner-right { flex-wrap: wrap; }
 }
+
+/* ===== XP & STREAK ROW ===== */
+.dashboard-xp-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin: 1.25rem 0;
+}
+
+.dashboard-xp-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  padding: 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  transition: all var(--transition-fast);
+  box-shadow: var(--shadow-sm);
+  text-decoration: none;
+  color: inherit;
+}
+
+.dashboard-xp-card:hover {
+  border-color: rgba(99,102,241,0.3);
+  box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-md);
+  transform: translateY(-2px);
+}
+
+.dashboard-xp-icon {
+  font-size: 1.5rem;
+  flex-shrink: 0;
+}
+
+.dashboard-xp-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.dashboard-xp-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dashboard-xp-label {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.dashboard-xp-card-bar {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.dashboard-xp-level-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.dashboard-xp-level-text {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.dashboard-xp-level-sub {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dashboard-xp-bar-bg {
+  width: 100%;
+  height: 6px;
+  background: rgba(99,102,241,0.12);
+  border-radius: 9999px;
+  overflow: hidden;
+}
+
+.dashboard-xp-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #6366f1, #ec4899);
+  border-radius: 9999px;
+  transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.dashboard-xp-profile-link {
+  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.05));
+  border-color: rgba(99,102,241,0.2);
+}
+
+.dashboard-xp-profile-link:hover {
+  background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(236,72,153,0.09));
+}
+
+@media (max-width: 900px) {
+  .dashboard-xp-row {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-xp-row {
+    grid-template-columns: 1fr;
+  }
+}
+

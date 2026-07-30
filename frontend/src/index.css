@@ -176,14 +176,25 @@ a:hover { color: var(--brand-primary-light); }
   margin-left: var(--sidebar-width);
   padding-top: var(--navbar-height);
   min-height: 100vh;
-  transition: margin-left var(--transition-base);
   background: var(--bg-primary);
+}
+
+@media (max-width: 768px) {
+  .main-content {
+    margin-left: 0;
+  }
 }
 
 .page-container {
   padding: 2rem;
   max-width: 1400px;
   margin: 0 auto;
+}
+
+@media (max-width: 600px) {
+  .page-container {
+    padding: 1.25rem;
+  }
 }
 
 /* ===== BUTTONS ===== */

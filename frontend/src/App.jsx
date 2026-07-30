@@ -15,6 +15,7 @@ import Team from './pages/Team';
 import TeammateProfile from './pages/TeammateProfile';
 import DigitalWellbeing from './pages/DigitalWellbeing';
 import LandingPage from './pages/LandingPage';
+import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -49,6 +50,7 @@ function AppRoutes() {
         <Route path="team/:id" element={<TeammateProfile />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="wellbeing" element={<DigitalWellbeing />} />
+        <Route path="profile" element={<Profile />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

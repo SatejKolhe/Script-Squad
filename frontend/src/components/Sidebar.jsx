@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import React from 'react';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import './Sidebar.css';
 
@@ -49,63 +49,103 @@ const NAV_ITEMS = [
   },
 ];
 
-export default function Sidebar() {
+// XP level calculation
+function getLevel(xp) {
+  return Math.floor((xp || 0) / 100) + 1;
+}
+function getLevelProgress(xp) {
+  return ((xp || 0) % 100);
+}
+
+export default function Sidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
-  const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    logout();
+    onClose?.();
+  };
+
+  const handleProfileClick = () => {
+    navigate('/profile');
+    onClose?.();
+  };
+
+  const level = getLevel(user?.xp);
+  const levelProgress = getLevelProgress(user?.xp);
+  const xp = user?.xp || 0;
+  const streak = user?.streak || 0;
 
   return (
-    <aside className={`sidebar ${collapsed ? 'collapsed' : ''}`}>
+    <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
       {/* Logo */}
       <div className="sidebar-logo">
         <div className="logo-icon">
           <span>⚡</span>
         </div>
-        {!collapsed && (
-          <div className="logo-text">
-            <span className="logo-name">Script Squad</span>
-            <span className="logo-tagline">Mission Control</span>
-          </div>
-        )}
-        <button
-          className="collapse-btn btn-icon"
-          onClick={() => setCollapsed(!collapsed)}
-          title="Toggle sidebar"
-        >
-          <svg
-            width="16" height="16" viewBox="0 0 24 24"
-            fill="none" stroke="currentColor" strokeWidth="2.5"
-            strokeLinecap="round" strokeLinejoin="round"
-            style={{ transform: collapsed ? 'rotate(180deg)' : 'none', transition: 'transform 0.25s ease' }}
-          >
-            <polyline points="15 18 9 12 15 6" />
-          </svg>
-        </button>
+        <div className="logo-text">
+          <span className="logo-name">Script Squad</span>
+          <span className="logo-tagline">Mission Control</span>
+        </div>
       </div>
 
       {/* Navigation */}
       <nav className="sidebar-nav">
-        <div className="nav-section-label">{!collapsed && 'Navigation'}</div>
+        <div className="nav-section-label">Navigation</div>
         {NAV_ITEMS.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
             className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
-            title={collapsed ? item.label : ''}
+            onClick={() => onClose?.()}
           >
             <span className="nav-icon">{item.icon}</span>
-            {!collapsed && <span className="nav-label">{item.label}</span>}
-            {!collapsed && location.pathname.startsWith(item.to) && (
-              <span className="nav-active-pip" />
-            )}
+            <span className="nav-label">{item.label}</span>
           </NavLink>
         ))}
+
+        {/* Profile link */}
+        <div className="nav-section-label" style={{ marginTop: '0.75rem' }}>Account</div>
+        <NavLink
+          to="/profile"
+          className={({ isActive }) => `nav-item ${isActive ? 'active' : ''}`}
+          onClick={() => onClose?.()}
+        >
+          <span className="nav-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </span>
+          <span className="nav-label">Profile</span>
+        </NavLink>
       </nav>
+
+      {/* XP & Streak Widget */}
+      {user && (
+        <div className="sidebar-xp-widget">
+          <div className="xp-widget-row">
+            <div className="xp-level-badge">Lv {level}</div>
+            <div className="xp-streak">
+              <span className="xp-streak-fire">🔥</span>
+              <span className="xp-streak-count">{streak} day{streak !== 1 ? 's' : ''}</span>
+            </div>
+          </div>
+          <div className="xp-bar-wrap">
+            <div className="xp-bar-fill" style={{ width: `${levelProgress}%` }} />
+          </div>
+          <div className="xp-bar-label">{xp} XP · {levelProgress}/100 to Lv {level + 1}</div>
+        </div>
+      )}
 
       {/* User Profile */}
       <div className="sidebar-footer">
         {user && (
-          <div className="sidebar-user">
+          <button
+            className="sidebar-user sidebar-user-btn"
+            onClick={handleProfileClick}
+            title="View profile"
+          >
             <div className="avatar avatar-sm">
               {user.avatar ? (
                 <img src={user.avatar} alt={user.name} />
@@ -113,17 +153,15 @@ export default function Sidebar() {
                 user.name?.[0]?.toUpperCase()
               )}
             </div>
-            {!collapsed && (
-              <div className="user-info">
-                <div className="user-name">{user.name}</div>
-                <div className="user-email">{user.email}</div>
-              </div>
-            )}
-          </div>
+            <div className="user-info">
+              <div className="user-name">{user.name}</div>
+              <div className="user-email">{user.email}</div>
+            </div>
+          </button>
         )}
         <button
           className="logout-btn btn-icon"
-          onClick={logout}
+          onClick={handleLogout}
           title="Logout"
         >
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
