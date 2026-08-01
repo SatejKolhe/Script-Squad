@@ -66,6 +66,8 @@
 .banner-title {
   font-size: 1.5rem;
   font-weight: 800;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
 }
 
@@ -272,7 +274,7 @@
 .stat-number {
   font-size: 2rem;
   font-weight: 800;
-  font-family: 'Outfit', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   color: var(--text-primary);
   line-height: 1;
   animation: countUp 0.5s ease;
@@ -302,9 +304,12 @@
 .p-6 { padding: 1.5rem; }
 
 .section-title {
-  font-size: 0.95rem;
+  font-family: 'Inter', sans-serif;
+  font-size: 1.15rem;
   font-weight: 700;
-  color: var(--text-primary);
+  letter-spacing: -0.015em;
+  color: var(--section-heading-color);
+  -webkit-text-fill-color: var(--section-heading-color);
   margin-bottom: 1rem;
 }
 
@@ -371,19 +376,24 @@
 }
 
 .project-mini-title {
-  font-size: 0.875rem;
-  font-weight: 600;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-size: 0.85rem;
+  font-weight: 700;
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.01em;
 }
 
 .project-mini-count {
-  font-size: 0.75rem;
-  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--brand-primary);
   white-space: nowrap;
   margin-left: 0.5rem;
+  opacity: 0.8;
 }
 
 .project-mini-progress {
@@ -451,13 +461,15 @@
 }
 
 .task-row-title {
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: 0.875rem;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-primary);
   display: block;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  letter-spacing: -0.005em;
 }
 
 .task-row-title.done {
@@ -474,8 +486,10 @@
 }
 
 .task-due {
-  font-size: 0.7rem;
-  font-weight: 500;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
 }
 
 /* Live badge for in-progress tasks */

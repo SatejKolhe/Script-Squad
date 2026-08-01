@@ -100,9 +100,10 @@
 }
 
 .profile-name {
-  font-family: 'Syne', 'Outfit', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: 1.8rem;
   font-weight: 800;
+  letter-spacing: -0.03em;
   color: var(--text-primary);
   line-height: 1.1;
   margin-bottom: 0.3rem;
@@ -180,9 +181,10 @@
 }
 
 .profile-stat-value {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-size: 1.6rem;
   font-weight: 800;
+  letter-spacing: -0.02em;
   background: linear-gradient(135deg, var(--text-primary), #818cf8);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;

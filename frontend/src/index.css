@@ -2,7 +2,7 @@
 /* Script Squad — Premium Productivity Platform  */
 
 /* ===== FONTS ===== */
-@import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Outfit:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Syne:wght@700;800&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&display=swap');
 
 /* ===== CSS VARIABLES — LIGHT & DARK THEMES ===== */
 :root {
@@ -39,6 +39,8 @@
 
   --border-color: #d8e0f0;
   --border-light: #eaeffc;
+
+  --section-heading-color: #1e293b;
 
   --shadow-sm:   0 1px 3px rgba(0,0,0,0.07);
   --shadow-md:   0 4px 20px rgba(0,0,0,0.08);
@@ -82,6 +84,8 @@
 
   --border-color: #1e2d45;
   --border-light: #172035;
+
+  --section-heading-color: #f1f5f9;
 
   --shadow-sm:        0 1px 3px rgba(0,0,0,0.5);
   --shadow-md:        0 4px 20px rgba(0,0,0,0.55);
@@ -127,10 +131,12 @@ body {
 
 /* ===== TYPOGRAPHY ===== */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Outfit', 'Inter', sans-serif;
+  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
   font-weight: 700;
   line-height: 1.2;
+  letter-spacing: -0.02em;
   color: var(--text-primary);
+  text-rendering: optimizeLegibility;
 }
 
 .font-display {
