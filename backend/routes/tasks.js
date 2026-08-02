@@ -8,18 +8,31 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Helper: build date range for today (midnight → 23:59:59)
+// ─────────────────────────────────────────────────────────────────────────────
+function todayRange() {
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+  const end = new Date();
+  end.setHours(23, 59, 59, 999);
+  return { start, end };
+}
+
 // @route   GET /api/tasks
-// @desc    Get tasks (optionally filter by project)
+// @desc    Get tasks (optionally filter by project, status, priority, labels, search)
 // @access  Private
 router.get('/', protect, async (req, res) => {
   try {
-    const { project, status, priority, search, dueDate, sortBy } = req.query;
+    const { project, status, priority, search, dueDate, sortBy, label, inbox } = req.query;
     const filter = { owner: req.user._id };
 
     if (project) filter.project = project;
+    if (inbox === 'true') filter.isInbox = true;
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (search) filter.title = { $regex: search, $options: 'i' };
+    if (label) filter['labels.name'] = { $regex: label, $options: 'i' };
     if (dueDate) {
       const date = new Date(dueDate);
       filter.dueDate = { $lte: date };
@@ -43,15 +56,15 @@ router.get('/', protect, async (req, res) => {
 });
 
 // @route   POST /api/tasks
-// @desc    Create task
+// @desc    Create task (project is now optional — omit for Inbox)
 // @access  Private
 router.post(
   '/',
   protect,
   [
     body('title').trim().notEmpty().withMessage('Task title is required').isLength({ max: 200 }),
-    body('project').notEmpty().withMessage('Project is required').isMongoId(),
-    body('priority').optional().isIn(['low', 'medium', 'high']),
+    body('project').optional({ nullable: true }).isMongoId(),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']),
     body('status').optional().isIn(['todo', 'inprogress', 'done']),
   ],
   async (req, res) => {
@@ -61,20 +74,33 @@ router.post(
     }
 
     try {
-      // Verify project belongs to user
-      const project = await Project.findOne({ _id: req.body.project, owner: req.user._id });
-      if (!project) {
-        return res.status(404).json({ success: false, message: 'Project not found' });
+      let order = 0;
+      // If a project is provided, verify ownership
+      if (req.body.project) {
+        const project = await Project.findOne({ _id: req.body.project, owner: req.user._id });
+        if (!project) {
+          return res.status(404).json({ success: false, message: 'Project not found' });
+        }
+        // Get highest order in this project+status
+        const lastTask = await Task.findOne({
+          project: req.body.project,
+          status: req.body.status || 'todo',
+        }).sort({ order: -1 });
+        order = lastTask ? lastTask.order + 1 : 0;
+      } else {
+        // Inbox task — get highest order among inbox tasks
+        const lastInboxTask = await Task.findOne({
+          owner: req.user._id,
+          isInbox: true,
+          status: req.body.status || 'todo',
+        }).sort({ order: -1 });
+        order = lastInboxTask ? lastInboxTask.order + 1 : 0;
       }
-
-      // Get highest order in this project+status
-      const lastTask = await Task.findOne({ project: req.body.project, status: req.body.status || 'todo' }).sort({
-        order: -1,
-      });
-      const order = lastTask ? lastTask.order + 1 : 0;
 
       const task = await Task.create({
         ...req.body,
+        project: req.body.project || null,
+        isInbox: !req.body.project,
         owner: req.user._id,
         order,
       });
@@ -155,6 +181,101 @@ router.get('/analytics/summary', protect, async (req, res) => {
   }
 });
 
+// @route   GET /api/tasks/inbox
+// @desc    Get Inbox tasks (no project / isInbox=true)
+// @access  Private
+router.get('/inbox', protect, async (req, res) => {
+  try {
+    const tasks = await Task.find({ owner: req.user._id, isInbox: true })
+      .populate('assignee', 'name email avatar')
+      .sort({ order: 1, createdAt: -1 });
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/today
+// @desc    Get tasks due today + overdue incomplete tasks
+// @access  Private
+router.get('/today', protect, async (req, res) => {
+  try {
+    const { start, end } = todayRange();
+
+    const tasks = await Task.find({
+      owner: req.user._id,
+      status: { $ne: 'done' },
+      dueDate: { $lte: end },
+    })
+      .populate('assignee', 'name email avatar')
+      .populate('project', 'title color')
+      .sort({ dueDate: 1, priority: -1 });
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/upcoming
+// @desc    Get tasks due in the next 7 days (excluding today)
+// @access  Private
+router.get('/upcoming', protect, async (req, res) => {
+  try {
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0);
+
+    const inSevenDays = new Date();
+    inSevenDays.setDate(inSevenDays.getDate() + 7);
+    inSevenDays.setHours(23, 59, 59, 999);
+
+    const tasks = await Task.find({
+      owner: req.user._id,
+      status: { $ne: 'done' },
+      dueDate: { $gte: tomorrow, $lte: inSevenDays },
+    })
+      .populate('assignee', 'name email avatar')
+      .populate('project', 'title color')
+      .sort({ dueDate: 1 });
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/search
+// @desc    Full-text search across all user tasks
+// @access  Private
+router.get('/search', protect, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) {
+      return res.json({ success: true, data: [] });
+    }
+    const tasks = await Task.find({
+      owner: req.user._id,
+      $or: [
+        { title: { $regex: q, $options: 'i' } },
+        { description: { $regex: q, $options: 'i' } },
+        { tags: { $regex: q, $options: 'i' } },
+      ],
+    })
+      .populate('project', 'title color')
+      .sort({ createdAt: -1 })
+      .limit(20);
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @route   PUT /api/tasks/reorder/bulk
 // @desc    Bulk reorder tasks (for kanban drag-and-drop)
 // @access  Private
@@ -165,9 +286,6 @@ router.put('/reorder/bulk', protect, async (req, res) => {
       return res.status(400).json({ success: false, message: 'tasks array required' });
     }
 
-    // Split into two groups:
-    //  1. Tasks whose status changed  → need individual .save() to trigger timer middleware
-    //  2. Tasks that only moved order → fast bulkWrite is fine
     const taskIds = tasks.map((t) => t._id);
     const existingTasks = await Task.find({ _id: { $in: taskIds }, owner: req.user._id });
     const existingMap = new Map(existingTasks.map((t) => [t._id.toString(), t]));
@@ -185,7 +303,6 @@ router.put('/reorder/bulk', protect, async (req, res) => {
       }
     }
 
-    // Handle status-changing tasks individually (triggers pre-save timer hook)
     await Promise.all(
       statusChangers.map(({ doc, update }) => {
         doc.status = update.status;
@@ -194,7 +311,6 @@ router.put('/reorder/bulk', protect, async (req, res) => {
       })
     );
 
-    // Handle order-only tasks with fast bulkWrite
     if (orderOnly.length > 0) {
       const bulkOps = orderOnly.map((t) => ({
         updateOne: {
@@ -205,7 +321,6 @@ router.put('/reorder/bulk', protect, async (req, res) => {
       await Task.bulkWrite(bulkOps);
     }
 
-    // Return updated tasks so the frontend gets fresh timerStartedAt / totalTimeSpent
     const updated = await Task.find({ _id: { $in: taskIds } })
       .populate('assignee', 'name email avatar')
       .populate('project', 'title color');
@@ -216,7 +331,6 @@ router.put('/reorder/bulk', protect, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
-
 
 // @route   GET /api/tasks/:id
 // @desc    Get single task
@@ -244,7 +358,7 @@ router.put(
   protect,
   [
     body('title').optional().trim().notEmpty().isLength({ max: 200 }),
-    body('priority').optional().isIn(['low', 'medium', 'high']),
+    body('priority').optional().isIn(['low', 'medium', 'high', 'urgent']),
     body('status').optional().isIn(['todo', 'inprogress', 'done']),
   ],
   async (req, res) => {
@@ -254,7 +368,6 @@ router.put(
     }
 
     try {
-      // Fetch current task to detect status transition
       const existing = await Task.findOne({ _id: req.params.id, owner: req.user._id });
       if (!existing) {
         return res.status(404).json({ success: false, message: 'Task not found' });
@@ -289,7 +402,6 @@ router.put(
           yesterdayStart.setDate(yesterdayStart.getDate() - 1);
 
           if (!user.lastTaskCompletedAt) {
-            // First ever completion
             user.streak = 1;
           } else {
             const lastDate = new Date(user.lastTaskCompletedAt);
@@ -298,10 +410,8 @@ router.put(
             if (lastDayStart.getTime() === todayStart.getTime()) {
               // Already completed a task today — streak unchanged
             } else if (lastDayStart.getTime() === yesterdayStart.getTime()) {
-              // Completed yesterday — extend streak
               user.streak = (user.streak || 0) + 1;
             } else {
-              // Gap in streak — reset
               user.streak = 1;
             }
           }

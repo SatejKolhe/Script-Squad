@@ -16,6 +16,10 @@ import TeammateProfile from './pages/TeammateProfile';
 import DigitalWellbeing from './pages/DigitalWellbeing';
 import LandingPage from './pages/LandingPage';
 import Profile from './pages/Profile';
+import Inbox from './pages/Inbox';
+import Today from './pages/Today';
+import Upcoming from './pages/Upcoming';
+import FiltersLabels from './pages/FiltersLabels';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -44,6 +48,12 @@ function AppRoutes() {
       <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
         <Route path="dashboard" element={<Dashboard />} />
+        {/* Todoist-like views */}
+        <Route path="inbox" element={<Inbox />} />
+        <Route path="today" element={<Today />} />
+        <Route path="upcoming" element={<Upcoming />} />
+        <Route path="filters-labels" element={<FiltersLabels />} />
+        {/* Existing routes */}
         <Route path="projects" element={<Projects />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
         <Route path="team" element={<Team />} />

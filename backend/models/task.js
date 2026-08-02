@@ -1,5 +1,10 @@
 const mongoose = require('mongoose');
 
+const labelSchema = new mongoose.Schema({
+  name: { type: String, trim: true, maxlength: 50 },
+  color: { type: String, default: '#6366f1' },
+}, { _id: false });
+
 const taskSchema = new mongoose.Schema(
   {
     title: {
@@ -17,7 +22,11 @@ const taskSchema = new mongoose.Schema(
     project: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Project',
-      required: true,
+      default: null,  // null = Inbox task
+    },
+    isInbox: {
+      type: Boolean,
+      default: false,
     },
     owner: {
       type: mongoose.Schema.Types.ObjectId,
@@ -36,7 +45,7 @@ const taskSchema = new mongoose.Schema(
     },
     priority: {
       type: String,
-      enum: ['low', 'medium', 'high'],
+      enum: ['low', 'medium', 'high', 'urgent'],
       default: 'medium',
     },
     dueDate: {
@@ -52,17 +61,16 @@ const taskSchema = new mongoose.Schema(
       default: 0,
     },
     tags: [{ type: String }],
+    labels: [labelSchema],
     completedAt: {
       type: Date,
       default: null,
     },
     // ── Timer fields ──────────────────────────────────────────────────────────
-    // Timestamp when the task entered 'inprogress' (cleared when it leaves)
     timerStartedAt: {
       type: Date,
       default: null,
     },
-    // Total accumulated time in milliseconds (survives pause/resume cycles)
     totalTimeSpent: {
       type: Number,
       default: 0,
@@ -75,6 +83,8 @@ const taskSchema = new mongoose.Schema(
 taskSchema.index({ project: 1, status: 1 });
 taskSchema.index({ owner: 1, status: 1 });
 taskSchema.index({ owner: 1, dueDate: 1 });
+taskSchema.index({ owner: 1, isInbox: 1 });
+taskSchema.index({ owner: 1, 'labels.name': 1 });
 
 // Set completedAt timestamp automatically
 // Auto-manage timer when status transitions to/from 'inprogress'
@@ -102,6 +112,10 @@ taskSchema.pre('save', function () {
   }
   if (this.isModified('dueDate')) {
     this.reminderSent = false;
+  }
+  // Auto-set isInbox if no project
+  if (!this.project) {
+    this.isInbox = true;
   }
 });
 

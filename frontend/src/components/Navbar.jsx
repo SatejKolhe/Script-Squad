@@ -2,15 +2,20 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
+import GlobalSearch from './GlobalSearch';
 import './Navbar.css';
 
 const PAGE_TITLES = {
-  '/dashboard':  { title: 'Dashboard',   subtitle: 'Overview of your work' },
-  '/projects':   { title: 'Projects',    subtitle: 'Manage all your projects' },
-  '/analytics':  { title: 'Analytics',   subtitle: 'Insights & productivity trends' },
-  '/team':       { title: 'Team',        subtitle: 'Track who\'s working on what' },
-  '/wellbeing':  { title: 'Wellbeing',   subtitle: 'Monitor your digital habits' },
-  '/profile':    { title: 'Profile',     subtitle: 'Your account & achievements' },
+  '/dashboard':      { title: 'Dashboard',       subtitle: 'Overview of your work' },
+  '/inbox':          { title: 'Inbox',            subtitle: 'Your catch-all task list' },
+  '/today':          { title: 'Today',            subtitle: 'Tasks due today' },
+  '/upcoming':       { title: 'Upcoming',         subtitle: 'Tasks in the next 7 days' },
+  '/filters-labels': { title: 'Filters & Labels', subtitle: 'Organize with filters and labels' },
+  '/projects':       { title: 'Projects',         subtitle: 'Manage all your projects' },
+  '/analytics':      { title: 'Analytics',        subtitle: 'Insights & productivity trends' },
+  '/team':           { title: 'Team',             subtitle: 'Track who\'s working on what' },
+  '/wellbeing':      { title: 'Wellbeing',        subtitle: 'Monitor your digital habits' },
+  '/profile':        { title: 'Profile',          subtitle: 'Your account & achievements' },
 };
 
 export default function Navbar({ onMenuToggle }) {
@@ -50,6 +55,9 @@ export default function Navbar({ onMenuToggle }) {
       </div>
 
       <div className="navbar-right">
+        {/* Global Search */}
+        <GlobalSearch />
+
         {/* Date display */}
         <div className="navbar-date">
           {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
