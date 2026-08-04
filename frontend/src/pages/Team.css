@@ -99,7 +99,9 @@
   border-bottom: 1px solid var(--border-light);
 }
 
-.search-result-item:last-child { border-bottom: none; }
+.search-result-item:last-child {
+  border-bottom: none;
+}
 
 .search-result-item:hover {
   background: rgba(99, 102, 241, 0.06);
@@ -188,10 +190,21 @@
 }
 
 /* Member identity row */
-.member-identity {
-  display: flex;
-  align-items: center;
-  gap: 0.875rem;
+@media (max-width:768px) {
+
+  .member-identity {
+
+    flex-wrap: wrap;
+
+  }
+
+  .member-remove-btn {
+
+    width: 100%;
+    margin-top: .5rem;
+
+  }
+
 }
 
 .member-avatar-wrap {
@@ -235,11 +248,21 @@
 }
 
 @keyframes memberPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
-  50%       { box-shadow: 0 0 0 5px rgba(16, 185, 129, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 0 5px rgba(16, 185, 129, 0);
+  }
 }
 
-.member-info { flex: 1; min-width: 0; }
+.member-info {
+  flex: 1;
+  min-width: 0;
+}
 
 .member-name {
   font-size: 0.95rem;
@@ -301,9 +324,17 @@
   line-height: 1;
 }
 
-.member-stat-num.todo    { color: var(--text-secondary); }
-.member-stat-num.inprog  { color: var(--brand-primary); }
-.member-stat-num.done    { color: var(--brand-success); }
+.member-stat-num.todo {
+  color: var(--text-secondary);
+}
+
+.member-stat-num.inprog {
+  color: var(--brand-primary);
+}
+
+.member-stat-num.done {
+  color: var(--brand-success);
+}
 
 .member-stat-label {
   font-size: 0.65rem;
@@ -453,7 +484,41 @@
 
 /* ── Responsive ────────────────────────────────── */
 @media (max-width: 768px) {
-  .team-grid { grid-template-columns: 1fr; }
-  .team-header { flex-direction: column; }
-  .add-member-input-row { flex-direction: column; }
+  .team-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .team-header {
+    flex-direction: column;
+  }
+
+  .add-member-input-row {
+    flex-direction: column;
+  }
+
+  .member-identity {
+    flex-wrap: wrap;
+  }
+
+  .member-remove-btn {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+
+  .member-active-task {
+    flex-wrap: wrap;
+    align-items: flex-start;
+  }
+
+  .search-result-item {
+
+    flex-wrap: wrap;
+
+  }
+
+  .search-result-add-btn {
+
+    width: 100%;
+  }
+
 }

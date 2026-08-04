@@ -5,12 +5,33 @@ import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
 const PAGE_TITLES = {
-  '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your work' },
-  '/projects': { title: 'Projects', subtitle: 'Manage all your projects' },
-  '/analytics': { title: 'Analytics', subtitle: 'Insights & productivity trends' },
+  '/dashboard': {
+    title: 'Dashboard',
+    subtitle: 'Overview of your work',
+  },
+
+  '/projects': {
+    title: 'Projects',
+    subtitle: 'Manage all your projects',
+  },
+
+  '/team': {
+    title: 'Team',
+    subtitle: "Track who's working on what",
+  },
+
+  '/analytics': {
+    title: 'Analytics',
+    subtitle: 'Insights & productivity trends',
+  },
+
+  '/wellbeing': {
+    title: 'Digital Wellbeing',
+    subtitle: 'Track your online time and maintain a healthy balance',
+  },
 };
 
-export default function Navbar() {
+export default function Navbar({ setMobileOpen }) {
   const { theme, toggleTheme, isDark } = useTheme();
   const { user } = useAuth();
   const location = useLocation();
@@ -21,6 +42,13 @@ export default function Navbar() {
   return (
     <header className="navbar">
       <div className="navbar-left">
+        <button
+          className="mobile-menu-btn btn-icon"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
         <div>
           <h1 className="navbar-title">{title}</h1>
           <p className="navbar-subtitle">{subtitle}</p>

@@ -115,7 +115,7 @@
 }
 
 .project-time-panel-clock {
-  font-family: 'Courier New', Courier, monospace;
+  font-family:'Courier New',Courier,monospace;
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -369,7 +369,7 @@
 
 /* Large clock-style time display */
 .task-timer-clock {
-  font-family: 'Courier New', Courier, monospace;
+  font-family:'Courier New',Courier,monospace;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.05em;

@@ -26,7 +26,6 @@
   opacity: 0.4;
 }
 
-.sidebar.collapsed { width: 72px; }
 
 /* ── Logo area ── */
 .sidebar-logo {
@@ -85,18 +84,6 @@
   letter-spacing: 0.1em;
 }
 
-.collapse-btn {
-  margin-left: auto;
-  flex-shrink: 0;
-  color: var(--text-muted);
-  width: 30px; height: 30px;
-  border-radius: 8px;
-}
-
-.collapse-btn:hover {
-  background: rgba(99,102,241,0.1);
-  color: #818cf8;
-}
 
 /* ── Navigation ── */
 .sidebar-nav {

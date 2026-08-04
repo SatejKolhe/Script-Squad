@@ -63,7 +63,7 @@
 }
 
 input:checked + .slider {
-  background-color: var(--primary-color);
+  background-color: var(--brand-primary);
 }
 
 input:checked + .slider:before {
