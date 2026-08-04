@@ -32,8 +32,3 @@ export default function AppLayout() {
     </div>
   );
 }
-        <Outlet />
-      </div>
-    </div>
-  );
-}

@@ -902,20 +902,6 @@
 @media (max-width: 768px) {
   .assign-panel-header { flex-direction: column; align-items: flex-start; }
   .assign-task-list { max-height: 360px; }
-}
-
-=======
-  .team-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .team-header {
-    flex-direction: column;
-  }
-
-  .add-member-input-row {
-    flex-direction: column;
-  }
 
   .member-identity {
     flex-wrap: wrap;
@@ -932,15 +918,10 @@
   }
 
   .search-result-item {
-
     flex-wrap: wrap;
-
   }
 
   .search-result-add-btn {
-
     width: 100%;
   }
-
 }
->>>>>>> responsive-layout
