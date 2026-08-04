@@ -8,7 +8,12 @@ export default function AppLayout() {
 
   return (
     <div className="app-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        mobileOpen={sidebarOpen}
+        setMobileOpen={setSidebarOpen}
+      />
       {/* Mobile overlay */}
       {sidebarOpen && (
         <div
@@ -18,7 +23,15 @@ export default function AppLayout() {
         />
       )}
       <div className="main-content">
-        <Navbar onMenuToggle={() => setSidebarOpen((o) => !o)} />
+        <Navbar
+          onMenuToggle={() => setSidebarOpen((o) => !o)}
+          setMobileOpen={setSidebarOpen}
+        />
+        <Outlet />
+      </div>
+    </div>
+  );
+}
         <Outlet />
       </div>
     </div>
