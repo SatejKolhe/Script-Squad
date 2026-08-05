@@ -5,9 +5,12 @@ import {
   DndContext,
   DragOverlay,
   closestCorners,
+  pointerWithin,
+  rectIntersection,
   PointerSensor,
   useSensor,
   useSensors,
+  useDroppable,
 } from '@dnd-kit/core';
 import {
   SortableContext,
@@ -196,8 +199,16 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
 
 // --- Kanban Column ---
 function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask }) {
+  const { setNodeRef, isOver } = useDroppable({
+    id: column.id,
+  });
+
   return (
-    <div className="kanban-column" data-status={column.id}>
+    <div
+      ref={setNodeRef}
+      className={`kanban-column ${isOver ? 'column-is-over' : ''}`}
+      data-status={column.id}
+    >
       <div className="kanban-column-header">
         <div className="kanban-column-title">
           <span>{column.label}</span>
@@ -368,11 +379,31 @@ export default function ProjectDetail() {
   };
 
   // --- DnD Handlers ---
-  const findTaskColumn = (taskId) => {
-    return tasks.find((t) => t._id === taskId)?.status || null;
+  const initialTasksRef = useRef(null);
+
+  const findContainer = (id) => {
+    if (!id) return null;
+    if (COLUMNS.some((col) => col.id === id)) {
+      return id;
+    }
+    const task = tasks.find((t) => t._id === id);
+    return task ? task.status : null;
   };
 
+  const collisionDetectionStrategy = useCallback((args) => {
+    const pointerCollisions = pointerWithin(args);
+    if (pointerCollisions.length > 0) {
+      return pointerCollisions;
+    }
+    const rectCollisions = rectIntersection(args);
+    if (rectCollisions.length > 0) {
+      return rectCollisions;
+    }
+    return closestCorners(args);
+  }, []);
+
   const handleDragStart = ({ active }) => {
+    initialTasksRef.current = [...tasks];
     const task = tasks.find((t) => t._id === active.id);
     setActiveTask(task || null);
   };
@@ -383,59 +414,110 @@ export default function ProjectDetail() {
     const overId = over.id;
     if (activeId === overId) return;
 
-    const activeCol = findTaskColumn(activeId);
-    const overCol = COLUMNS.find((c) => c.id === overId)?.id || findTaskColumn(overId);
+    const activeContainer = findContainer(activeId);
+    const overContainer = findContainer(overId);
 
-    if (!activeCol || !overCol || activeCol === overCol) return;
+    if (!activeContainer || !overContainer || activeContainer === overContainer) {
+      return;
+    }
 
     setTasks((prev) =>
-      prev.map((t) => (t._id === activeId ? { ...t, status: overCol } : t))
+      prev.map((t) => (t._id === activeId ? { ...t, status: overContainer } : t))
     );
   };
 
   const handleDragEnd = async ({ active, over }) => {
     setActiveTask(null);
-    if (!over) return;
+    if (!over) {
+      if (initialTasksRef.current) {
+        setTasks(initialTasksRef.current);
+      }
+      initialTasksRef.current = null;
+      return;
+    }
+
     const activeId = active.id;
     const overId = over.id;
 
-    const overCol = COLUMNS.find((c) => c.id === overId)?.id || findTaskColumn(overId);
-    const draggedTask = tasks.find((t) => t._id === activeId);
-    if (!draggedTask || !overCol) return;
-
-    const colTasks = tasks
-      .filter((t) => t.status === overCol)
-      .sort((a, b) => a.order - b.order);
-
-    const oldIdx = colTasks.findIndex((t) => t._id === activeId);
-    const newIdx = colTasks.findIndex((t) => t._id === overId);
-
-    let reordered = colTasks;
-    if (oldIdx !== -1 && newIdx !== -1 && oldIdx !== newIdx) {
-      reordered = arrayMove(colTasks, oldIdx, newIdx);
-    }
-
-    const updatedTasks = reordered.map((t, i) => ({ ...t, status: overCol, order: i }));
-
-    setTasks((prev) => [
-      ...prev.filter((t) => t.status !== overCol),
-      ...updatedTasks,
-    ]);
-
-    try {
-      const res = await api.put('/tasks/reorder/bulk', {
-        tasks: updatedTasks.map((t) => ({ _id: t._id, status: t.status, order: t.order })),
-      });
-      if (res.data?.data) {
-        const serverMap = new Map(res.data.data.map((t) => [t._id, t]));
-        setTasks((prev) =>
-          prev.map((t) => (serverMap.has(t._id) ? { ...t, ...serverMap.get(t._id) } : t))
-        );
+    const overContainer = findContainer(overId);
+    if (!overContainer) {
+      if (initialTasksRef.current) {
+        setTasks(initialTasksRef.current);
       }
-    } catch {
-      toast.error('Failed to save order');
-      loadProject();
+      initialTasksRef.current = null;
+      return;
     }
+
+    setTasks((prevTasks) => {
+      const updated = prevTasks.map((t) =>
+        t._id === activeId ? { ...t, status: overContainer } : t
+      );
+
+      const containerTasks = updated
+        .filter((t) => t.status === overContainer)
+        .sort((a, b) => a.order - b.order);
+
+      const oldIndex = containerTasks.findIndex((t) => t._id === activeId);
+      let newIndex = containerTasks.findIndex((t) => t._id === overId);
+
+      let reorderedContainerTasks = containerTasks;
+
+      if (oldIndex !== -1 && newIndex !== -1 && oldIndex !== newIndex) {
+        reorderedContainerTasks = arrayMove(containerTasks, oldIndex, newIndex);
+      }
+
+      const containerTasksMap = new Map();
+      COLUMNS.forEach((col) => {
+        let colTasks;
+        if (col.id === overContainer) {
+          colTasks = reorderedContainerTasks;
+        } else {
+          colTasks = updated
+            .filter((t) => t.status === col.id)
+            .sort((a, b) => a.order - b.order);
+        }
+        colTasks.forEach((t, i) => {
+          containerTasksMap.set(t._id, { ...t, status: col.id, order: i });
+        });
+      });
+
+      const finalAllTasks = updated.map((t) => containerTasksMap.get(t._id) || t);
+
+      const reorderPayload = Array.from(containerTasksMap.values()).map((t) => ({
+        _id: t._id,
+        status: t.status,
+        order: t.order,
+      }));
+
+      api.put('/tasks/reorder/bulk', { tasks: reorderPayload })
+        .then((res) => {
+          if (res.data?.data) {
+            const serverMap = new Map(res.data.data.map((t) => [t._id, t]));
+            setTasks((curr) =>
+              curr.map((t) => (serverMap.has(t._id) ? { ...t, ...serverMap.get(t._id) } : t))
+            );
+          }
+        })
+        .catch(() => {
+          toast.error('Failed to save order');
+          if (initialTasksRef.current) {
+            setTasks(initialTasksRef.current);
+          }
+        })
+        .finally(() => {
+          initialTasksRef.current = null;
+        });
+
+      return finalAllTasks;
+    });
+  };
+
+  const handleDragCancel = () => {
+    setActiveTask(null);
+    if (initialTasksRef.current) {
+      setTasks(initialTasksRef.current);
+    }
+    initialTasksRef.current = null;
   };
 
   if (loading) {
@@ -539,10 +621,11 @@ export default function ProjectDetail() {
       {/* Kanban Board */}
       <DndContext
         sensors={sensors}
-        collisionDetection={closestCorners}
+        collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
+        onDragCancel={handleDragCancel}
       >
         <div className="kanban-board">
           {COLUMNS.map((col) => (

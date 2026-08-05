@@ -117,7 +117,7 @@
 }
 
 .project-time-panel-clock {
-  font-family: 'Courier New', Courier, monospace;
+  font-family:'Courier New',Courier,monospace;
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -151,7 +151,13 @@
   display: flex;
   flex-direction: column;
   min-height: 400px;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+}
+
+.kanban-column.column-is-over {
+  border-color: var(--brand-primary);
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 .kanban-column[data-status='inprogress'] {
@@ -371,7 +377,7 @@
 
 /* Large clock-style time display */
 .task-timer-clock {
-  font-family: 'Courier New', Courier, monospace;
+  font-family:'Courier New',Courier,monospace;
   font-size: 1.35rem;
   font-weight: 800;
   letter-spacing: 0.05em;

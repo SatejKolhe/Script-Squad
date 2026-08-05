@@ -8,13 +8,13 @@ const PAGE_TITLES = {
   '/dashboard':  { title: 'Dashboard',   subtitle: 'Overview of your work' },
   '/projects':   { title: 'Projects',    subtitle: 'Manage all your projects' },
   '/analytics':  { title: 'Analytics',   subtitle: 'Insights & productivity trends' },
-  '/team':       { title: 'Team',        subtitle: 'Track who\'s working on what' },
-  '/wellbeing':  { title: 'Wellbeing',   subtitle: 'Monitor your digital habits' },
+  '/team':       { title: 'Team',        subtitle: "Track who's working on what" },
+  '/wellbeing':  { title: 'Digital Wellbeing', subtitle: 'Track your online time and maintain a healthy balance' },
   '/profile':    { title: 'Profile',     subtitle: 'Your account & achievements' },
 };
 
-export default function Navbar() {
-  const { toggleTheme, isDark } = useTheme();
+export default function Navbar({ onMenuToggle, setMobileOpen }) {
+  const { theme, toggleTheme, isDark } = useTheme();
   const { user } = useAuth();
   const location = useLocation();
 
@@ -29,6 +29,13 @@ export default function Navbar() {
     <header className="navbar">
 
       <div className="navbar-left">
+        <button
+          className="mobile-menu-btn btn-icon"
+          onClick={() => setMobileOpen(true)}
+          aria-label="Open menu"
+        >
+          ☰
+        </button>
         <div>
           <h1 className="navbar-title">{title}</h1>
           {subtitle && <p className="navbar-subtitle">{subtitle}</p>}
