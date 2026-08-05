@@ -36,9 +36,39 @@ export default function Profile() {
     ? new Date(user.createdAt).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
     : 'Unknown';
 
-  const handleAvatarUrlChange = (e) => {
-    setAvatarUrl(e.target.value);
-    setAvatarPreview(e.target.value);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
+
+  const handleFileChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error('File size must be less than 5MB');
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(file);
+    setAvatarPreview(objectUrl);
+    setIsUploadingAvatar(true);
+
+    const formData = new FormData();
+    formData.append('avatar', file);
+
+    try {
+      const res = await api.post('/uploads/avatar', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+      if (res.data.success) {
+        setAvatarUrl(res.data.url);
+        toast.success('Avatar uploaded! Click Save to confirm.');
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to upload avatar');
+      setAvatarPreview(avatarUrl); 
+    } finally {
+      setIsUploadingAvatar(false);
+      if (avatarInputRef.current) avatarInputRef.current.value = '';
+    }
   };
 
   const handleSave = async (e) => {
@@ -152,25 +182,59 @@ export default function Profile() {
           <form onSubmit={handleSave} className="profile-form">
             <div className="profile-form-section">
               <h3 className="profile-section-title">Avatar</h3>
-              <p className="profile-section-sub">Paste an image URL to set your profile picture</p>
-              <div className="profile-avatar-editor">
-                <div className="profile-avatar-sm">
+              <p className="profile-section-sub">Upload a new profile picture</p>
+              <div className="profile-avatar-editor" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                <div 
+                  className="profile-avatar-sm" 
+                  style={{ position: 'relative', cursor: 'pointer', overflow: 'visible' }}
+                  onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
+                >
+                  {isUploadingAvatar && (
+                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', zIndex: 2 }}>
+                      <span className="spinner" style={{ width: '20px', height: '20px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+                    </div>
+                  )}
                   {avatarPreview ? (
-                    <img src={avatarPreview} alt="preview" onError={() => setAvatarPreview('')} />
+                    <img src={avatarPreview} alt="preview" onError={() => setAvatarPreview('')} style={{ opacity: isUploadingAvatar ? 0.5 : 1 }} />
                   ) : (
                     <span>{initials}</span>
                   )}
+                  <button
+                    type="button"
+                    style={{
+                      position: 'absolute',
+                      bottom: 0,
+                      right: 0,
+                      width: '28px',
+                      height: '28px',
+                      borderRadius: '50%',
+                      background: 'var(--primary-color)',
+                      color: 'white',
+                      border: '2px solid var(--bg-card)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: 'pointer',
+                      zIndex: 3,
+                      padding: 0,
+                      fontSize: '16px',
+                      lineHeight: 1
+                    }}
+                    title="Upload Avatar"
+                    disabled={isUploadingAvatar}
+                  >
+                    +
+                  </button>
                 </div>
                 <div style={{ flex: 1 }}>
                   <input
-                    id="avatar-url"
-                    type="url"
-                    className="form-input"
-                    placeholder="https://example.com/your-photo.jpg"
-                    value={avatarUrl}
-                    onChange={handleAvatarUrlChange}
+                    type="file"
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    ref={avatarInputRef}
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
                   />
-                  <p className="profile-input-hint">You can use any public image URL (e.g. from GitHub, Gravatar, Imgur)</p>
+                  <p className="profile-input-hint">Allowed formats: JPG, PNG, WEBP, GIF. Max size 5MB.</p>
                 </div>
               </div>
             </div>

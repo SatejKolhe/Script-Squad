@@ -38,6 +38,11 @@ app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/ai', require('./routes/ai'));
+app.use('/api/uploads', require('./routes/uploads'));
+
+// Serve static uploads folder
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/team', require('./routes/team'));
 app.use('/api/inbox', require('./routes/inbox'));
 app.use('/api/chat', require('./routes/chat'));

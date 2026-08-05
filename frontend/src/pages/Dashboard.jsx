@@ -79,8 +79,13 @@ export default function Dashboard() {
   const [recentTasks, setRecentTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [quickTask, setQuickTask] = useState('');
+  const [quickDate, setQuickDate] = useState('');
+  const [isQuickPrivate, setIsQuickPrivate] = useState(false);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
+  const fileInputRef = React.useRef(null);
 
   useEffect(() => {
     loadDashboard();
@@ -108,15 +113,72 @@ export default function Dashboard() {
   const handleQuickAdd = async (e) => {
     e.preventDefault();
     if (!quickTask.trim()) return;
-    if (!selectedProject) { toast.error('Create a project first!'); return; }
+    
+    let urgentProject = projects.find(p => p.title.toLowerCase() === 'urgent work');
+    if (!urgentProject) {
+      try {
+        const res = await api.post('/projects', { title: 'Urgent Work', color: '#ef4444' });
+        urgentProject = res.data.data;
+        setProjects(prev => [...prev, urgentProject]);
+      } catch (err) {
+        toast.error('Failed to create Urgent Work project');
+        return;
+      }
+    }
+
     try {
-      await api.post('/tasks', { title: quickTask.trim(), project: selectedProject });
+      await api.post('/tasks', { 
+        title: quickTask.trim(), 
+        dueDate: quickDate || undefined,
+        project: urgentProject._id,
+        isPrivate: isQuickPrivate
+      });
       setQuickTask('');
-      toast.success('Task added!');
+      setQuickDate('');
+      setSelectedFile(null);
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      toast.success('Task added to Urgent Work!');
       loadDashboard();
     } catch (err) {
       toast.error('Failed to add task');
     }
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (file) setSelectedFile(file);
+  };
+
+  const handleAIAnalyze = async () => {
+    if (!selectedFile) {
+      toast.error('Attach a file using + first');
+      return;
+    }
+
+    setAiLoading(true);
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      try {
+        const res = await api.post('/ai/extract-task', {
+          fileData: ev.target.result,
+          mimeType: selectedFile.type
+        });
+        if (res.data?.data) {
+          if (res.data.data.title) setQuickTask(res.data.data.title);
+          if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
+          toast.success('Task extracted! Press Add to save.');
+        }
+      } catch (err) {
+        toast.error('Failed to analyze file.');
+      } finally {
+        setAiLoading(false);
+      }
+    };
+    reader.onerror = () => {
+      toast.error('Failed to read file.');
+      setAiLoading(false);
+    };
+    reader.readAsDataURL(selectedFile);
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -288,32 +350,92 @@ export default function Dashboard() {
         {/* Quick Add */}
         <div className="card p-6">
           <h3 className="section-title">⚡ Quick Add Task</h3>
-          <form onSubmit={handleQuickAdd} className="quick-add-form">
-            <div className="form-group">
-              <select
-                className="form-select"
-                value={selectedProject}
-                onChange={(e) => setSelectedProject(e.target.value)}
-                id="quick-project-select"
-              >
-                {projects.length === 0 ? (
-                  <option value="">No projects — create one first</option>
-                ) : (
-                  projects.map((p) => (
-                    <option key={p._id} value={p._id}>{p.title}</option>
-                  ))
-                )}
-              </select>
-            </div>
-            <div className="quick-add-row">
+          <form onSubmit={handleQuickAdd} className="quick-add-form" style={{ marginTop: '1rem' }}>
+            <div className="quick-add-row" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
               <input
                 type="text"
-                className="form-input"
-                placeholder="Type a task name and press Enter..."
+                className="form-input flex-1"
+                placeholder="Type a task name..."
                 value={quickTask}
                 onChange={(e) => setQuickTask(e.target.value)}
                 id="quick-task-input"
               />
+              <input
+                type="date"
+                className="form-input"
+                style={{ width: '130px', flexShrink: 0 }}
+                value={quickDate}
+                onChange={(e) => setQuickDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+              />
+              
+              <input 
+                type="file" 
+                ref={fileInputRef}
+                style={{ display: 'none' }}
+                accept="image/*,application/pdf,text/plain"
+                onChange={handleFileChange}
+              />
+
+              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ padding: '0.4rem 0.6rem', fontSize: '1.2rem', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  onClick={() => fileInputRef.current?.click()}
+                  title="Attach file"
+                >
+                  +
+                </button>
+
+                {selectedFile && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'var(--bg-secondary)', padding: '0.2rem 0.5rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.75rem' }}>
+                    <span style={{ maxWidth: '80px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {selectedFile.name}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        if (fileInputRef.current) fileInputRef.current.value = '';
+                      }}
+                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1' }}
+                      title="Remove attachment"
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+
+                <button
+                  type="button"
+                  className="btn btn-outline"
+                  style={{ padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#8b5cf6', color: '#8b5cf6' }}
+                  onClick={handleAIAnalyze}
+                  disabled={aiLoading}
+                  title="Extract task from attached file"
+                >
+                  {aiLoading ? '⏳' : '✨'} AI
+                </button>
+              </div>
+
+              <button
+                type="button"
+                className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
+                style={{ 
+                  padding: '0.5rem 0.75rem', 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '0.4rem',
+                  background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(16, 185, 129, 0.1)',
+                  borderColor: isQuickPrivate ? 'var(--border-color)' : '#10b981',
+                  color: isQuickPrivate ? 'var(--text-muted)' : '#10b981',
+                }}
+                onClick={() => setIsQuickPrivate(!isQuickPrivate)}
+                title={isQuickPrivate ? "Private task" : "Public task"}
+              >
+                {isQuickPrivate ? '🔒 Private' : '🌍 Public'}
+              </button>
               <button type="submit" className="btn btn-primary" disabled={!quickTask.trim()}>
                 + Add
               </button>
