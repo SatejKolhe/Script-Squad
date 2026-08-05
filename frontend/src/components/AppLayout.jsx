@@ -1,24 +1,14 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Navbar from './Navbar';
 
 export default function AppLayout() {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
   return (
     <div className="app-layout">
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      {/* Mobile overlay */}
-      {sidebarOpen && (
-        <div
-          className="sidebar-overlay"
-          onClick={() => setSidebarOpen(false)}
-          aria-hidden="true"
-        />
-      )}
+      <Sidebar />
       <div className="main-content">
-        <Navbar onMenuToggle={() => setSidebarOpen((o) => !o)} />
+        <Navbar />
         <Outlet />
       </div>
     </div>
