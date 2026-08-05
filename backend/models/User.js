@@ -40,6 +40,8 @@ const userSchema = new mongoose.Schema(
     // ── Password Reset ──────────────────────────────────────────────────────
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    resetPasswordOtp: String,
+    resetPasswordOtpExpire: Date,
     // ── Email Verification ──────────────────────────────────────────────────
     isVerified: {
       type: Boolean,
@@ -105,6 +107,23 @@ userSchema.methods.generateVerifyToken = function () {
   this.emailVerifyExpire = Date.now() + 30 * 60 * 1000;
 
   return rawToken;
+};
+
+// Generate and hash 6-digit password reset OTP
+userSchema.methods.generateResetOtp = function () {
+  // Generate a 6-digit numeric OTP code
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  // Hash the OTP and store it
+  this.resetPasswordOtp = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+
+  // Set expiry to 10 minutes from now
+  this.resetPasswordOtpExpire = Date.now() + 10 * 60 * 1000;
+
+  return otp;
 };
 
 module.exports = mongoose.model('User', userSchema);
