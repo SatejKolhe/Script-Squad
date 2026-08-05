@@ -9,7 +9,6 @@ const PAGE_TITLES = {
   '/projects':   { title: 'Projects',    subtitle: 'Manage all your projects' },
   '/analytics':  { title: 'Analytics',   subtitle: 'Insights & productivity trends' },
   '/team':       { title: 'Team',        subtitle: "Track who's working on what" },
-  '/wellbeing':  { title: 'Digital Wellbeing', subtitle: 'Track your online time and maintain a healthy balance' },
   '/profile':    { title: 'Profile',     subtitle: 'Your account & achievements' },
 };
 

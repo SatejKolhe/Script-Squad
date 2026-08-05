@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { api } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import './TeammateProfile.css';
@@ -30,7 +29,6 @@ export default function TeammateProfile() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
-  const [wellbeingData, setWellbeingData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -38,13 +36,6 @@ export default function TeammateProfile() {
       try {
         const res = await api.get(`/team/member/${id}`);
         setProfile(res.data.data);
-
-        try {
-          const wbRes = await api.get(`/wellbeing/user/${id}`);
-          setWellbeingData(wbRes.data.data.usages);
-        } catch (wbErr) {
-          // Wellbeing might be private or not exist, ignore
-        }
       } catch (err) {
         toast.error(err.response?.data?.message || 'Failed to load profile');
         navigate('/team');
@@ -68,13 +59,6 @@ export default function TeammateProfile() {
 
   const { user, stats, tasks, projects } = profile;
   const inProgressTasks = tasks.filter(t => t.status === 'inprogress');
-
-  const formatTime = (minutes) => {
-    if (minutes < 60) return `${minutes}m`;
-    const h = Math.floor(minutes / 60);
-    const m = minutes % 60;
-    return m > 0 ? `${h}h ${m}m` : `${h}h`;
-  };
 
   return (
     <div className="page-container animate-fadeIn teammate-profile-container">
@@ -112,32 +96,6 @@ export default function TeammateProfile() {
         </div>
 
         <div className="teammate-main">
-          <div className="section-block">
-            <h3>🌐 Digital Wellbeing {wellbeingData === null ? '(Private)' : ''}</h3>
-            {wellbeingData === null ? (
-              <div className="empty-state">🔒 This teammate's digital wellbeing data is private.</div>
-            ) : wellbeingData.length === 0 ? (
-              <div className="empty-state">No site data logged for today.</div>
-            ) : (
-              <div className="chart-container">
-                <div style={{ marginBottom: '1rem', fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
-                  Total Time: <strong>{formatTime(wellbeingData.reduce((acc, curr) => acc + curr.timeSpent, 0))}</strong>
-                </div>
-                <ResponsiveContainer width="100%" height={250}>
-                  <BarChart data={wellbeingData} layout="vertical" margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                    <CartesianGrid strokeDasharray="3 3" horizontal={false} stroke="var(--border-color)" />
-                    <XAxis type="number" stroke="var(--text-secondary)" tickFormatter={(val) => `${val}m`} />
-                    <YAxis dataKey="domain" type="category" width={100} stroke="var(--text-primary)" fontSize={12} />
-                    <Tooltip 
-                      formatter={(value) => [`${value} min`, 'Time Spent']}
-                      contentStyle={{ backgroundColor: 'var(--bg-card)', borderColor: 'var(--border-color)', borderRadius: '8px' }}
-                    />
-                    <Bar dataKey="timeSpent" fill="var(--primary-color)" radius={[0, 4, 4, 0]} barSize={20} />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </div>
 
           <div className="section-block">
             <h3>🚀 Currently Working On ({inProgressTasks.length})</h3>
