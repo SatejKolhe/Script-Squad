@@ -77,14 +77,10 @@ export const AuthProvider = ({ children }) => {
     return () => window.removeEventListener('storage', handleStorage);
   }, []);
 
+  // register() does NOT log the user in — they must verify their email first.
   const register = useCallback(async (name, email, password) => {
     const res = await api.post('/auth/register', { name, email, password });
-    const { token, user: userData } = res.data;
-    localStorage.setItem('ss_token', token);
-    localStorage.setItem('ss_user', JSON.stringify(userData));
-    setUser(userData);
-    toast.success(`Welcome, ${userData.name}! 🎉`);
-    return userData;
+    return res.data; // { success: true, message: '...' }
   }, []);
 
   const login = useCallback(async (email, password) => {
@@ -104,6 +100,12 @@ export const AuthProvider = ({ children }) => {
     toast.success('Logged out successfully');
   }, []);
 
+  // Resend the verification email for an unverified account.
+  const resendVerification = useCallback(async (email) => {
+    const res = await api.post('/auth/resend-verification', { email });
+    return res.data;
+  }, []);
+
   const updateProfile = useCallback(async (data) => {
     const res = await api.put('/auth/profile', data);
     const updated = res.data.user;
@@ -121,7 +123,7 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, api }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, resendVerification, api }}>
       {children}
     </AuthContext.Provider>
   );

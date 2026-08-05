@@ -14,6 +14,8 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
 
+
+
   // ── Forgot password state ──────────────────────────────────────────────────
   const [forgotMode, setForgotMode] = useState(false);
   const [forgotEmail, setForgotEmail] = useState('');
@@ -41,7 +43,8 @@ export default function Login() {
       await login(form.email, form.password);
       navigate('/dashboard');
     } catch (err) {
-      setServerError(err.response?.data?.message || 'Login failed. Please try again.');
+      const data = err.response?.data;
+      setServerError(data?.message || 'Login failed. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -51,6 +54,8 @@ export default function Login() {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
     if (errors[e.target.name]) setErrors((prev) => ({ ...prev, [e.target.name]: '' }));
   };
+
+
 
   // ── Forgot password handler ────────────────────────────────────────────────
   const handleForgotSubmit = async (e) => {
@@ -73,7 +78,7 @@ export default function Login() {
 
   const switchToForgot = () => {
     setForgotMode(true);
-    setForgotEmail(form.email); // pre-fill with login email if entered
+    setForgotEmail(form.email);
     setForgotEmailError('');
     setForgotSuccess('');
     setServerError('');
@@ -123,6 +128,8 @@ export default function Login() {
               {serverError && (
                 <div className="auth-error-banner">⚠️ {serverError}</div>
               )}
+
+
 
               <form onSubmit={handleSubmit} className="auth-form" noValidate>
                 <div className="form-group">

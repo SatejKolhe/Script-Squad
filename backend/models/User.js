@@ -44,6 +44,13 @@ const userSchema = new mongoose.Schema(
     // ── Password Reset ──────────────────────────────────────────────────────
     resetPasswordToken: String,
     resetPasswordExpire: Date,
+    // ── Email Verification ──────────────────────────────────────────────────
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+    emailVerifyToken: String,
+    emailVerifyExpire: Date,
     // ── XP & Streak ─────────────────────────────────────────────────────────
     xp: {
       type: Number,
@@ -85,6 +92,21 @@ userSchema.methods.generateResetToken = function () {
 
   // Set expiry to 15 minutes from now
   this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+  return rawToken;
+};
+
+// Generate and hash email verification token
+userSchema.methods.generateVerifyToken = function () {
+  const rawToken = crypto.randomBytes(32).toString('hex');
+
+  this.emailVerifyToken = crypto
+    .createHash('sha256')
+    .update(rawToken)
+    .digest('hex');
+
+  // Set expiry to 30 minutes from now
+  this.emailVerifyExpire = Date.now() + 30 * 60 * 1000;
 
   return rawToken;
 };
