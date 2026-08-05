@@ -378,11 +378,11 @@
   padding: 1.5rem;
 }
 
-.section-title {
+.dashboard-section-title {
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
   line-height: 1;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
   -webkit-background-clip: text;
@@ -400,7 +400,7 @@
   margin-bottom: 1rem;
 }
 
-.section-title-row .section-title {
+.section-title-row .dashboard-section-title {
   margin-bottom: 0;
 }
 

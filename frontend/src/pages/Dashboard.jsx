@@ -349,9 +349,9 @@ export default function Dashboard() {
       <div className="dashboard-grid mt-4">
         {/* Quick Add */}
         <div className="card p-6">
-          <h3 className="section-title">⚡ Quick Add Task</h3>
-          <form onSubmit={handleQuickAdd} className="quick-add-form" style={{ marginTop: '1rem' }}>
-            <div className="quick-add-row" style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+          <h3 className="dashboard-section-title">⚡ Quick Add Task</h3>
+          <form onSubmit={handleQuickAdd} className="quick-add-form" style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%' }}>
               <input
                 type="text"
                 className="form-input flex-1"
@@ -368,7 +368,9 @@ export default function Dashboard() {
                 onChange={(e) => setQuickDate(e.target.value)}
                 min={new Date().toISOString().split('T')[0]}
               />
-              
+            </div>
+            
+            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input 
                 type="file" 
                 ref={fileInputRef}
@@ -445,7 +447,7 @@ export default function Dashboard() {
           {/* Project overview */}
           <div className="mt-4">
             <div className="section-title-row">
-              <h3 className="section-title">📁 Projects</h3>
+              <h3 className="dashboard-section-title">📁 Projects</h3>
               <Link to="/projects" className="text-sm" style={{ color: 'var(--brand-primary)' }}>View all →</Link>
             </div>
             <div className="project-list">
@@ -479,7 +481,7 @@ export default function Dashboard() {
         {/* Recent Tasks */}
         <div className="card p-6">
           <div className="section-title-row">
-            <h3 className="section-title">📋 Recent Tasks</h3>
+            <h3 className="dashboard-section-title">📋 Recent Tasks</h3>
             <Link to="/projects" className="text-sm" style={{ color: 'var(--brand-primary)' }}>All projects →</Link>
           </div>
           <div className="task-list">
