@@ -263,17 +263,12 @@ router.put(
       const wasNotDone = existing.status !== 'done';
       const becomingDone = req.body.status === 'done';
 
-      const task = await Task.findOneAndUpdate(
-        { _id: req.params.id, owner: req.user._id },
-        req.body,
-        { new: true, runValidators: true }
-      )
+      Object.assign(existing, req.body);
+      await existing.save();
+
+      const task = await Task.findById(existing._id)
         .populate('assignee', 'name email avatar')
         .populate('project', 'title color');
-
-      if (!task) {
-        return res.status(404).json({ success: false, message: 'Task not found' });
-      }
 
       // ── XP & Streak logic ────────────────────────────────────────────────
       let updatedUser = null;

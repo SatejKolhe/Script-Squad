@@ -151,7 +151,13 @@
   display: flex;
   flex-direction: column;
   min-height: 400px;
-  transition: border-color var(--transition-fast);
+  transition: all var(--transition-fast);
+}
+
+.kanban-column.column-is-over {
+  border-color: var(--brand-primary);
+  background: rgba(99, 102, 241, 0.06);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.15);
 }
 
 .kanban-column[data-status='inprogress'] {
