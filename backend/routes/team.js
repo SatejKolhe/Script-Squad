@@ -88,10 +88,11 @@ router.get('/activity', protect, async (req, res) => {
       },
     ]);
 
-    // In-Progress tasks (with project info) per member
+    // In-Progress tasks (with project info) per member — exclude private tasks
     const inProgressTasks = await Task.find({
       owner: { $in: memberIds },
       status: 'inprogress',
+      isPrivate: { $ne: true },
     })
       .populate('project', 'title color')
       .select('title project timerStartedAt totalTimeSpent')
@@ -247,8 +248,8 @@ router.get('/member/:userId', protect, async (req, res) => {
       stats[_id] = count;
     });
 
-    // Get all tasks for this member (recent 50)
-    const tasks = await Task.find({ owner: memberId })
+    // Get all tasks for this member (recent 50) — exclude private tasks
+    const tasks = await Task.find({ owner: memberId, isPrivate: { $ne: true } })
       .populate('project', 'title color')
       .sort({ createdAt: -1 })
       .limit(50);
@@ -277,7 +278,7 @@ router.get('/member/:userId', protect, async (req, res) => {
 // @access  Private
 router.post('/assign-task', protect, async (req, res) => {
   try {
-    const { assigneeId, title, description, priority, dueDate } = req.body;
+    const { assigneeId, title, description, priority, dueDate, isPrivate } = req.body;
 
     if (!assigneeId || !title) {
       return res.status(400).json({ success: false, message: 'Assignee and title are required' });
@@ -312,6 +313,7 @@ router.post('/assign-task', protect, async (req, res) => {
       priority: priority || 'medium',
       dueDate: dueDate || null,
       status: 'todo',
+      isPrivate: isPrivate === true || isPrivate === 'true',
     });
 
     await task.populate('assignee', 'name email avatar');
@@ -380,6 +382,29 @@ router.delete('/assigned-tasks/:taskId', protect, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Task not found' });
     }
     res.json({ success: true, message: 'Task deleted' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PATCH /api/team/assigned-tasks/:taskId/visibility
+// @desc    Toggle isPrivate on an assigned task (leader only)
+// @access  Private
+router.patch('/assigned-tasks/:taskId/visibility', protect, async (req, res) => {
+  try {
+    const task = await Task.findOne({ _id: req.params.taskId, owner: req.user._id });
+    if (!task) {
+      return res.status(404).json({ success: false, message: 'Task not found' });
+    }
+
+    task.isPrivate = !task.isPrivate;
+    await task.save();
+
+    await task.populate('assignee', 'name email avatar');
+    await task.populate('project', 'title color');
+
+    res.json({ success: true, data: task, message: task.isPrivate ? 'Task set to private' : 'Task set to public' });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });

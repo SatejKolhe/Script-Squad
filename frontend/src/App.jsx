@@ -15,6 +15,11 @@ import Analytics from './pages/Analytics';
 import Team from './pages/Team';
 import TeammateProfile from './pages/TeammateProfile';
 import LandingPage from './pages/LandingPage';
+import Inbox from './pages/Inbox';
+import Today from './pages/Today';
+import Upcoming from './pages/Upcoming';
+import Search from './pages/Search';
+import Chat from './pages/Chat';
 import Profile from './pages/Profile';
 
 const ProtectedRoute = ({ children }) => {
@@ -51,6 +56,11 @@ function AppRoutes() {
         <Route path="team/:id" element={<TeammateProfile />} />
         <Route path="analytics" element={<Analytics />} />
         <Route path="profile" element={<Profile />} />
+        <Route path="inbox" element={<Inbox />} />
+        <Route path="today" element={<Today />} />
+        <Route path="upcoming" element={<Upcoming />} />
+        <Route path="search" element={<Search />} />
+        <Route path="chat" element={<Chat />} />
       </Route>
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>

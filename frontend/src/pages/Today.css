@@ -1,0 +1,90 @@
+/* ── Today Page ──────────────────────────────────────────────────────────────── */
+.today-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+.today-header h1 { font-size: 1.5rem; margin: 0; color: var(--text-primary); }
+.today-header p { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.25rem; }
+
+.today-count {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(124,58,237,0.05));
+  border: 1px solid rgba(99,102,241,0.2);
+  border-radius: 14px;
+  padding: 0.6rem 1rem;
+}
+.today-count-num { font-size: 1.4rem; font-weight: 800; color: #6366f1; line-height: 1; }
+.today-count-label { font-size: 0.65rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }
+
+.today-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--text-muted);
+}
+.today-empty-icon { font-size: 2.5rem; display: block; margin-bottom: 0.75rem; }
+.today-empty p { font-size: 1rem; font-weight: 600; color: var(--text-primary); margin: 0; }
+.today-empty-sub { font-size: 0.8rem; margin-top: 0.35rem; display: block; }
+
+.today-list { display: flex; flex-direction: column; gap: 0.4rem; }
+
+.today-task-card {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  transition: all 0.2s;
+}
+.today-task-card:hover { border-color: rgba(99,102,241,0.25); }
+.today-task-card.inprogress { border-left: 3px solid #6366f1; }
+
+.today-task-check {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  background: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+.today-task-check.inprogress { border-color: #6366f1; color: #6366f1; background: rgba(99,102,241,0.08); }
+.today-task-check:hover { border-color: #10b981; color: #10b981; }
+
+.today-task-body { flex: 1; min-width: 0; cursor: pointer; }
+.today-task-title { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+
+.today-task-meta {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.3rem;
+  flex-wrap: wrap;
+}
+
+.today-task-project {
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+}
+.today-task-priority { font-size: 0.65rem; font-weight: 600; }
+
+.today-task-status {
+  font-size: 0.7rem;
+  padding: 0.3rem 0.5rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  cursor: pointer;
+  flex-shrink: 0;
+}

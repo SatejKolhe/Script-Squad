@@ -92,6 +92,103 @@ router.post(
   }
 );
 
+// @route   GET /api/tasks/today
+// @desc    Get tasks due today (not done)
+// @access  Private
+router.get('/today', protect, async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    const tasks = await Task.find({
+      owner: req.user._id,
+      status: { $ne: 'done' },
+      dueDate: { $gte: startOfDay, $lt: endOfDay },
+    })
+      .populate('project', 'title color')
+      .sort({ priority: -1, order: 1 });
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/today/count
+// @desc    Get count of tasks due today
+// @access  Private
+router.get('/today/count', protect, async (req, res) => {
+  try {
+    const now = new Date();
+    const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const endOfDay = new Date(startOfDay);
+    endOfDay.setDate(endOfDay.getDate() + 1);
+
+    const count = await Task.countDocuments({
+      owner: req.user._id,
+      status: { $ne: 'done' },
+      dueDate: { $gte: startOfDay, $lt: endOfDay },
+    });
+
+    res.json({ success: true, data: count });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/upcoming
+// @desc    Get tasks with due dates (grouped: overdue, today, tomorrow, this week, later)
+// @access  Private
+router.get('/upcoming', protect, async (req, res) => {
+  try {
+    const tasks = await Task.find({
+      owner: req.user._id,
+      status: { $ne: 'done' },
+      dueDate: { $ne: null },
+    })
+      .populate('project', 'title color')
+      .sort({ dueDate: 1 });
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   GET /api/tasks/search
+// @desc    Search tasks and projects by query
+// @access  Private
+router.get('/search', protect, async (req, res) => {
+  try {
+    const { q } = req.query;
+    if (!q || q.trim().length < 1) {
+      return res.json({ success: true, data: { tasks: [], projects: [] } });
+    }
+
+    const regex = { $regex: q.trim(), $options: 'i' };
+
+    const [tasks, projects] = await Promise.all([
+      Task.find({ owner: req.user._id, title: regex })
+        .populate('project', 'title color')
+        .sort({ createdAt: -1 })
+        .limit(30),
+      Project.find({ owner: req.user._id, $or: [{ title: regex }, { description: regex }] })
+        .sort({ createdAt: -1 })
+        .limit(15),
+    ]);
+
+    res.json({ success: true, data: { tasks, projects } });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
 // @route   GET /api/tasks/analytics/summary
 // @desc    Get analytics data for current user
 // @access  Private

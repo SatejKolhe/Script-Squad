@@ -276,6 +276,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
     description: '',
     priority: 'medium',
     dueDate: '',
+    isPrivate: false,
   });
   const [submitting, setSubmitting] = useState(false);
   const [assignedTasks, setAssignedTasks] = useState([]);
@@ -313,9 +314,10 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
         description: form.description.trim(),
         priority: form.priority,
         dueDate: form.dueDate || null,
+        isPrivate: form.isPrivate,
       });
       toast.success('Task assigned successfully! 🎯');
-      setForm({ assigneeId: '', title: '', description: '', priority: 'medium', dueDate: '' });
+      setForm({ assigneeId: '', title: '', description: '', priority: 'medium', dueDate: '', isPrivate: false });
       onTaskAssigned();
       loadAssignedTasks();
     } catch (err) {
@@ -343,6 +345,16 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
       toast.success('Task deleted');
     } catch {
       toast.error('Failed to delete task');
+    }
+  };
+
+  const handleToggleVisibility = async (taskId) => {
+    try {
+      const res = await api.patch(`/team/assigned-tasks/${taskId}/visibility`);
+      setAssignedTasks((prev) => prev.map((t) => (t._id === taskId ? res.data.data : t)));
+      toast.success(res.data.message);
+    } catch {
+      toast.error('Failed to toggle visibility');
     }
   };
 
@@ -469,7 +481,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                       ))}
                     </div>
                   </div>
-                  <div className="form-group" style={{ flex: 1 }}>
+                  <div className="form-group">
                     <label className="form-label">Deadline</label>
                     <input
                       type="date"
@@ -479,6 +491,32 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                       min={new Date().toISOString().split('T')[0]}
                     />
                   </div>
+                </div>
+
+                {/* Privacy toggle */}
+                <div className="privacy-toggle-row">
+                  <div className="privacy-toggle-info">
+                    <span className="privacy-toggle-icon">{form.isPrivate ? '🔒' : '🌐'}</span>
+                    <div>
+                      <div className="privacy-toggle-label">
+                        {form.isPrivate ? 'Private task' : 'Public task'}
+                      </div>
+                      <div className="privacy-toggle-sub">
+                        {form.isPrivate
+                          ? 'Only you can see this task — hidden from team'
+                          : 'Visible to your team members'}
+                      </div>
+                    </div>
+                  </div>
+                  <label className="toggle-switch" title="Toggle task visibility">
+                    <input
+                      id="task-privacy-toggle"
+                      type="checkbox"
+                      checked={form.isPrivate}
+                      onChange={(e) => handleChange('isPrivate', e.target.checked)}
+                    />
+                    <span className="toggle-slider" />
+                  </label>
                 </div>
 
                 <button
@@ -559,6 +597,14 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                         <span className="assign-task-assignee-name">{task.assignee?.name}</span>
                       </div>
                       <div className="assign-task-meta">
+                        {/* Privacy badge */}
+                        <button
+                          className={`privacy-badge ${task.isPrivate ? 'privacy-badge-private' : 'privacy-badge-public'}`}
+                          onClick={() => handleToggleVisibility(task._id)}
+                          title={task.isPrivate ? 'Private — click to make public' : 'Public — click to make private'}
+                        >
+                          {task.isPrivate ? '🔒 Private' : '🌐 Public'}
+                        </button>
                         <span className={`badge badge-${task.priority}`}>{task.priority}</span>
                         <button
                           className="btn-icon assign-task-delete"

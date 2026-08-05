@@ -163,6 +163,19 @@
 
 .nav-label { flex: 1; }
 
+.nav-badge {
+  background: #6366f1;
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  min-width: 18px;
+  text-align: center;
+  line-height: 1.3;
+  flex-shrink: 0;
+}
+
 /* ── XP Widget ── */
 .sidebar-xp-widget {
   margin: 0 0.75rem 0.75rem;

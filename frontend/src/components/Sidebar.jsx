@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth, api } from '../contexts/AuthContext';
 import './Sidebar.css';
 
 const NAV_ITEMS = [
@@ -10,6 +10,38 @@ const NAV_ITEMS = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <rect x="3" y="3" width="7" height="7" rx="1" /><rect x="14" y="3" width="7" height="7" rx="1" />
         <rect x="3" y="14" width="7" height="7" rx="1" /><rect x="14" y="14" width="7" height="7" rx="1" />
+      </svg>
+    ),
+  },
+  {
+    to: '/inbox', label: 'Inbox', badgeKey: 'inbox',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/><path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
+      </svg>
+    ),
+  },
+  {
+    to: '/today', label: 'Today', badgeKey: 'today',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+      </svg>
+    ),
+  },
+  {
+    to: '/upcoming', label: 'Upcoming',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+    ),
+  },
+  {
+    to: '/search', label: 'Search',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
       </svg>
     ),
   },
@@ -27,6 +59,14 @@ const NAV_ITEMS = [
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="7" r="3" /><circle cx="17" cy="7" r="3" />
         <path d="M1 21v-2a5 5 0 015-5h6a5 5 0 015 5v2" /><path d="M17 10a3 3 0 013 3v2h2" />
+      </svg>
+    ),
+  },
+  {
+    to: '/chat', label: 'Chat', badgeKey: 'chat',
+    icon: (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
       </svg>
     ),
   },
@@ -58,6 +98,29 @@ export default function Sidebar({ isOpen, onClose, mobileOpen, setMobileOpen }) 
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [badges, setBadges] = useState({ inbox: 0, today: 0, chat: 0 });
+
+  // Fetch badge counts
+  useEffect(() => {
+    if (!user) return;
+    const fetchBadges = async () => {
+      try {
+        const [inboxRes, todayRes, chatRes] = await Promise.all([
+          api.get('/inbox/counts').catch(() => ({ data: { data: { invites: 0 } } })),
+          api.get('/tasks/today/count').catch(() => ({ data: { data: 0 } })),
+          api.get('/chat/unread-count').catch(() => ({ data: { data: 0 } })),
+        ]);
+        setBadges({
+          inbox: inboxRes.data.data?.invites || 0,
+          today: todayRes.data.data || 0,
+          chat: chatRes.data.data || 0,
+        });
+      } catch {}
+    };
+    fetchBadges();
+    const interval = setInterval(fetchBadges, 30000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   const handleLogout = () => {
     logout();
@@ -76,20 +139,14 @@ export default function Sidebar({ isOpen, onClose, mobileOpen, setMobileOpen }) 
 
   return (
     <aside className={`sidebar ${isMobileOpen ? 'mobile-open' : ''}`}>
-      {/* Logo */}
       <div className="sidebar-logo">
-        <div className="logo-icon">
-          <span>⚡</span>
-        </div>
-
+        <div className="logo-icon"><span>⚡</span></div>
         <div className="logo-text">
           <span className="logo-name">Script Squad</span>
           <span className="logo-tagline">Mission Control</span>
         </div>
-
       </div>
 
-      {/* Navigation */}
       <nav className="sidebar-nav">
         <div className="nav-section-label">Navigation</div>
         {NAV_ITEMS.map((item) => (
@@ -101,13 +158,15 @@ export default function Sidebar({ isOpen, onClose, mobileOpen, setMobileOpen }) 
           >
             <span className="nav-icon">{item.icon}</span>
             <span className="nav-label">{item.label}</span>
+            {item.badgeKey && badges[item.badgeKey] > 0 && (
+              <span className="nav-badge">{badges[item.badgeKey]}</span>
+            )}
             {location.pathname.startsWith(item.to) && (
               <span className="nav-active-pip" />
             )}
           </NavLink>
         ))}
 
-        {/* Profile link */}
         <div className="nav-section-label" style={{ marginTop: '0.75rem' }}>Account</div>
         <NavLink
           to="/profile"
@@ -124,7 +183,6 @@ export default function Sidebar({ isOpen, onClose, mobileOpen, setMobileOpen }) 
         </NavLink>
       </nav>
 
-      {/* XP & Streak Widget */}
       {user && (
         <div className="sidebar-xp-widget">
           <div className="xp-widget-row">
@@ -141,33 +199,19 @@ export default function Sidebar({ isOpen, onClose, mobileOpen, setMobileOpen }) 
         </div>
       )}
 
-      {/* User Profile */}
       <div className="sidebar-footer">
         {user && (
-          <button
-            className="sidebar-user sidebar-user-btn"
-            onClick={handleProfileClick}
-            title="View profile"
-          >
+          <button className="sidebar-user sidebar-user-btn" onClick={handleProfileClick} title="View profile">
             <div className="avatar avatar-sm">
-              {user.avatar ? (
-                <img src={user.avatar} alt={user.name} />
-              ) : (
-                user.name?.[0]?.toUpperCase()
-              )}
+              {user.avatar ? <img src={user.avatar} alt={user.name} /> : user.name?.[0]?.toUpperCase()}
             </div>
-
             <div className="user-info">
               <div className="user-name">{user.name}</div>
               <div className="user-email">{user.email}</div>
             </div>
           </button>
         )}
-        <button
-          className="logout-btn btn-icon"
-          onClick={handleLogout}
-          title="Logout"
-        >
+        <button className="logout-btn btn-icon" onClick={handleLogout} title="Logout">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4" />
             <polyline points="16 17 21 12 16 7" />

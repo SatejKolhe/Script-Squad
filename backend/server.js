@@ -39,6 +39,8 @@ app.use('/api/tasks', require('./routes/tasks'));
 app.use('/api/notifications', require('./routes/notifications'));
 app.use('/api/ai', require('./routes/ai'));
 app.use('/api/team', require('./routes/team'));
+app.use('/api/inbox', require('./routes/inbox'));
+app.use('/api/chat', require('./routes/chat'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -79,6 +81,19 @@ io.on('connection', (socket) => {
 
   socket.on('task-deleted', (data) => {
     socket.to(`project-${data.projectId}`).emit('task-deleted', data);
+  });
+
+  // ── Chat events ──────────────────────────────────────────────────────────
+  socket.on('join-user-room', (userId) => {
+    socket.join(`user-${userId}`);
+  });
+
+  socket.on('chat-typing', ({ to, from }) => {
+    io.to(`user-${to}`).emit('chat-typing', { from });
+  });
+
+  socket.on('chat-stop-typing', ({ to, from }) => {
+    io.to(`user-${to}`).emit('chat-stop-typing', { from });
   });
 
   socket.on('disconnect', () => {
