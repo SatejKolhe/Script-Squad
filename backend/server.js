@@ -32,7 +32,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// Routes
+// Routes: Authentication, Projects, Tasks, etc.
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/projects', require('./routes/projects'));
 app.use('/api/tasks', require('./routes/tasks'));

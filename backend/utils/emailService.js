@@ -137,7 +137,74 @@ function buildEmailHtml(userName, tasks) {
 </html>`;
 }
 
-// ── Send Function ─────────────────────────────────────────────────────────────
+// ── OTP Email Template ────────────────────────────────────────────────────────
+function buildOtpEmailHtml(userName, otp) {
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Password Reset Code – Script Squad</title>
+</head>
+<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;color:#f1f5f9;">
+
+  <!-- Wrapper -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+    <tr><td align="center">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+
+        <!-- Header -->
+        <tr>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:36px 40px;text-align:center;">
+            <div style="display:inline-block;width:48px;height:48px;line-height:48px;background:rgba(255,255,255,0.15);border-radius:14px;font-size:24px;margin-bottom:12px;">⚡</div>
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Script Squad</h1>
+            <p style="margin:6px 0 0;color:#c7d2fe;font-size:14px;font-weight:500;">Password Reset Verification</p>
+          </td>
+        </tr>
+
+        <!-- Body -->
+        <tr>
+          <td style="padding:40px 40px 32px;background:#111827;">
+            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;font-weight:600;">Hello ${userName || 'there'},</p>
+            <p style="margin:0 0 24px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              We received a request to reset your password for your Script Squad account. Use the 6-digit verification code below to complete the verification:
+            </p>
+
+            <!-- OTP Display Card -->
+            <div style="background:#1f2937;border:1px solid #374151;border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
+              <div style="color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Verification Code</div>
+              <div style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#818cf8;background:#111827;padding:14px 20px;border-radius:10px;display:inline-block;border:1px dashed #6366f1;">
+                ${otp}
+              </div>
+              <p style="margin:14px 0 0;color:#f59e0b;font-size:12px;font-weight:500;">
+                ⏱️ Code expires in <strong>10 minutes</strong>.
+              </p>
+            </div>
+
+            <p style="margin:0 0 16px;color:#9ca3af;font-size:13px;line-height:1.6;">
+              If you did not request a password reset, please ignore this email or reach out if you have concerns. Your password will remain unchanged.
+            </p>
+          </td>
+        </tr>
+
+        <!-- Footer -->
+        <tr>
+          <td style="background:#0b0f19;border-top:1px solid rgba(255,255,255,0.06);padding:20px 40px;text-align:center;">
+            <p style="margin:0;color:#6b7280;font-size:12px;">
+              © ${new Date().getFullYear()} Script Squad · Secure Authentication Service
+            </p>
+          </td>
+        </tr>
+
+      </table>
+    </td></tr>
+  </table>
+
+</body>
+</html>`;
+}
+
+// ── Send Functions ────────────────────────────────────────────────────────────
 /**
  * Send a deadline reminder email to a user.
  * @param {{ name: string, email: string }} user
@@ -160,4 +227,35 @@ async function sendDeadlineReminderEmail(user, tasks) {
   console.log(`📧 Deadline reminder sent to ${user.email} (${tasks.length} task${tasks.length > 1 ? 's' : ''})`);
 }
 
-module.exports = { sendDeadlineReminderEmail };
+/**
+ * Send a password reset OTP verification email to a user.
+ * @param {{ name: string, email: string }} user
+ * @param {string} otp - 6 digit OTP
+ */
+async function sendPasswordResetOtpEmail(user, otp) {
+  console.log(`🔑 [PASSWORD RESET OTP] Sent to ${user.email}: ${otp}`);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured in .env. OTP was logged above for development.');
+    return;
+  }
+
+  const mailOptions = {
+    from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+    to: user.email,
+    subject: `🔐 Your Script Squad Password Reset Code: ${otp}`,
+    html: buildOtpEmailHtml(user.name, otp),
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log(`📧 Password reset OTP sent to ${user.email}`);
+  } catch (err) {
+    console.error(`⚠️ Failed to dispatch email to ${user.email}:`, err.message);
+  }
+}
+
+module.exports = {
+  sendDeadlineReminderEmail,
+  sendPasswordResetOtpEmail,
+};
