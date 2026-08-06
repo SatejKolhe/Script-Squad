@@ -195,47 +195,40 @@ export default function Profile() {
             <div className="profile-form-section">
               <h3 className="profile-section-title">Avatar</h3>
               <p className="profile-section-sub">Upload a new profile picture</p>
-              <div className="profile-avatar-editor" style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div 
-                  className="profile-avatar-sm" 
-                  style={{ position: 'relative', cursor: 'pointer', overflow: 'visible' }}
-                  onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
-                >
-                  {isUploadingAvatar && (
-                    <div style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.5)', borderRadius: '50%', zIndex: 2 }}>
-                      <span className="spinner" style={{ width: '20px', height: '20px', border: '2px solid #fff', borderTopColor: 'transparent', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-                    </div>
-                  )}
-                  {avatarPreview ? (
-                    <img src={avatarPreview} alt="preview" onError={() => setAvatarPreview('')} style={{ opacity: isUploadingAvatar ? 0.5 : 1 }} />
-                  ) : (
-                    <span>{initials}</span>
-                  )}
+              <div className="profile-avatar-editor">
+                <div className="profile-avatar-edit-wrap">
+                  <div 
+                    className="profile-avatar-sm" 
+                    onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
+                    title="Click to change profile picture"
+                  >
+                    {isUploadingAvatar && (
+                      <div className="profile-avatar-uploading-overlay">
+                        <span className="spinner spinner-sm" />
+                      </div>
+                    )}
+                    {avatarPreview ? (
+                      <img 
+                        src={avatarPreview} 
+                        alt="preview" 
+                        onError={() => setAvatarPreview('')} 
+                        style={{ opacity: isUploadingAvatar ? 0.5 : 1 }} 
+                      />
+                    ) : (
+                      <span>{initials}</span>
+                    )}
+                  </div>
                   <button
                     type="button"
-                    style={{
-                      position: 'absolute',
-                      bottom: 0,
-                      right: 0,
-                      width: '28px',
-                      height: '28px',
-                      borderRadius: '50%',
-                      background: 'var(--primary-color)',
-                      color: 'white',
-                      border: '2px solid var(--bg-card)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      cursor: 'pointer',
-                      zIndex: 3,
-                      padding: 0,
-                      fontSize: '16px',
-                      lineHeight: 1
-                    }}
+                    className="profile-avatar-edit-badge"
+                    onClick={() => !isUploadingAvatar && avatarInputRef.current?.click()}
                     title="Upload Avatar"
                     disabled={isUploadingAvatar}
                   >
-                    +
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                      <circle cx="12" cy="13" r="4"/>
+                    </svg>
                   </button>
                 </div>
                 <div style={{ flex: 1 }}>
@@ -246,6 +239,15 @@ export default function Profile() {
                     onChange={handleFileChange}
                     style={{ display: 'none' }}
                   />
+                  <button
+                    type="button"
+                    className="btn btn-secondary btn-sm"
+                    onClick={() => avatarInputRef.current?.click()}
+                    disabled={isUploadingAvatar}
+                    style={{ marginBottom: '0.4rem' }}
+                  >
+                    {isUploadingAvatar ? 'Uploading...' : 'Choose Image'}
+                  </button>
                   <p className="profile-input-hint">Allowed formats: JPG, PNG, WEBP, GIF. Max size 5MB.</p>
                 </div>
               </div>
