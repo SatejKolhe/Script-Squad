@@ -1,5 +1,5 @@
-import React, { useState, useRef } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState, useRef, useEffect } from 'react';
+import { api, useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import './Profile.css';
 
@@ -25,6 +25,15 @@ export default function Profile() {
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
   const [activeTab, setActiveTab] = useState('profile');
   const avatarInputRef = useRef(null);
+
+  useEffect(() => {
+    if (user) {
+      setName(user.name || '');
+      setBio(user.bio || '');
+      setAvatarUrl(user.avatar || '');
+      setAvatarPreview(user.avatar || '');
+    }
+  }, [user]);
 
   const xp = user?.xp || 0;
   const streak = user?.streak || 0;
@@ -59,12 +68,15 @@ export default function Profile() {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
       if (res.data.success) {
-        setAvatarUrl(res.data.url);
-        toast.success('Avatar uploaded! Click Save to confirm.');
+        const newAvatarUrl = res.data.url;
+        setAvatarUrl(newAvatarUrl);
+        setAvatarPreview(newAvatarUrl);
+        await updateProfile({ name: (name || user?.name || '').trim(), avatar: newAvatarUrl, bio: (bio || user?.bio || '').trim() });
+        toast.success('Avatar updated successfully!');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to upload avatar');
-      setAvatarPreview(avatarUrl); 
+      toast.error(err.response?.data?.message || err.message || 'Failed to upload avatar');
+      setAvatarPreview(avatarUrl || user?.avatar || ''); 
     } finally {
       setIsUploadingAvatar(false);
       if (avatarInputRef.current) avatarInputRef.current.value = '';

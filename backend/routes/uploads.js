@@ -15,10 +15,13 @@ if (!fs.existsSync(uploadDir)) {
 // Configure multer storage
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
     cb(null, uploadDir);
   },
   filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
+    const ext = (path.extname(file.originalname) || '.png').toLowerCase();
     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
     cb(null, req.user._id + '-' + uniqueSuffix + ext);
   },
@@ -26,11 +29,11 @@ const storage = multer.diskStorage({
 
 // File filter
 const fileFilter = (req, file, cb) => {
-  const allowedTypes = /jpeg|jpg|png|webp|gif/i;
-  const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-  const mimetype = allowedTypes.test(file.mimetype);
+  const allowedExts = /\.(jpeg|jpg|png|webp|gif|jfif)$/i;
+  const isImageMime = file.mimetype && (file.mimetype.startsWith('image/') || /jpeg|jpg|png|webp|gif/i.test(file.mimetype));
+  const isAllowedExt = allowedExts.test(path.extname(file.originalname).toLowerCase());
 
-  if (mimetype && extname) {
+  if (isImageMime || isAllowedExt) {
     return cb(null, true);
   }
   cb(new Error('Only images (jpeg, jpg, png, webp, gif) are allowed'));
