@@ -7,22 +7,22 @@
 /* ===== CSS VARIABLES — LIGHT & DARK THEMES ===== */
 :root {
   /* ── Brand Palette ── */
-  --brand-primary: #6366f1;
-  --brand-primary-dark: #4f46e5;
-  --brand-primary-light: #818cf8;
-  --brand-secondary: #ec4899;
-  --brand-accent: #22d3ee;
-  /* aurora cyan */
+  --brand-primary: #2563eb;
+  --brand-primary-dark: #1d4ed8;
+  --brand-primary-light: #60a5fa;
+  --brand-secondary: #475569;
+  --brand-accent: #0ea5e9;
+  /* status colors */
   --brand-success: #10b981;
   --brand-warning: #f59e0b;
   --brand-danger: #ef4444;
-  --brand-violet: #7c3aed;
+  --brand-violet: #334155;
 
   /* ── Gradient Shortcuts ── */
-  --grad-brand: linear-gradient(135deg, #6366f1, #7c3aed);
-  --grad-vivid: linear-gradient(135deg, #6366f1, #ec4899);
-  --grad-aurora: linear-gradient(135deg, #22d3ee, #6366f1);
-  --grad-glow: linear-gradient(135deg, rgba(99, 102, 241, 0.5), rgba(124, 58, 237, 0.5));
+  --grad-brand: linear-gradient(135deg, #2563eb, #1d4ed8);
+  --grad-vivid: linear-gradient(135deg, #2563eb, #0ea5e9);
+  --grad-aurora: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  --grad-glow: linear-gradient(135deg, rgba(37, 99, 235, 0.3), rgba(29, 78, 216, 0.3));
 
   /* ── Light Theme ── */
   --bg-primary: #f0f4ff;
@@ -47,8 +47,8 @@
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.15);
-  --shadow-glow: 0 0 32px rgba(99, 102, 241, 0.28);
-  --shadow-glow-cyan: 0 0 24px rgba(34, 211, 238, 0.3);
+  --shadow-glow: 0 10px 30px rgba(37, 99, 235, 0.15);
+  --shadow-glow-cyan: 0 10px 25px rgba(14, 165, 233, 0.15);
 
   --sidebar-bg: #ffffff;
   --navbar-bg: rgba(240, 244, 255, 0.88);
@@ -92,8 +92,8 @@
   --shadow-md: 0 4px 20px rgba(0, 0, 0, 0.55);
   --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.65);
   --shadow-xl: 0 20px 60px rgba(0, 0, 0, 0.75);
-  --shadow-glow: 0 0 32px rgba(99, 102, 241, 0.35);
-  --shadow-glow-cyan: 0 0 24px rgba(34, 211, 238, 0.35);
+  --shadow-glow: 0 10px 30px rgba(37, 99, 235, 0.25);
+  --shadow-glow-cyan: 0 10px 25px rgba(14, 165, 233, 0.25);
 
   --sidebar-bg: #0D1117;
   --navbar-bg: rgba(7, 11, 20, 0.9);

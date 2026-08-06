@@ -1,7 +1,7 @@
 /* ===== DASHBOARD BANNER ===== */
 .dashboard-banner {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(236, 72, 153, 0.09));
-  border: 1px solid rgba(99, 102, 241, 0.22);
+  background: linear-gradient(135deg, rgba(37, 99, 235, 0.08), rgba(15, 23, 42, 0.04));
+  border: 1px solid rgba(37, 99, 235, 0.15);
   border-radius: var(--border-radius-xl);
   padding: 2rem;
   display: flex;
@@ -12,30 +12,17 @@
   position: relative;
 }
 
-/* Animated background glows */
+/* Animated background glows - removed for professional theme */
 .banner-bg-glow {
-  position: absolute;
-  border-radius: 50%;
-  pointer-events: none;
-  animation: glowFloat 6s ease-in-out infinite;
+  display: none;
 }
 
 .banner-bg-glow-1 {
-  width: 280px;
-  height: 280px;
-  top: -60%;
-  right: -5%;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.18), transparent 70%);
-  animation-delay: 0s;
+  display: none;
 }
 
 .banner-bg-glow-2 {
-  width: 180px;
-  height: 180px;
-  bottom: -50%;
-  left: 20%;
-  background: radial-gradient(circle, rgba(236, 72, 153, 0.14), transparent 70%);
-  animation-delay: 3s;
+  display: none;
 }
 
 @keyframes glowFloat {
@@ -286,8 +273,8 @@
 }
 
 .stat-card-purple:hover {
-  border-color: rgba(99, 102, 241, 0.3);
-  box-shadow: var(--shadow-md), 0 0 20px rgba(99, 102, 241, 0.1);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: var(--shadow-md), 0 0 20px rgba(37, 99, 235, 0.1);
 }
 
 .stat-card-cyan:hover {
@@ -384,12 +371,7 @@
   font-weight: 800;
   letter-spacing: -0.02em;
   line-height: 1;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
-  transition: filter var(--transition-fast);
+  color: var(--text-primary);
   margin-bottom: 1rem;
 }
 
@@ -636,8 +618,8 @@
 }
 
 .dashboard-xp-card:hover {
-  border-color: rgba(99,102,241,0.3);
-  box-shadow: 0 0 0 1px rgba(99,102,241,0.15), var(--shadow-md);
+  border-color: rgba(37,99,235,0.3);
+  box-shadow: 0 0 0 1px rgba(37,99,235,0.15), var(--shadow-md);
   transform: translateY(-2px);
 }
 
@@ -703,7 +685,7 @@
 
 .dashboard-xp-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6366f1, #ec4899);
+  background: var(--grad-brand);
   border-radius: 9999px;
   transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
