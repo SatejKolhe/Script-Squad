@@ -360,17 +360,24 @@ export default function Dashboard() {
                 onChange={(e) => setQuickTask(e.target.value)}
                 id="quick-task-input"
               />
-              <input
-                type="date"
-                className="form-input"
-                style={{ width: '130px', flexShrink: 0 }}
-                value={quickDate}
-                onChange={(e) => setQuickDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-              />
+              
+              <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                <input
+                  type="date"
+                  className="form-input"
+                  style={{ 
+                    width: '160px',
+                    flexShrink: 0,
+                    paddingRight: '36px'
+                  }}
+                  value={quickDate}
+                  onChange={(e) => setQuickDate(e.target.value)}
+                  min={new Date().toISOString().split('T')[0]}
+                />
+              </div>
             </div>
             
-            <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center', flexWrap: 'wrap' }}>
               <input 
                 type="file" 
                 ref={fileInputRef}
@@ -379,11 +386,20 @@ export default function Dashboard() {
                 onChange={handleFileChange}
               />
 
-              <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+              <div style={{ display: 'flex', gap: '0.625rem', alignItems: 'center' }}>
                 <button
                   type="button"
                   className="btn btn-outline"
-                  style={{ padding: '0.4rem 0.6rem', fontSize: '1.2rem', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                  style={{ 
+                    padding: '0 0.75rem', 
+                    fontSize: '1.2rem', 
+                    minHeight: '40px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'center',
+                    borderRadius: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
                   onClick={() => fileInputRef.current?.click()}
                   title="Attach file"
                 >
@@ -412,12 +428,23 @@ export default function Dashboard() {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  style={{ padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#8b5cf6', color: '#8b5cf6' }}
+                  style={{ 
+                    padding: '0 0.75rem', 
+                    minHeight: '40px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: '8px',
+                    borderColor: '#8b5cf6', 
+                    color: '#8b5cf6',
+                    borderRadius: '8px',
+                    transition: 'all 0.15s ease'
+                  }}
                   onClick={handleAIAnalyze}
                   disabled={aiLoading}
                   title="Extract task from attached file"
                 >
-                  {aiLoading ? '⏳' : '✨'} AI
+                  <span>{aiLoading ? '⏳' : '✨'}</span> 
+                  <span style={{ fontWeight: '500' }}>AI</span>
                 </button>
               </div>
 
@@ -425,21 +452,41 @@ export default function Dashboard() {
                 type="button"
                 className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
                 style={{ 
-                  padding: '0.5rem 0.75rem', 
+                  padding: '0 0.75rem',
+                  minHeight: '40px',
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '0.4rem',
+                  gap: '8px',
                   background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(16, 185, 129, 0.1)',
                   borderColor: isQuickPrivate ? 'var(--border-color)' : '#10b981',
-                  color: isQuickPrivate ? 'var(--text-muted)' : '#10b981',
+                  color: isQuickPrivate ? 'var(--text-muted)' : '#059669',
+                  borderRadius: '8px',
+                  transition: 'all 0.15s ease'
                 }}
                 onClick={() => setIsQuickPrivate(!isQuickPrivate)}
                 title={isQuickPrivate ? "Private task" : "Public task"}
               >
-                {isQuickPrivate ? '🔒 Private' : '🌍 Public'}
+                <span>{isQuickPrivate ? '🔒' : '🌍'}</span>
+                <span style={{ fontWeight: '500' }}>{isQuickPrivate ? 'Private' : 'Public'}</span>
               </button>
-              <button type="submit" className="btn btn-primary" disabled={!quickTask.trim()}>
-                + Add
+              
+              <button 
+                type="submit" 
+                className="btn btn-primary" 
+                disabled={!quickTask.trim()}
+                style={{
+                  padding: '0 1.25rem',
+                  minHeight: '40px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '8px',
+                  borderRadius: '8px',
+                  transition: 'all 0.15s ease',
+                  marginLeft: 'auto'
+                }}
+              >
+                <span style={{ fontSize: '1.1rem' }}>+</span>
+                <span style={{ fontWeight: '600' }}>Add</span>
               </button>
             </div>
           </form>
