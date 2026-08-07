@@ -53,7 +53,7 @@
   pointer-events: none;
 }
 
-.navbar-left > div {
+.navbar-left>div {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -155,8 +155,20 @@
 
 
 @media (max-width: 768px) {
-  .navbar { left: 0; padding: 0 1rem; height: 72px; }
-  .navbar-date { display: none; }
-  .hamburger-btn, .mobile-menu-btn { display: flex !important; align-items: center; justify-content: center; }
-}
+  .navbar {
+    left: 0;
+    padding: 0 1rem;
+    height: 72px;
+  }
 
+  .navbar-date {
+    display: none;
+  }
+
+  .hamburger-btn,
+  .mobile-menu-btn {
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+  }
+}

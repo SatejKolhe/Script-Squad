@@ -1,5 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import YouTubeVideoBackground from '../components/YouTubeVideoBackground';
 import './LandingPage.css';
 
 /* ── Constellation canvas animation ── */
@@ -18,7 +19,7 @@ function ConstellationCanvas() {
     const stars = [];
 
     function resize() {
-      W = canvas.width  = window.innerWidth;
+      W = canvas.width = window.innerWidth;
       H = canvas.height = window.innerHeight;
     }
 
@@ -26,11 +27,11 @@ function ConstellationCanvas() {
       stars.length = 0;
       for (let i = 0; i < STAR_COUNT; i++) {
         stars.push({
-          x:  Math.random() * W,
-          y:  Math.random() * H,
+          x: Math.random() * W,
+          y: Math.random() * H,
           vx: (Math.random() - 0.5) * 0.18,
           vy: (Math.random() - 0.5) * 0.18,
-          r:  Math.random() * 1.4 + 0.4,
+          r: Math.random() * 1.4 + 0.4,
         });
       }
     }
@@ -92,6 +93,9 @@ export default function LandingPage() {
     <div className="landing-page">
       <ConstellationCanvas />
 
+      {/* ── YouTube Video Background ── */}
+      <YouTubeVideoBackground videoId="4JxBKrr1H4w" />
+
       {/* ── Nav ── */}
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
@@ -100,7 +104,7 @@ export default function LandingPage() {
         </Link>
         <div className="landing-nav-links">
           <a href="#features" className="nav-link-ghost">Features</a>
-          <Link to="/login"    className="nav-link-ghost">Log in</Link>
+          <Link to="/login" className="nav-link-ghost">Log in</Link>
           <Link to="/register" className="nav-link-btn">Get started →</Link>
         </div>
       </nav>
@@ -162,9 +166,9 @@ export default function LandingPage() {
           <div className="mockup-body">
             <div className="mockup-sidebar">
               <div className="mockup-nav-logo">⚡ Script Squad</div>
-              {['Dashboard','Projects','Team','Analytics'].map((item, i) => (
+              {['Dashboard', 'Projects', 'Team', 'Analytics'].map((item, i) => (
                 <div key={item} className={`mockup-nav-item ${i === 0 ? 'active' : ''}`}>
-                  <span>{['⊞','📁','👥','📊'][i]}</span> {item}
+                  <span>{['⊞', '📁', '👥', '📊'][i]}</span> {item}
                 </div>
               ))}
             </div>
@@ -172,9 +176,9 @@ export default function LandingPage() {
               <div className="mockup-stats-row">
                 {[
                   { val: '24', lbl: 'Active Tasks', color: '#6366f1' },
-                  { val: '8',  lbl: 'In Progress',  color: '#f59e0b' },
-                  { val: '12', lbl: 'Completed',    color: '#10b981' },
-                  { val: '3',  lbl: 'Overdue',      color: '#ef4444' },
+                  { val: '8', lbl: 'In Progress', color: '#f59e0b' },
+                  { val: '12', lbl: 'Completed', color: '#10b981' },
+                  { val: '3', lbl: 'Overdue', color: '#ef4444' },
                 ].map(({ val, lbl, color }) => (
                   <div className="mockup-stat-card" key={lbl}>
                     <div className="mockup-accent-bar" style={{ background: color }} />
@@ -225,7 +229,7 @@ export default function LandingPage() {
             <div className="feature-icon-wrap pink">📡</div>
             <h3 className="feature-title">Live Team Pulse</h3>
             <p className="feature-desc">
-              See what every teammate is working on, right now. Merge requests, 
+              See what every teammate is working on, right now. Merge requests,
               blockers, and updates surfaced automatically — no pings required.
             </p>
           </div>
@@ -233,7 +237,7 @@ export default function LandingPage() {
             <div className="feature-icon-wrap cyan">📊</div>
             <h3 className="feature-title">Deep Analytics</h3>
             <p className="feature-desc">
-              Velocity charts, burn-down graphs, and workload distribution give 
+              Velocity charts, burn-down graphs, and workload distribution give
               managers the signal — not noise — they need to unblock the team.
             </p>
           </div>

@@ -67,6 +67,12 @@ const taskSchema = new mongoose.Schema(
       type: Number,
       default: 0,
     },
+    // ── Visibility ────────────────────────────────────────────────────────────
+    // When true, this task is hidden from team activity / teammate profile views
+    isPrivate: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
