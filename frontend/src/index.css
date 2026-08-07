@@ -1293,3 +1293,19 @@ a:hover {
 .overflow-hidden {
   overflow: hidden;
 }
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-danger {
+  color: var(--brand-danger);
+}
+
+.text-success {
+  color: var(--brand-success);
+}
+
+.overflow-hidden {
+  overflow: hidden;
+}

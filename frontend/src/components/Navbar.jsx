@@ -17,6 +17,94 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
   const { user } = useAuth();
   const location = useLocation();
 
+  // YouTube Audio Player State
+  const [isMusicPlaying, setIsMusicPlaying] = React.useState(false);
+  const playerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    let checkInterval = null;
+    const videoId = '4JxBKrr1H4w';
+
+    const initPlayer = () => {
+      if (playerRef.current) return;
+      const targetElem = document.getElementById('navbar-yt-audio');
+      if (!targetElem) return;
+
+      try {
+        playerRef.current = new window.YT.Player('navbar-yt-audio', {
+          videoId: videoId,
+          playerVars: {
+            autoplay: 0, // Wait for user to play, or autoplay if you want
+            mute: 0,
+            controls: 0,
+            showinfo: 0,
+            rel: 0,
+            modestbranding: 1,
+            playsinline: 1,
+            disablekb: 1,
+            origin: window.location.origin
+          },
+          events: {
+            onReady: (event) => {
+              // event.target.playVideo();
+            },
+            onStateChange: (event) => {
+              if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
+                setIsMusicPlaying(true);
+              } else if (window.YT && event.data === window.YT.PlayerState.PAUSED) {
+                setIsMusicPlaying(false);
+              }
+            }
+          }
+        });
+      } catch (err) {
+        console.error('YouTube player creation failed:', err);
+      }
+    };
+
+    const loadAPI = () => {
+      if (window.YT && window.YT.Player) {
+        initPlayer();
+        return;
+      }
+      let scriptTag = document.getElementById('yt-iframe-api-script');
+      if (!scriptTag) {
+        scriptTag = document.createElement('script');
+        scriptTag.id = 'yt-iframe-api-script';
+        scriptTag.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(scriptTag);
+      }
+      checkInterval = setInterval(() => {
+        if (window.YT && window.YT.Player) {
+          clearInterval(checkInterval);
+          initPlayer();
+        }
+      }, 100);
+      window.onYouTubeIframeAPIReady = () => {
+        if (checkInterval) clearInterval(checkInterval);
+        initPlayer();
+      };
+    };
+
+    loadAPI();
+    return () => {
+      if (checkInterval) clearInterval(checkInterval);
+    };
+  }, []);
+
+  const toggleMusic = () => {
+    if (!playerRef.current || typeof playerRef.current.playVideo !== 'function') return;
+    if (isMusicPlaying) {
+      playerRef.current.pauseVideo();
+      setIsMusicPlaying(false);
+    } else {
+      playerRef.current.unMute();
+      playerRef.current.setVolume(100);
+      playerRef.current.playVideo();
+      setIsMusicPlaying(true);
+    }
+  };
+
   // Match the most specific route first (longest key that is a prefix of pathname)
   const pageKey = Object.keys(PAGE_TITLES)
     .filter((k) => location.pathname === k || location.pathname.startsWith(k + '/'))
@@ -26,6 +114,7 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
 
   return (
     <header className="navbar">
+      <div id="navbar-yt-audio" style={{ display: 'none' }}></div>
 
       <div className="navbar-left">
         <button
@@ -46,6 +135,18 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
         <div className="navbar-date">
           {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
         </div>
+
+        {/* Music toggle */}
+        <button
+          className="music-toggle btn-icon"
+          onClick={toggleMusic}
+          title={isMusicPlaying ? 'Pause Music' : 'Play Music'}
+          aria-label="Toggle music"
+          style={{ position: 'relative', overflow: 'hidden' }}
+        >
+          <span className="theme-icon">{isMusicPlaying ? '🔊' : '🔈'}</span>
+          {isMusicPlaying && <span className="music-playing-indicator" />}
+        </button>
 
         {/* Theme toggle */}
         <button
