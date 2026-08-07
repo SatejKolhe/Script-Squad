@@ -164,7 +164,7 @@
 }
 
 .global-timer-clock {
-  font-family:'Courier New',Courier,monospace;
+  font-family: 'Courier New', Courier, monospace;
   font-size: 1.5rem;
   font-weight: 800;
   color: var(--text-primary);
@@ -327,7 +327,7 @@
 .stat-number {
   font-size: 2rem;
   font-weight: 800;
-  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-family: 'Open Sans', sans-serif;
   color: var(--text-primary);
   line-height: 1;
   animation: countUp 0.5s ease;
@@ -618,8 +618,8 @@
 }
 
 .dashboard-xp-card:hover {
-  border-color: rgba(37,99,235,0.3);
-  box-shadow: 0 0 0 1px rgba(37,99,235,0.15), var(--shadow-md);
+  border-color: rgba(37, 99, 235, 0.3);
+  box-shadow: 0 0 0 1px rgba(37, 99, 235, 0.15), var(--shadow-md);
   transform: translateY(-2px);
 }
 
@@ -678,7 +678,7 @@
 .dashboard-xp-bar-bg {
   width: 100%;
   height: 6px;
-  background: rgba(99,102,241,0.12);
+  background: rgba(99, 102, 241, 0.12);
   border-radius: 9999px;
   overflow: hidden;
 }
@@ -691,12 +691,12 @@
 }
 
 .dashboard-xp-profile-link {
-  background: linear-gradient(135deg, rgba(99,102,241,0.08), rgba(236,72,153,0.05));
-  border-color: rgba(99,102,241,0.2);
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.08), rgba(236, 72, 153, 0.05));
+  border-color: rgba(99, 102, 241, 0.2);
 }
 
 .dashboard-xp-profile-link:hover {
-  background: linear-gradient(135deg, rgba(99,102,241,0.14), rgba(236,72,153,0.09));
+  background: linear-gradient(135deg, rgba(99, 102, 241, 0.14), rgba(236, 72, 153, 0.09));
 }
 
 /* ===========================
