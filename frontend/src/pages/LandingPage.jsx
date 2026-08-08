@@ -1,6 +1,5 @@
 import React, { useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import YouTubeVideoBackground from '../components/YouTubeVideoBackground';
 import './LandingPage.css';
 
 /* ── Constellation canvas animation ── */
@@ -92,9 +91,6 @@ export default function LandingPage() {
   return (
     <div className="landing-page">
       <ConstellationCanvas />
-
-      {/* ── YouTube Video Background ── */}
-      <YouTubeVideoBackground videoId="4JxBKrr1H4w" />
 
       {/* ── Nav ── */}
       <nav className="landing-nav">
