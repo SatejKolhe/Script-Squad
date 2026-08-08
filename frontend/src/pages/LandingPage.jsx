@@ -229,7 +229,7 @@ export default function LandingPage() {
         <div className="cta-container">
           <h2 className="cta-title">Start achieving more today</h2>
           <p className="cta-sub">
-            Join thousands of professionals and teams who rely on TaskLoom for daily focus.
+            Join teams who rely on TaskLoom for daily focus.
           </p>
           <div className="cta-btn-wrap">
             <Link to="/register" className="nav-link-btn">
@@ -238,6 +238,7 @@ export default function LandingPage() {
           </div>
         </div>
       </section>
+
 
       {/* ── Footer ── */}
       <footer className="landing-footer">
