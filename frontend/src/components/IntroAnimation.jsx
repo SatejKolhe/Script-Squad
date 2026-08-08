@@ -69,7 +69,7 @@ export default function IntroAnimation({ children }) {
                 </div>
               </div>
             </div>
-            <div className="intro-logo-text">Script Squad</div>
+            <div className="intro-logo-text">TaskLoom</div>
           </div>
         </div>
       )}

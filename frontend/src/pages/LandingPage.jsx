@@ -263,7 +263,7 @@ export default function LandingPage() {
 
       {/* ── Footer ── */}
       <footer className="landing-footer">
-        <span className="footer-logo">Script Squad</span>
+        <span className="footer-logo">TaskLoom</span>
         <span className="footer-text">© {new Date().getFullYear()} · Built for teams who ship</span>
       </footer>
     </div>
