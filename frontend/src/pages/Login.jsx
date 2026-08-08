@@ -572,7 +572,15 @@ export default function Login() {
               {/* Target email badge */}
               <div className="target-email-badge">
                 <span>Code sent to: <span className="target-email-text">{unverifiedEmail}</span></span>
+                <button
+                  type="button"
+                  className="change-email-btn"
+                  onClick={() => setUnverifiedMode(false)}
+                >
+                  Change
+                </button>
               </div>
+
 
               <form onSubmit={handleUnverifiedVerifyOtp} className="auth-form" noValidate>
                 <div className="form-group">
@@ -875,9 +883,10 @@ export default function Login() {
                       setForgotBannerError('');
                     }}
                   >
-                    ✏️ Change
+                    Change
                   </button>
                 </div>
+
 
                 <div className="form-group">
                   <label className="form-label" style={{ textAlign: 'center', display: 'block' }}>
