@@ -4,14 +4,19 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const https = require('https');            // built-in — used for DNS-over-HTTPS MX check
 const User = require('../models/User');
+const AuditLog = require('../models/AuditLog');
 const { protect } = require('../middleware/auth');
+const { rateLimiter } = require('../middleware/rateLimiter');
 const {
   sendPasswordResetEmail,
   sendVerificationEmail,
   sendPasswordResetOtpEmail,
+  sendAccountDeletionPendingEmail,
+  sendAccountRestoredEmail,
 } = require('../utils/emailService');
 
 const router = express.Router();
+
 
 // ── Disposable / known-temporary email domain blocklist ───────────────────────
 // These domains accept ANY address so MX records alone won't catch them.
@@ -209,6 +214,28 @@ router.post(
         return res.status(401).json({ success: false, message: 'Invalid credentials' });
       }
 
+      // Check soft deletion status AFTER password verification (security best practice)
+      if (user.deletionStatus === 'pending_deletion') {
+        const now = Date.now();
+        const scheduledTime = user.deletionScheduledFor ? new Date(user.deletionScheduledFor).getTime() : 0;
+
+        if (now <= scheduledTime) {
+          const msLeft = scheduledTime - now;
+          const daysRemaining = Math.max(1, Math.ceil(msLeft / (1000 * 60 * 60 * 24)));
+          return res.status(403).json({
+            success: false,
+            isPendingDeletion: true,
+            email: user.email,
+            scheduledDate: user.deletionScheduledFor,
+            daysRemaining,
+            message: `Your account is scheduled for deletion. Log in to restore access before ${new Date(user.deletionScheduledFor).toLocaleDateString()}.`,
+          });
+        } else {
+          // Grace period expired — block login as invalid credentials
+          return res.status(401).json({ success: false, message: 'Invalid credentials' });
+        }
+      }
+
       // STRICT MANDATORY GUARD: Block login if email is not verified
       if (!user.isVerified) {
         return res.status(403).json({
@@ -220,6 +247,7 @@ router.post(
       }
 
       sendToken(user, 200, res);
+
     } catch (err) {
       console.error(err);
       res.status(500).json({ success: false, message: 'Server error' });
@@ -639,4 +667,139 @@ router.post(
   }
 );
 
+// ── Soft Delete Account (15-day grace period) ──────────────────────────────────
+// @route   DELETE /api/auth/account
+// @desc    Soft-delete user account with 15-day restore grace period
+// @access  Private
+router.delete('/account', protect, rateLimiter(5, 15 * 60 * 1000), async (req, res) => {
+  const { password } = req.body;
+
+  if (!password) {
+    return res.status(400).json({ success: false, message: 'Current password is required to delete account.' });
+  }
+
+  try {
+    const user = await User.findById(req.user._id).select('+password');
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    const isMatch = await user.matchPassword(password);
+    if (!isMatch) {
+      return res.status(400).json({ success: false, message: 'Incorrect password' });
+    }
+
+    if (user.deletionStatus === 'pending_deletion') {
+      return res.status(400).json({ success: false, message: 'Account is already pending deletion.' });
+    }
+
+    const now = new Date();
+    const scheduledDate = new Date(now.getTime() + 15 * 24 * 60 * 60 * 1000); // 15 days from now
+
+    user.deletedAt = now;
+    user.deletionScheduledFor = scheduledDate;
+    user.deletionStatus = 'pending_deletion';
+    user.deletionReminderSent = false;
+
+    await user.save({ validateBeforeSave: false });
+
+    // Write Audit Log
+    await AuditLog.create({
+      userId: user._id,
+      userEmail: user.email,
+      action: 'delete_requested',
+      metadata: { deletedAt: now, scheduledFor: scheduledDate },
+    });
+
+    // Send confirmation email
+    sendAccountDeletionPendingEmail(user, scheduledDate, 15).catch((err) =>
+      console.error('Failed sending pending deletion email:', err)
+    );
+
+    res.json({
+      success: true,
+      message: 'Your account has been deactivated and scheduled for permanent deletion in 15 days.',
+      scheduledDate,
+      daysRemaining: 15,
+    });
+  } catch (err) {
+    console.error('Delete account error:', err);
+    res.status(500).json({ success: false, message: 'Server error during account deletion' });
+  }
+});
+
+// ── Restore Account ───────────────────────────────────────────────────────────
+// @route   POST /api/auth/restore-account
+// @desc    Restore a soft-deleted account within 15 days
+// @access  Public
+router.post(
+  '/restore-account',
+  rateLimiter(5, 15 * 60 * 1000),
+  [
+    body('email').isEmail().withMessage('Valid email address is required').normalizeEmail(),
+    body('password').notEmpty().withMessage('Password is required'),
+  ],
+  async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ success: false, message: errors.array()[0].msg });
+    }
+
+    const { email, password } = req.body;
+
+    try {
+      const user = await User.findOne({ email }).select('+password');
+      if (!user) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      const isMatch = await user.matchPassword(password);
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: 'Invalid credentials' });
+      }
+
+      if (user.deletionStatus !== 'pending_deletion') {
+        return res.status(400).json({ success: false, message: 'Account is not pending deletion.' });
+      }
+
+      const now = Date.now();
+      const scheduledTime = user.deletionScheduledFor ? new Date(user.deletionScheduledFor).getTime() : 0;
+
+      if (now > scheduledTime) {
+        return res.status(400).json({
+          success: false,
+          message: 'The 15-day restoration window has expired. Account cannot be restored.',
+        });
+      }
+
+      // Reset soft deletion status
+      user.deletedAt = null;
+      user.deletionScheduledFor = null;
+      user.deletionStatus = 'active';
+      user.deletionReminderSent = false;
+
+      await user.save({ validateBeforeSave: false });
+
+      // Write Audit Log
+      await AuditLog.create({
+        userId: user._id,
+        userEmail: user.email,
+        action: 'account_restored',
+        metadata: { restoredAt: new Date() },
+      });
+
+      // Send restored confirmation email
+      sendAccountRestoredEmail(user).catch((err) =>
+        console.error('Failed sending account restored email:', err)
+      );
+
+      sendToken(user, 200, res);
+    } catch (err) {
+      console.error('Restore account error:', err);
+      res.status(500).json({ success: false, message: 'Server error during account restoration' });
+    }
+  }
+);
+
 module.exports = router;
+
