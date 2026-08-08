@@ -107,10 +107,11 @@ function ProjectTimePanel({ tasks }) {
 }
 
 // --- Sortable Task Card ---
-function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
+function TaskCard({ task, onEdit, onDelete, onStatusChange, isMobile = false, isDragging = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSelf } = useSortable({
     id: task._id,
     data: { type: 'task', task },
+    disabled: isMobile,
   });
 
   const { totalMs } = useTaskTimer({
@@ -134,12 +135,29 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
     <div
       ref={setNodeRef}
       style={style}
-      {...attributes}
-      {...listeners}
-      className={`task-card ${isDragging ? 'dragging' : ''} ${isInProgress ? 'task-card-inprogress' : ''}`}
+      {...(isMobile ? {} : attributes)}
+      {...(isMobile ? {} : listeners)}
+      className={`task-card ${isDragging ? 'dragging' : ''} ${isInProgress ? 'task-card-inprogress' : ''} ${isMobile ? 'is-mobile-card' : ''}`}
     >
       <div className="task-card-header">
         <span className={`badge badge-${task.priority}`}>{task.priority}</span>
+        
+        {/* On Mobile: Quick Status Select (since Drag & Drop is removed on mobile) */}
+        {isMobile && (
+          <select
+            className="task-mobile-status-select"
+            value={task.status}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+            onChange={(e) => { e.stopPropagation(); onStatusChange(task, e.target.value); }}
+            title="Change task status"
+          >
+            <option value="todo">📋 Todo</option>
+            <option value="inprogress">🚀 In Progress</option>
+            <option value="done">✅ Done</option>
+          </select>
+        )}
+
         <div className="task-card-actions">
           <button
             className="btn-icon btn-sm"
@@ -198,9 +216,10 @@ function TaskCard({ task, onEdit, onDelete, isDragging = false }) {
 }
 
 // --- Kanban Column ---
-function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask }) {
+function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChange, isMobile = false }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
+    disabled: isMobile,
   });
 
   return (
@@ -224,9 +243,9 @@ function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask }) {
       </div>
 
       <div className="kanban-column-body">
-        <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy}>
+        <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy} disabled={isMobile}>
           {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} />
+            <TaskCard key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} isMobile={isMobile} />
           ))}
         </SortableContext>
         {tasks.length === 0 && (
@@ -259,10 +278,34 @@ export default function ProjectDetail() {
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [teamMembers, setTeamMembers] = useState([]);
+  const [isMobile, setIsMobile] = useState(
+    typeof window !== 'undefined' ? window.innerWidth <= 768 : false
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
   );
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  const handleQuickStatusChange = async (task, newStatus) => {
+    if (task.status === newStatus) return;
+    try {
+      const res = await api.put(`/tasks/${task._id}`, { status: newStatus });
+      setTasks((prev) => prev.map((t) => (t._id === task._id ? res.data.data : t)));
+      socketRef.current?.emit('task-updated', { projectId: id, task: res.data.data });
+      toast.success(`Task moved to ${COLUMNS.find((c) => c.id === newStatus)?.label || newStatus}`);
+    } catch {
+      toast.error('Failed to update status');
+    }
+  };
+
 
   useEffect(() => {
     loadProject();
@@ -620,7 +663,7 @@ export default function ProjectDetail() {
 
       {/* Kanban Board */}
       <DndContext
-        sensors={sensors}
+        sensors={isMobile ? [] : sensors}
         collisionDetection={collisionDetectionStrategy}
         onDragStart={handleDragStart}
         onDragOver={handleDragOver}
@@ -636,9 +679,12 @@ export default function ProjectDetail() {
               onEdit={openEditTask}
               onDelete={(task) => setDeleteTarget(task)}
               onAddTask={openCreateTask}
+              onStatusChange={handleQuickStatusChange}
+              isMobile={isMobile}
             />
           ))}
         </div>
+
 
         <DragOverlay>
           {activeTask ? (

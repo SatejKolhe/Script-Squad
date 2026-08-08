@@ -221,18 +221,10 @@ router.get('/search', protect, async (req, res) => {
       }
     }
 
-    let sortOptions = { createdAt: -1 };
-    if (sortBy === 'dueDateAsc' || sortBy === 'dueDate') {
-      sortOptions = { dueDate: 1, createdAt: -1 };
-    } else if (sortBy === 'dueDateDesc') {
-      sortOptions = { dueDate: -1, createdAt: -1 };
-    }
-
-
     const tasksPromise = Task.find(taskFilter)
       .populate('project', 'title color')
       .populate('assignee', 'name email avatar')
-      .sort(sortOptions)
+      .sort({ createdAt: -1 })
       .limit(50);
 
     const projectsPromise = hasQuery
@@ -244,9 +236,30 @@ router.get('/search', protect, async (req, res) => {
           .limit(15)
       : Promise.resolve([]);
 
-    const [tasks, projects] = await Promise.all([tasksPromise, projectsPromise]);
+    let [tasks, projects] = await Promise.all([tasksPromise, projectsPromise]);
+
+    if (sortBy === 'dueDateAsc' || sortBy === 'dueDate') {
+      tasks.sort((a, b) => {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : null;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : null;
+        if (dateA !== null && dateB !== null) return dateA - dateB;
+        if (dateA !== null) return -1;
+        if (dateB !== null) return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    } else if (sortBy === 'dueDateDesc') {
+      tasks.sort((a, b) => {
+        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : null;
+        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : null;
+        if (dateA !== null && dateB !== null) return dateB - dateA;
+        if (dateA !== null) return -1;
+        if (dateB !== null) return 1;
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      });
+    }
 
     res.json({ success: true, data: { tasks, projects } });
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
