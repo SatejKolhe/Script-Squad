@@ -668,15 +668,7 @@ export default function Login() {
                 Would you like to cancel deletion and restore full access to your account and data?
               </div>
 
-              <div className="auth-btn-row" style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
-                <button
-                  type="button"
-                  className="btn btn-secondary-dark w-full btn-lg"
-                  onClick={() => setPendingDeletionMode(false)}
-                  disabled={restoring}
-                >
-                  Cancel
-                </button>
+              <div className="pending-deletion-btn-group">
                 <button
                   id="restore-account-btn"
                   type="button"
@@ -693,9 +685,18 @@ export default function Login() {
                     <>🎉 Restore My Account</>
                   )}
                 </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary-dark w-full"
+                  onClick={() => setPendingDeletionMode(false)}
+                  disabled={restoring}
+                >
+                  Cancel
+                </button>
               </div>
             </div>
           )}
+
 
           {/* ── LOGIN FORM ── */}
           {!unverifiedMode && !forgotMode && !pendingDeletionMode && (
