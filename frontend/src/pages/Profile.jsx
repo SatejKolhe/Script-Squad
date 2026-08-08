@@ -35,28 +35,36 @@ export default function Profile() {
 
   const handleDeleteAccount = async () => {
     if (deleteConfirmText !== 'DELETE') {
-      toast.error('Please type DELETE to confirm account deletion');
+      toast.error('Please type DELETE in capital letters to confirm');
       return;
     }
-    if (!deletePassword) {
+    if (!deletePassword.trim()) {
       toast.error('Password is required');
       return;
     }
 
     setDeleting(true);
     try {
-      const res = await api.delete('/auth/account', {
+      await api.delete('/auth/account', {
         data: { password: deletePassword },
       });
-      toast.success(res.data.message || 'Account scheduled for deletion.');
-      setShowDeleteModal(false);
+
+      // Clear token, user context, & headers completely
+      localStorage.removeItem('ss_token');
+      localStorage.removeItem('ss_user');
+      if (api.defaults?.headers?.common) {
+        delete api.defaults.headers.common['Authorization'];
+      }
       logout();
+
+      // Redirect immediately to dedicated public page
+      window.location.href = '/account-deleted';
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to request account deletion');
-    } finally {
       setDeleting(false);
     }
   };
+
 
 
   useEffect(() => {

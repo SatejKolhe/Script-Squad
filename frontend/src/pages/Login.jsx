@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { api, useAuth } from '../contexts/AuthContext';
 import axios from 'axios';
 import toast from 'react-hot-toast';
 import './Auth.css';
@@ -82,13 +82,16 @@ export default function Login() {
   const handleRestoreAccount = async () => {
     setRestoring(true);
     try {
-      const res = await axios.post('/api/auth/restore-account', {
+      const res = await api.post('/auth/restore-account', {
         email: pendingDeletionData.email,
         password: form.password,
       });
       if (res.data.token) {
-        localStorage.setItem('token', res.data.token);
-        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        localStorage.setItem('ss_token', res.data.token);
+        if (res.data.user) {
+          localStorage.setItem('ss_user', JSON.stringify(res.data.user));
+        }
+        api.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
         toast.success('🎉 Welcome back! Your account has been restored.');
         window.location.href = '/dashboard';
       }
