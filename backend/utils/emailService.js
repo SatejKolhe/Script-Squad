@@ -64,7 +64,7 @@ function buildDeadlineEmailHtml(userName, tasks) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Deadline Reminder – Script Squad</title>
+  <title>Deadline Reminder – TaskLoom</title>
 </head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
 
@@ -76,7 +76,7 @@ function buildDeadlineEmailHtml(userName, tasks) {
         <tr>
           <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
             <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Deadline Reminder</h1>
-            <p style="margin:6px 0 0;color:#c7d2fe;font-size:14px;">Script Squad Task Manager</p>
+            <p style="margin:6px 0 0;color:#c7d2fe;font-size:14px;">TaskLoom Task Manager</p>
           </td>
         </tr>
 
@@ -105,12 +105,12 @@ function buildDeadlineEmailHtml(userName, tasks) {
             <div style="text-align:center;margin-top:32px;">
               <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}"
                 style="display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
-                Open Script Squad Workspace →
+                Open TaskLoom Workspace →
               </a>
             </div>
 
             <p style="margin:32px 0 0;color:#94a3b8;font-size:13px;text-align:center;line-height:1.6;">
-              This is an automated operational notification from Script Squad.
+              This is an automated operational notification from TaskLoom.
             </p>
           </td>
         </tr>
@@ -119,7 +119,7 @@ function buildDeadlineEmailHtml(userName, tasks) {
         <tr>
           <td style="background:#f1f5f9;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border:1px solid #e2e8f0;border-top:none;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad. All rights reserved.
+              © ${new Date().getFullYear()} TaskLoom. All rights reserved.
             </p>
           </td>
         </tr>
@@ -139,7 +139,7 @@ function buildCleanOtpEmailHtml(userName, otp, actionTitle = 'Verification Code'
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>${actionTitle} – Script Squad</title>
+  <title>${actionTitle} – TaskLoom</title>
 </head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
 
@@ -150,7 +150,7 @@ function buildCleanOtpEmailHtml(userName, otp, actionTitle = 'Verification Code'
         <!-- Header -->
         <tr>
           <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">TaskLoom</h1>
             <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">${actionTitle}</p>
           </td>
         </tr>
@@ -160,7 +160,7 @@ function buildCleanOtpEmailHtml(userName, otp, actionTitle = 'Verification Code'
           <td style="padding:36px 40px 32px;background:#ffffff;">
             <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hello ${userName || 'User'},</p>
             <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
-              Here is your 6-digit security code for your Script Squad account. Enter this code to complete authentication:
+              Here is your 6-digit security code for your TaskLoom account. Enter this code to complete authentication:
             </p>
 
             <!-- OTP Box -->
@@ -184,7 +184,7 @@ function buildCleanOtpEmailHtml(userName, otp, actionTitle = 'Verification Code'
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Automated Account Security
+              © ${new Date().getFullYear()} TaskLoom · Automated Account Security
             </p>
           </td>
         </tr>
@@ -210,9 +210,9 @@ async function sendDeadlineReminderEmail(user, tasks) {
   }
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: `Script Squad: ${tasks.length} task${tasks.length > 1 ? 's' : ''} due soon`,
+    subject: `TaskLoom: ${tasks.length} task${tasks.length > 1 ? 's' : ''} due soon`,
     text: `Hi ${user.name},\n\nYou have ${tasks.length} task(s) approaching deadlines within the next 24 hours. Please check your workspace:\n${process.env.CLIENT_URL || 'http://localhost:5173'}`,
     html: buildDeadlineEmailHtml(user.name, tasks),
     headers: {
@@ -246,12 +246,12 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 
   // Primary inbox clean subject line pattern recognized by Gmail 2FA parsers
   const subject = otp
-    ? `Script Squad: ${otp} is your verification code`
-    : 'Verify your Script Squad email address';
+    ? `TaskLoom: ${otp} is your verification code`
+    : 'Verify your TaskLoom email address';
 
   // Plain-text alternative (Essential for Primary Inbox deliverability)
   const plainText = otp
-    ? `Hi ${user.name},\n\nYour Script Squad verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this verification, please ignore this email.`
+    ? `Hi ${user.name},\n\nYour TaskLoom verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this verification, please ignore this email.`
     : `Hi ${user.name},\n\nPlease verify your email address by opening this link:\n${verifyUrl}\n\nThis link expires in 30 minutes.`;
 
   const html = `<!DOCTYPE html>
@@ -259,7 +259,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Verify your email – Script Squad</title>
+  <title>Verify your email – TaskLoom</title>
 </head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
@@ -268,7 +268,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 
         <tr>
           <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">TaskLoom</h1>
             <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">Account Email Verification</p>
           </td>
         </tr>
@@ -277,7 +277,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
           <td style="padding:36px 40px 32px;background:#ffffff;">
             <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hi <strong>${user.name}</strong>,</p>
             <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
-              ${otp ? 'Thanks for joining Script Squad! Enter the 6-digit verification code below to activate your account.' : 'Thanks for joining Script Squad! Click the button below to activate your account.'}
+              ${otp ? 'Thanks for joining TaskLoom! Enter the 6-digit verification code below to activate your account.' : 'Thanks for joining TaskLoom! Click the button below to activate your account.'}
             </p>
 
             ${
@@ -309,7 +309,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
             }
 
             <p style="margin:20px 0 0;color:#94a3b8;font-size:13px;">
-              If you didn't create a Script Squad account, you can safely ignore this email.
+              If you didn't create a TaskLoom account, you can safely ignore this email.
             </p>
           </td>
         </tr>
@@ -317,7 +317,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Account Security
+              © ${new Date().getFullYear()} TaskLoom · Account Security
             </p>
           </td>
         </tr>
@@ -329,7 +329,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 </html>`;
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject,
     text: plainText,
@@ -358,15 +358,15 @@ async function sendPasswordResetEmail(user, resetUrl) {
     return;
   }
 
-  const subject = 'Script Squad: Reset your password';
-  const plainText = `Hi ${user.name},\n\nWe received a request to reset your Script Squad password. Open this link to set a new password:\n${resetUrl}\n\nThis link will expire in 15 minutes.`;
+  const subject = 'TaskLoom: Reset your password';
+  const plainText = `Hi ${user.name},\n\nWe received a request to reset your TaskLoom password. Open this link to set a new password:\n${resetUrl}\n\nThis link will expire in 15 minutes.`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Reset your password – Script Squad</title>
+  <title>Reset your password – TaskLoom</title>
 </head>
 <body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
@@ -375,7 +375,7 @@ async function sendPasswordResetEmail(user, resetUrl) {
 
         <tr>
           <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
-            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">TaskLoom</h1>
             <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">Password Reset</p>
           </td>
         </tr>
@@ -407,7 +407,7 @@ async function sendPasswordResetEmail(user, resetUrl) {
         <tr>
           <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Account Security
+              © ${new Date().getFullYear()} TaskLoom · Account Security
             </p>
           </td>
         </tr>
@@ -419,7 +419,7 @@ async function sendPasswordResetEmail(user, resetUrl) {
 </html>`;
 
   await transporter.sendMail({
-    from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject,
     text: plainText,
@@ -449,11 +449,11 @@ async function sendPasswordResetOtpEmail(user, otp) {
     return;
   }
 
-  const subject = `Script Squad: ${otp} is your password reset code`;
-  const plainText = `Hello ${user.name || 'there'},\n\nYour Script Squad password reset code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request a password reset, please ignore this email. Your password will remain unchanged.`;
+  const subject = `TaskLoom: ${otp} is your password reset code`;
+  const plainText = `Hello ${user.name || 'there'},\n\nYour TaskLoom password reset code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request a password reset, please ignore this email. Your password will remain unchanged.`;
 
   const mailOptions = {
-    from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+    from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
     to: user.email,
     subject,
     text: plainText,
@@ -493,7 +493,7 @@ async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemainin
 
   const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><title>Account Deletion Scheduled</title></head>
+<head><meta charset="UTF-8"/><title>Account Deletion Scheduled – TaskLoom</title></head>
 <body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
     <tr><td align="center">
@@ -502,19 +502,19 @@ async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemainin
           <td style="background:linear-gradient(135deg,#dc2626 0%,#991b1b 100%);padding:36px 40px;text-align:center;">
             <div style="font-size:36px;margin-bottom:8px;">⚠️</div>
             <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Account Scheduled for Deletion</h1>
-            <p style="margin:6px 0 0;color:#fca5a5;font-size:14px;">Script Squad · 15-Day Grace Period</p>
+            <p style="margin:6px 0 0;color:#fca5a5;font-size:14px;">TaskLoom · 15-Day Grace Period</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px;background:#111827;">
             <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;font-weight:600;">Hi ${user.name},</p>
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
-              We received a request to delete your Script Squad account. Your account is now deactivated and scheduled for permanent deletion on <strong style="color:#ef4444;">${formattedDate}</strong> (${daysRemaining} days remaining).
+              We received a request to delete your TaskLoom account. Your account is now deactivated and scheduled for permanent deletion on <strong style="color:#ef4444;">${formattedDate}</strong> (${daysRemaining} days remaining).
             </p>
             <div style="background:#1f2937;border-left:4px solid #ef4444;border-radius:8px;padding:16px 20px;margin:24px 0;">
               <div style="color:#f87171;font-weight:700;font-size:14px;margin-bottom:4px;">Changed your mind?</div>
               <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.5;">
-                You can restore your account at any time before <strong>${formattedDate}</strong> by logging back in to Script Squad.
+                You can restore your account at any time before <strong>${formattedDate}</strong> by logging back in to TaskLoom.
               </p>
             </div>
             <p style="margin:24px 0;color:#f3f4f6;font-size:15px;text-align:center;line-height:1.6;">
@@ -533,9 +533,9 @@ async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemainin
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Script Squad Security" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"TaskLoom Security" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: `⚠️ Important: Your Script Squad account is scheduled for deletion on ${formattedDate}`,
+      subject: `⚠️ Important: Your TaskLoom account is scheduled for deletion on ${formattedDate}`,
       html,
     });
     console.log(`📧 Account deletion pending email sent to ${user.email}`);
@@ -557,7 +557,7 @@ async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
 
   const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><title>Account Deletion Reminder</title></head>
+<head><meta charset="UTF-8"/><title>Account Deletion Reminder – TaskLoom</title></head>
 <body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
     <tr><td align="center">
@@ -566,14 +566,14 @@ async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
           <td style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);padding:36px 40px;text-align:center;">
             <div style="font-size:36px;margin-bottom:8px;">⏳</div>
             <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">${daysRemaining} Days Left to Restore Account</h1>
-            <p style="margin:6px 0 0;color:#fef3c7;font-size:14px;">Script Squad · Deletion Reminder</p>
+            <p style="margin:6px 0 0;color:#fef3c7;font-size:14px;">TaskLoom · Deletion Reminder</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px;background:#111827;">
             <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Hi ${user.name},</p>
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
-              This is a reminder that your Script Squad account will be <strong>permanently deleted in ${daysRemaining} days</strong>.
+              This is a reminder that your TaskLoom account will be <strong>permanently deleted in ${daysRemaining} days</strong>.
             </p>
             <p style="margin:24px 0;color:#f3f4f6;font-size:15px;text-align:center;line-height:1.6;">
               🔑 <strong>Log in again to restore your account.</strong>
@@ -588,9 +588,9 @@ async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Script Squad Security" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"TaskLoom Security" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: `⏳ Final Reminder: ${daysRemaining} days left to restore your Script Squad account`,
+      subject: `⏳ Final Reminder: ${daysRemaining} days left to restore your TaskLoom account`,
       html,
     });
     console.log(`📧 Account deletion reminder sent to ${user.email}`);
@@ -612,7 +612,7 @@ async function sendAccountRestoredEmail(user) {
 
   const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><title>Account Restored</title></head>
+<head><meta charset="UTF-8"/><title>Account Restored – TaskLoom</title></head>
 <body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
     <tr><td align="center">
@@ -621,14 +621,14 @@ async function sendAccountRestoredEmail(user) {
           <td style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:36px 40px;text-align:center;">
             <div style="font-size:36px;margin-bottom:8px;">🎉</div>
             <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Welcome Back! Account Restored</h1>
-            <p style="margin:6px 0 0;color:#a7f3d0;font-size:14px;">Script Squad · Account Active</p>
+            <p style="margin:6px 0 0;color:#a7f3d0;font-size:14px;">TaskLoom · Account Active</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px;background:#111827;">
             <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Hi ${user.name},</p>
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
-              Your Script Squad account has been successfully restored. Your tasks, projects, and settings are fully active again.
+              Your TaskLoom account has been successfully restored. Your tasks, projects, and settings are fully active again.
             </p>
           </td>
         </tr>
@@ -638,12 +638,11 @@ async function sendAccountRestoredEmail(user) {
 </body>
 </html>`;
 
-
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: '🎉 Your Script Squad account has been successfully restored!',
+      subject: '🎉 Your TaskLoom account has been successfully restored!',
       html,
     });
     console.log(`📧 Account restored email sent to ${user.email}`);
@@ -665,7 +664,7 @@ async function sendAccountPermanentlyDeletedEmail(user) {
 
   const html = `<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"/><title>Account Permanently Deleted</title></head>
+<head><meta charset="UTF-8"/><title>Account Permanently Deleted – TaskLoom</title></head>
 <body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
     <tr><td align="center">
@@ -674,17 +673,17 @@ async function sendAccountPermanentlyDeletedEmail(user) {
           <td style="background:#1f2937;padding:36px 40px;text-align:center;">
             <div style="font-size:36px;margin-bottom:8px;">👋</div>
             <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Account Permanently Deleted</h1>
-            <p style="margin:6px 0 0;color:#9ca3af;font-size:14px;">Script Squad</p>
+            <p style="margin:6px 0 0;color:#9ca3af;font-size:14px;">TaskLoom</p>
           </td>
         </tr>
         <tr>
           <td style="padding:40px;background:#111827;">
             <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Goodbye ${user.name},</p>
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
-              As requested, your 15-day grace period has ended and your Script Squad account and associated data have been permanently deleted from our servers.
+              As requested, your 15-day grace period has ended and your TaskLoom account and associated data have been permanently deleted from our servers.
             </p>
             <p style="margin:0;color:#6b7280;font-size:13px;">
-              Thank you for having been part of Script Squad. If you ever wish to return, you are welcome to sign up for a new account anytime.
+              Thank you for having been part of TaskLoom. If you ever wish to return, you are welcome to sign up for a new account anytime.
             </p>
           </td>
         </tr>
@@ -696,9 +695,9 @@ async function sendAccountPermanentlyDeletedEmail(user) {
 
   try {
     await transporter.sendMail({
-      from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+      from: process.env.EMAIL_FROM || `"TaskLoom" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: '👋 Your Script Squad account has been permanently deleted',
+      subject: '👋 Your TaskLoom account has been permanently deleted',
       html,
     });
     console.log(`📧 Account permanently deleted confirmation sent to ${user.email}`);
@@ -717,4 +716,3 @@ module.exports = {
   sendAccountRestoredEmail,
   sendAccountPermanentlyDeletedEmail,
 };
-
