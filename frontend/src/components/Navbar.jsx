@@ -5,11 +5,11 @@ import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
 const PAGE_TITLES = {
-  '/dashboard':  { title: 'Dashboard',   subtitle: 'Overview of your work' },
-  '/projects':   { title: 'Projects',    subtitle: 'Manage all your projects' },
-  '/analytics':  { title: 'Analytics',   subtitle: 'Insights & productivity trends' },
-  '/team':       { title: 'Team',        subtitle: "Track who's working on what" },
-  '/profile':    { title: 'Profile',     subtitle: 'Your account & achievements' },
+  '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your work' },
+  '/projects': { title: 'Projects', subtitle: 'Manage all your projects' },
+  '/analytics': { title: 'Analytics', subtitle: 'Insights & productivity trends' },
+  '/team': { title: 'Team', subtitle: "Track who's working on what" },
+  '/profile': { title: 'Profile', subtitle: 'Your account & achievements' },
 };
 
 export default function Navbar({ onMenuToggle, setMobileOpen }) {
@@ -110,7 +110,7 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
     .filter((k) => location.pathname === k || location.pathname.startsWith(k + '/'))
     .sort((a, b) => b.length - a.length)[0] || '/dashboard';
 
-  const { title, subtitle } = PAGE_TITLES[pageKey] || { title: 'Script Squad', subtitle: '' };
+  const { title, subtitle } = PAGE_TITLES[pageKey] || { title: 'TaskLoom', subtitle: '' };
 
   return (
     <header className="navbar">

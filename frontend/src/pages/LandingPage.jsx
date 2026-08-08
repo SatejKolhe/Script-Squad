@@ -100,7 +100,7 @@ export default function LandingPage() {
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
           <div className="landing-logo-icon">⚡</div>
-          <span className="landing-logo-name">Script Squad</span>
+          <span className="landing-logo-name">TaskLoom</span>
         </Link>
         <div className="landing-nav-links">
           <a href="#features" className="nav-link-ghost">Features</a>
@@ -165,7 +165,7 @@ export default function LandingPage() {
           </div>
           <div className="mockup-body">
             <div className="mockup-sidebar">
-              <div className="mockup-nav-logo">⚡ Script Squad</div>
+              <div className="mockup-nav-logo">⚡ TaskLoom</div>
               {['Dashboard', 'Projects', 'Team', 'Analytics'].map((item, i) => (
                 <div key={item} className={`mockup-nav-item ${i === 0 ? 'active' : ''}`}>
                   <span>{['⊞', '📁', '👥', '📊'][i]}</span> {item}

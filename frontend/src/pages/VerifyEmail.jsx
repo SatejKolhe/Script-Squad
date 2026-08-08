@@ -47,7 +47,7 @@ export default function VerifyEmail() {
         <div className="auth-logo">
           <div className="auth-logo-icon">⚡</div>
           <div>
-            <h1 className="auth-logo-name">Script Squad</h1>
+            <h1 className="auth-logo-name">TaskLoom</h1>
             <p className="auth-logo-tagline">Work Smarter Together</p>
           </div>
         </div>
