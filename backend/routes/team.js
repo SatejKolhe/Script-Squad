@@ -4,6 +4,7 @@ const Team = require('../models/Team');
 const User = require('../models/User');
 const Task = require('../models/Task');
 const Project = require('../models/Project');
+const TeamInvite = require('../models/TeamInvite');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -46,7 +47,7 @@ router.get('/search', protect, async (req, res) => {
     }
 
     const team = await getOrCreateTeam(req.user._id);
-    const excludeIds = [req.user._id, ...team.members]; // don't show self or existing members
+    const excludeIds = [req.user._id]; // don't show self
 
     const users = await User.find({
       _id: { $nin: excludeIds },
@@ -56,9 +57,28 @@ router.get('/search', protect, async (req, res) => {
       ],
     })
       .select('name email avatar')
-      .limit(8);
+      .limit(8)
+      .lean();
 
-    res.json({ success: true, data: users });
+    // Fetch pending invites sent by this user
+    const pendingInvites = await TeamInvite.find({
+      from: req.user._id,
+      status: 'pending'
+    }).select('to');
+
+    const pendingUserIds = pendingInvites.map(inv => inv.to.toString());
+    const memberIds = team.members.map(id => id.toString());
+
+    // Attach inviteStatus
+    const usersWithStatus = users.map(user => {
+      const uid = user._id.toString();
+      let status = 'none';
+      if (memberIds.includes(uid)) status = 'member';
+      else if (pendingUserIds.includes(uid)) status = 'pending';
+      return { ...user, inviteStatus: status };
+    });
+
+    res.json({ success: true, data: usersWithStatus });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });

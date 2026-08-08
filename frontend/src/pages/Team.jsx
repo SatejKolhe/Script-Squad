@@ -155,7 +155,7 @@ function MemberCard({ memberData, onRemove }) {
 }
 
 // ── Add Member Panel ──────────────────────────────────────────────────────────
-function AddMemberPanel({ onMemberAdded }) {
+function AddMemberPanel() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [searching, setSearching] = useState(false);
@@ -194,13 +194,15 @@ function AddMemberPanel({ onMemberAdded }) {
   const handleAdd = async (user) => {
     setAdding(user._id);
     try {
-      await api.post('/team/members', { email: user.email });
-      toast.success(`${user.name} added to your team! 🎉`);
-      setResults([]);
-      setQuery('');
-      onMemberAdded();
+      await api.post('/inbox/invites', { email: user.email });
+      toast.success(`Invite sent to ${user.name}! 🎉`);
+      
+      // Optimistically update the local results so it shows "Requested" immediately
+      setResults(prev => prev.map(u => 
+        u._id === user._id ? { ...u, inviteStatus: 'pending' } : u
+      ));
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Failed to add member');
+      toast.error(err.response?.data?.message || 'Failed to send invite');
     } finally {
       setAdding(null);
     }
@@ -241,11 +243,22 @@ function AddMemberPanel({ onMemberAdded }) {
                   <div className="search-result-email">{user.email}</div>
                 </div>
                 <button
-                  className="search-result-add-btn"
+                  className={`search-result-add-btn ${user.inviteStatus === 'pending' || user.inviteStatus === 'member' ? 'btn-disabled' : ''}`}
                   onClick={() => handleAdd(user)}
-                  disabled={adding === user._id}
+                  disabled={adding === user._id || user.inviteStatus === 'pending' || user.inviteStatus === 'member'}
+                  style={{
+                    backgroundColor: user.inviteStatus === 'member' ? '#e2e8f0' : (user.inviteStatus === 'pending' ? '#fef3c7' : ''),
+                    color: user.inviteStatus === 'member' ? '#64748b' : (user.inviteStatus === 'pending' ? '#d97706' : ''),
+                    borderColor: 'transparent'
+                  }}
                 >
-                  {adding === user._id ? '...' : '+ Add'}
+                  {adding === user._id 
+                    ? '...' 
+                    : user.inviteStatus === 'member' 
+                      ? 'Member' 
+                      : user.inviteStatus === 'pending' 
+                        ? 'Requested' 
+                        : '+ Invite'}
                 </button>
               </div>
             ))}
@@ -720,7 +733,7 @@ export default function Team() {
       </div>
 
       {/* Add Member */}
-      <AddMemberPanel onMemberAdded={loadActivity} />
+      <AddMemberPanel />
 
       {/* ── Leader Assignment Section ── */}
       <AssignTaskPanel members={activity} onTaskAssigned={loadActivity} />
