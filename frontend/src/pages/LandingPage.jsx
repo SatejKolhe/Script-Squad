@@ -149,11 +149,8 @@ export default function LandingPage() {
                 Start for free →
               </button>
             </form>
-
-            <p className="hero-micro-text">
-              No credit card required · 14-day free trial · Instant setup
-            </p>
           </div>
+
 
           {/* Right Column (55%): Live Product Workspace Board */}
           <div className="hero-right">
