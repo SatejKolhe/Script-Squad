@@ -161,26 +161,90 @@ router.get('/upcoming', protect, async (req, res) => {
 });
 
 // @route   GET /api/tasks/search
-// @desc    Search tasks and projects by query
+// @desc    Search tasks and projects by query & filters (status, priority, due date, sort)
 // @access  Private
 router.get('/search', protect, async (req, res) => {
   try {
-    const { q } = req.query;
-    if (!q || q.trim().length < 1) {
+    const { q, status, priority, dueDate, sortBy } = req.query;
+
+    const hasQuery = q && q.trim().length > 0;
+    const hasStatus = status && status !== 'all';
+    const hasPriority = priority && priority !== 'all';
+    const hasDueDate = dueDate && dueDate !== 'all';
+    const hasSort = sortBy && sortBy !== 'default';
+
+    // If no search query and no filters/sort provided, return empty
+    if (!hasQuery && !hasStatus && !hasPriority && !hasDueDate && !hasSort) {
       return res.json({ success: true, data: { tasks: [], projects: [] } });
     }
 
-    const regex = { $regex: q.trim(), $options: 'i' };
+    const taskFilter = { owner: req.user._id };
 
-    const [tasks, projects] = await Promise.all([
-      Task.find({ owner: req.user._id, title: regex })
-        .populate('project', 'title color')
-        .sort({ createdAt: -1 })
-        .limit(30),
-      Project.find({ owner: req.user._id, $or: [{ title: regex }, { description: regex }] })
-        .sort({ createdAt: -1 })
-        .limit(15),
-    ]);
+    if (hasQuery) {
+      taskFilter.title = { $regex: q.trim(), $options: 'i' };
+    }
+
+    if (hasStatus) {
+      taskFilter.status = status;
+    }
+
+    if (hasPriority) {
+      taskFilter.priority = priority;
+    }
+
+    if (hasDueDate) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const endOfDay = new Date(startOfDay);
+      endOfDay.setDate(endOfDay.getDate() + 1);
+
+      if (dueDate === 'today') {
+        taskFilter.dueDate = { $gte: startOfDay, $lt: endOfDay };
+      } else if (dueDate === 'overdue') {
+        taskFilter.dueDate = { $lt: startOfDay };
+        if (!hasStatus) {
+          taskFilter.status = { $ne: 'done' };
+        }
+      } else if (dueDate === 'this_week') {
+        const endOfWeek = new Date(startOfDay);
+        endOfWeek.setDate(endOfWeek.getDate() + 7);
+        taskFilter.dueDate = { $gte: startOfDay, $lt: endOfWeek };
+      } else {
+        // Specific YYYY-MM-DD
+        const specificDate = new Date(dueDate);
+        if (!isNaN(specificDate.getTime())) {
+          const specStart = new Date(specificDate.getFullYear(), specificDate.getMonth(), specificDate.getDate());
+          const specEnd = new Date(specStart);
+          specEnd.setDate(specEnd.getDate() + 1);
+          taskFilter.dueDate = { $gte: specStart, $lt: specEnd };
+        }
+      }
+    }
+
+    let sortOptions = { createdAt: -1 };
+    if (sortBy === 'dueDateAsc' || sortBy === 'dueDate') {
+      sortOptions = { dueDate: 1, createdAt: -1 };
+    } else if (sortBy === 'dueDateDesc') {
+      sortOptions = { dueDate: -1, createdAt: -1 };
+    }
+
+
+    const tasksPromise = Task.find(taskFilter)
+      .populate('project', 'title color')
+      .populate('assignee', 'name email avatar')
+      .sort(sortOptions)
+      .limit(50);
+
+    const projectsPromise = hasQuery
+      ? Project.find({
+          owner: req.user._id,
+          $or: [{ title: { $regex: q.trim(), $options: 'i' } }, { description: { $regex: q.trim(), $options: 'i' } }],
+        })
+          .sort({ createdAt: -1 })
+          .limit(15)
+      : Promise.resolve([]);
+
+    const [tasks, projects] = await Promise.all([tasksPromise, projectsPromise]);
 
     res.json({ success: true, data: { tasks, projects } });
   } catch (err) {
@@ -188,6 +252,8 @@ router.get('/search', protect, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+
+
 
 // @route   GET /api/tasks/analytics/summary
 // @desc    Get analytics data for current user
