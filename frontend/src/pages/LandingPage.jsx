@@ -1,98 +1,125 @@
-import React, { useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 
-/* ── Constellation canvas animation ── */
-function ConstellationCanvas() {
-  const canvasRef = useRef(null);
+/* ── Option A: Live Interactive Product Board Preview Component ── */
+function LiveProductBoardPreview() {
+  const [tasks, setTasks] = useState([
+    { id: 1, title: 'Finalize Q3 Product Roadmap', category: 'Strategy', status: 'inprogress', priority: 'High' },
+    { id: 2, title: 'Review API Authentication Spec', category: 'Backend', status: 'todo', priority: 'High' },
+    { id: 3, title: 'Redesign Onboarding Experience', category: 'Design', status: 'done', priority: 'Medium' },
+    { id: 4, title: 'Database Indexing Optimization', category: 'DevOps', status: 'done', priority: 'Low' },
+  ]);
 
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    let animId;
-    let W, H;
-
-    const STAR_COUNT = 120;
-    const MAX_DIST = 140;
-    const stars = [];
-
-    function resize() {
-      W = canvas.width = window.innerWidth;
-      H = canvas.height = window.innerHeight;
-    }
-
-    function initStars() {
-      stars.length = 0;
-      for (let i = 0; i < STAR_COUNT; i++) {
-        stars.push({
-          x: Math.random() * W,
-          y: Math.random() * H,
-          vx: (Math.random() - 0.5) * 0.18,
-          vy: (Math.random() - 0.5) * 0.18,
-          r: Math.random() * 1.4 + 0.4,
-        });
-      }
-    }
-
-    function draw() {
-      ctx.clearRect(0, 0, W, H);
-      // Move stars
-      for (const s of stars) {
-        s.x += s.vx;
-        s.y += s.vy;
-        if (s.x < 0) s.x = W;
-        if (s.x > W) s.x = 0;
-        if (s.y < 0) s.y = H;
-        if (s.y > H) s.y = 0;
-      }
-      // Draw connections
-      for (let i = 0; i < stars.length; i++) {
-        for (let j = i + 1; j < stars.length; j++) {
-          const dx = stars[i].x - stars[j].x;
-          const dy = stars[i].y - stars[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < MAX_DIST) {
-            ctx.beginPath();
-            ctx.moveTo(stars[i].x, stars[i].y);
-            ctx.lineTo(stars[j].x, stars[j].y);
-            const alpha = (1 - dist / MAX_DIST) * 0.18;
-            ctx.strokeStyle = `rgba(99,102,241,${alpha})`;
-            ctx.lineWidth = 0.8;
-            ctx.stroke();
-          }
+  const toggleStatus = (id) => {
+    setTasks((prev) =>
+      prev.map((t) => {
+        if (t.id === id) {
+          const next = t.status === 'todo' ? 'inprogress' : t.status === 'inprogress' ? 'done' : 'todo';
+          return { ...t, status: next };
         }
-      }
-      // Draw stars
-      for (const s of stars) {
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(176,176,255,0.7)';
-        ctx.fill();
-      }
-      animId = requestAnimationFrame(draw);
-    }
+        return t;
+      })
+    );
+  };
 
-    resize();
-    initStars();
-    draw();
-    window.addEventListener('resize', () => { resize(); initStars(); });
+  const getColumnTasks = (colStatus) => tasks.filter((t) => t.status === colStatus);
+  const doneCount = tasks.filter((t) => t.status === 'done').length;
 
-    return () => {
-      cancelAnimationFrame(animId);
-      window.removeEventListener('resize', resize);
-    };
-  }, []);
+  return (
+    <div className="board-preview-card">
+      <div className="board-preview-topbar">
+        <div className="board-window-dots">
+          <span className="dot dot-red" />
+          <span className="dot dot-yellow" />
+          <span className="dot dot-green" />
+        </div>
+        <span className="board-url-text">app.taskloom.com/my-workspace</span>
+        <span className="board-active-badge">⚡ {doneCount * 25} XP</span>
+      </div>
 
-  return <canvas ref={canvasRef} className="constellation-canvas" />;
+      <div className="board-columns-grid">
+        {/* To Do Column */}
+        <div className="board-col">
+          <div className="board-col-header">
+            <span className="col-title">To Do</span>
+            <span className="col-count">{getColumnTasks('todo').length}</span>
+          </div>
+          <div className="board-col-list">
+            {getColumnTasks('todo').map((t) => (
+              <div key={t.id} className="board-task-card" onClick={() => toggleStatus(t.id)}>
+                <div className="task-checkbox" />
+                <div className="task-info">
+                  <div className="task-title">{t.title}</div>
+                  <span className="task-tag">{t.category}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* In Progress Column */}
+        <div className="board-col">
+          <div className="board-col-header">
+            <span className="col-title">In Progress</span>
+            <span className="col-count inprogress">{getColumnTasks('inprogress').length}</span>
+          </div>
+          <div className="board-col-list">
+            {getColumnTasks('inprogress').map((t) => (
+              <div key={t.id} className="board-task-card active" onClick={() => toggleStatus(t.id)}>
+                <div className="task-checkbox inprogress">••</div>
+                <div className="task-info">
+                  <div className="task-title">{t.title}</div>
+                  <span className="task-tag cobalt">{t.category}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Completed Column */}
+        <div className="board-col">
+          <div className="board-col-header">
+            <span className="col-title">Completed</span>
+            <span className="col-count done">{getColumnTasks('done').length}</span>
+          </div>
+          <div className="board-col-list">
+            {getColumnTasks('done').map((t) => (
+              <div key={t.id} className="board-task-card done" onClick={() => toggleStatus(t.id)}>
+                <div className="task-checkbox checked">✓</div>
+                <div className="task-info">
+                  <div className="task-title line-through">{t.title}</div>
+                  <span className="task-tag green">{t.category}</span>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="board-preview-footer">
+        <span>💡 Interactive Preview: Click any card to toggle its status</span>
+      </div>
+    </div>
+  );
 }
 
 export default function LandingPage() {
+  const [emailInput, setEmailInput] = useState('');
+  const navigate = useNavigate();
+
+  const handleInlineSignup = (e) => {
+    e.preventDefault();
+    if (emailInput.trim()) {
+      navigate(`/register?email=${encodeURIComponent(emailInput.trim())}`);
+    } else {
+      navigate('/register');
+    }
+  };
+
   return (
     <div className="landing-page">
-      <ConstellationCanvas />
-
-      {/* ── Nav ── */}
+      {/* ── Navigation ── */}
       <nav className="landing-nav">
         <Link to="/" className="landing-logo">
           <div className="landing-logo-icon">⚡</div>
@@ -100,168 +127,143 @@ export default function LandingPage() {
         </Link>
         <div className="landing-nav-links">
           <a href="#features" className="nav-link-ghost">Features</a>
-          <Link to="/login" className="nav-link-ghost">Log in</Link>
-          <Link to="/register" className="nav-link-btn">Get started →</Link>
+          <a href="#how-it-works" className="nav-link-ghost">How It Works</a>
+          <Link to="/login" className="nav-link-ghost">Sign In</Link>
+          <Link to="/register" className="nav-link-btn">Start for free →</Link>
         </div>
       </nav>
 
-      {/* ── Hero ── */}
+      {/* ── Hero Section (Option A: Asymmetric 2-Column Layout) ── */}
       <section className="landing-hero">
-        <div className="hero-badge">
-          <span className="hero-badge-dot" />
-          Now with real-time collaboration
-        </div>
+        <div className="hero-grid">
+          {/* Left Column (45%): Headline & Quick Action */}
+          <div className="hero-left">
+            <h1 className="landing-title">
+              Work with focus.<br />
+              Ship with confidence.
+            </h1>
+            <p className="landing-subtitle">
+              TaskLoom is the intuitive task & project workspace designed for clarity.
+              Organize daily priorities, align your team, and build lasting momentum.
+            </p>
 
-        <h1 className="landing-title">
-          Ship work that{' '}
-          <span className="title-highlight">actually matters.</span>
-        </h1>
+            <form onSubmit={handleInlineSignup} className="hero-inline-form">
+              <input
+                type="email"
+                className="hero-inline-input"
+                placeholder="Enter your work email..."
+                value={emailInput}
+                onChange={(e) => setEmailInput(e.target.value)}
+              />
+              <button type="submit" className="hero-inline-btn">
+                Start for free →
+              </button>
+            </form>
 
-        <p className="landing-subtitle">
-          Script Squad is the command center for high-performance teams.
-          Track projects, manage tasks, and watch your team's productivity
-          take off — all in one beautifully focused workspace.
-        </p>
-
-        <div className="hero-cta-group">
-          <Link to="/register" className="hero-btn-primary">
-            Launch your workspace →
-          </Link>
-          <Link to="/login" className="hero-btn-ghost">
-            Sign in
-          </Link>
-        </div>
-
-        <div className="hero-social-proof">
-          <div className="proof-stat">
-            <span className="proof-number">2.4k+</span>
-            <span className="proof-label">Active teams</span>
+            <p className="hero-micro-text">
+              No credit card required · 14-day free trial · Instant setup
+            </p>
           </div>
-          <div className="proof-divider" />
-          <div className="proof-stat">
-            <span className="proof-number">98%</span>
-            <span className="proof-label">Satisfaction</span>
-          </div>
-          <div className="proof-divider" />
-          <div className="proof-stat">
-            <span className="proof-number">12ms</span>
-            <span className="proof-label">Avg. response</span>
+
+          {/* Right Column (55%): Live Product Workspace Board */}
+          <div className="hero-right">
+            <LiveProductBoardPreview />
           </div>
         </div>
       </section>
 
-      {/* ── Dashboard Mockup ── */}
-      <section className="mockup-section">
-        <div className="mockup-wrapper">
-          <div className="mockup-topbar">
-            <div className="mockup-dot mockup-dot-red" />
-            <div className="mockup-dot mockup-dot-yellow" />
-            <div className="mockup-dot mockup-dot-green" />
-            <div className="mockup-url-bar">app.scriptsquad.io/dashboard</div>
-          </div>
-          <div className="mockup-body">
-            <div className="mockup-sidebar">
-              <div className="mockup-nav-logo">⚡ TaskLoom</div>
-              {['Dashboard', 'Projects', 'Team', 'Analytics'].map((item, i) => (
-                <div key={item} className={`mockup-nav-item ${i === 0 ? 'active' : ''}`}>
-                  <span>{['⊞', '📁', '👥', '📊'][i]}</span> {item}
-                </div>
-              ))}
-            </div>
-            <div className="mockup-main">
-              <div className="mockup-stats-row">
-                {[
-                  { val: '24', lbl: 'Active Tasks', color: '#6366f1' },
-                  { val: '8', lbl: 'In Progress', color: '#f59e0b' },
-                  { val: '12', lbl: 'Completed', color: '#10b981' },
-                  { val: '3', lbl: 'Overdue', color: '#ef4444' },
-                ].map(({ val, lbl, color }) => (
-                  <div className="mockup-stat-card" key={lbl}>
-                    <div className="mockup-accent-bar" style={{ background: color }} />
-                    <div className="mockup-stat-val">{val}</div>
-                    <div className="mockup-stat-lbl">{lbl}</div>
-                  </div>
-                ))}
-              </div>
-              <div className="mockup-tasks-area">
-                <div className="mockup-tasks-title">Recent Tasks</div>
-                {[
-                  { color: '#ef4444' },
-                  { color: '#f59e0b' },
-                  { color: '#10b981' },
-                  { color: '#6366f1' },
-                ].map(({ color }, i) => (
-                  <div className="mockup-task-row" key={i}>
-                    <div className="mockup-task-dot" style={{ background: color }} />
-                    <div className="mockup-task-text" />
-                    <div className="mockup-task-badge" />
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-          <div className="mockup-glow-halo" />
-        </div>
-      </section>
-
-      {/* ── Features ── */}
+      {/* ── Features Section ── */}
       <section id="features" className="features-section">
-        <span className="section-eyebrow">Why teams choose Script Squad</span>
-        <h2 className="section-title">Everything your team needs to move fast.</h2>
-        <p className="section-sub">
-          Built for speed, designed for clarity. Stop juggling tools and start shipping.
-        </p>
+        <div className="section-header">
+          <span className="section-eyebrow">DESIGNED FOR CLARITY</span>
+          <h2 className="section-title">Everything you need to ship quality work</h2>
+          <p className="section-sub">
+            Built for speed and simplicity. No bloat, no complex setup — just smooth productivity.
+          </p>
+        </div>
 
         <div className="features-grid">
           <div className="feature-card">
-            <div className="feature-icon-wrap indigo">🎯</div>
-            <h3 className="feature-title">Task Command Center</h3>
+            <div className="feature-icon-badge">🎯</div>
+            <h3 className="feature-title">Intuitive Task Tracking</h3>
             <p className="feature-desc">
-              Assign, prioritize, and track tasks in real-time. Built-in timers keep
-              everyone accountable without the overhead of status meetings.
+              Organize tasks by status, priority, or due date. Use structured views that keep your team focused on what matters most.
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-wrap pink">📡</div>
-            <h3 className="feature-title">Live Team Pulse</h3>
+            <div className="feature-icon-badge">📡</div>
+            <h3 className="feature-title">Real-Time Team Sync</h3>
             <p className="feature-desc">
-              See what every teammate is working on, right now. Merge requests,
-              blockers, and updates surfaced automatically — no pings required.
+              Stay in lockstep with team chat, activity feeds, and instant task updates across all devices.
             </p>
           </div>
           <div className="feature-card">
-            <div className="feature-icon-wrap cyan">📊</div>
-            <h3 className="feature-title">Deep Analytics</h3>
+            <div className="feature-icon-badge">📊</div>
+            <h3 className="feature-title">Productivity Insights</h3>
             <p className="feature-desc">
-              Velocity charts, burn-down graphs, and workload distribution give
-              managers the signal — not noise — they need to unblock the team.
+              Earn XP, track streak metrics, and review project completion velocity with clean analytical breakdowns.
             </p>
           </div>
         </div>
       </section>
 
-      {/* ── CTA ── */}
+      {/* ── How It Works ── */}
+      <section id="how-it-works" className="steps-section">
+        <div className="section-header">
+          <span className="section-eyebrow">SIMPLE WORKFLOW</span>
+          <h2 className="section-title">How TaskLoom keeps you moving forward</h2>
+        </div>
+
+        <div className="steps-grid">
+          <div className="step-card">
+            <div className="step-num">01</div>
+            <h4>Create Projects & Tasks</h4>
+            <p>Group work into distinct projects, set priorities, and attach due dates with a single click.</p>
+          </div>
+          <div className="step-card">
+            <div className="step-num">02</div>
+            <h4>Track Real-Time Progress</h4>
+            <p>Move tasks from Todo to Done. Gain XP points and maintain daily streaks as tasks complete.</p>
+          </div>
+          <div className="step-card">
+            <div className="step-num">03</div>
+            <h4>Collaborate & Deliver</h4>
+            <p>Share progress with your team, assign items, and ship projects ahead of schedule.</p>
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Banner ── */}
       <section className="landing-cta-section">
-        <h2 className="cta-title">Ready for mission control?</h2>
-        <p className="cta-sub">
-          Join thousands of teams that have replaced chaos with clarity.
-          Free to start, no credit card required.
-        </p>
-        <div className="cta-btn-wrap">
-          <Link to="/register" className="hero-btn-primary">
-            Create free workspace →
-          </Link>
-          <Link to="/login" className="hero-btn-ghost">
-            I already have an account
-          </Link>
+        <div className="cta-container">
+          <h2 className="cta-title">Start achieving more today</h2>
+          <p className="cta-sub">
+            Join thousands of professionals and teams who rely on TaskLoom for daily focus.
+          </p>
+          <div className="cta-btn-wrap">
+            <Link to="/register" className="nav-link-btn">
+              Create Your Free Account →
+            </Link>
+          </div>
         </div>
       </section>
 
       {/* ── Footer ── */}
       <footer className="landing-footer">
-        <span className="footer-logo">TaskLoom</span>
-        <span className="footer-text">© {new Date().getFullYear()} · Built for teams who ship</span>
+        <div className="footer-container">
+          <div className="footer-left">
+            <div className="landing-logo">
+              <div className="landing-logo-icon">⚡</div>
+              <span className="landing-logo-name">TaskLoom</span>
+            </div>
+            <p className="footer-tagline">Work Smarter Together.</p>
+          </div>
+          <div className="footer-right">
+            <span>© {new Date().getFullYear()} TaskLoom. All rights reserved.</span>
+          </div>
+        </div>
       </footer>
     </div>
   );
 }
+
