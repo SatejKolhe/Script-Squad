@@ -21,6 +21,7 @@ import Upcoming from './pages/Upcoming';
 import Search from './pages/Search';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import IntroAnimation from './components/IntroAnimation';
 
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -87,7 +88,9 @@ export default function App() {
               },
             }}
           />
-          <AppRoutes />
+          <IntroAnimation>
+            <AppRoutes />
+          </IntroAnimation>
         </BrowserRouter>
       </AuthProvider>
     </ThemeProvider>
