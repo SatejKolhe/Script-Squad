@@ -59,8 +59,7 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  /* Reserve height = title line-height only, so title stays at exact center */
-  height: 1.3rem;
+  transform: translateY(-3px);
   pointer-events: auto;
 }
 
@@ -69,7 +68,8 @@
   font-size: 1.3rem;
   font-weight: 900;
   letter-spacing: -0.03em;
-  line-height: 1;
+  line-height: 1.25;
+  padding-bottom: 2px;
   background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -87,7 +87,7 @@
   top: 100%;
   left: 50%;
   transform: translateX(-50%);
-  margin-top: 3px;
+  margin-top: 0px;
   font-size: 0.68rem;
   font-weight: 500;
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;

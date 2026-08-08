@@ -6,9 +6,14 @@ import './Navbar.css';
 
 const PAGE_TITLES = {
   '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your work' },
+  '/inbox': { title: 'Inbox', subtitle: 'Unprocessed items and quick tasks' },
+  '/today': { title: 'Today', subtitle: 'Tasks scheduled for today' },
+  '/upcoming': { title: 'Upcoming', subtitle: 'Scheduled upcoming tasks' },
+  '/search': { title: 'Search', subtitle: 'Search tasks, projects, and team' },
   '/projects': { title: 'Projects', subtitle: 'Manage all your projects' },
-  '/analytics': { title: 'Analytics', subtitle: 'Insights & productivity trends' },
   '/team': { title: 'Team', subtitle: "Track who's working on what" },
+  '/chat': { title: 'Chat', subtitle: 'Real-time team messaging & collaboration' },
+  '/analytics': { title: 'Analytics', subtitle: 'Insights & productivity trends' },
   '/profile': { title: 'Profile', subtitle: 'Your account & achievements' },
 };
 
@@ -108,9 +113,12 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
   // Match the most specific route first (longest key that is a prefix of pathname)
   const pageKey = Object.keys(PAGE_TITLES)
     .filter((k) => location.pathname === k || location.pathname.startsWith(k + '/'))
-    .sort((a, b) => b.length - a.length)[0] || '/dashboard';
+    .sort((a, b) => b.length - a.length)[0];
 
-  const { title, subtitle } = PAGE_TITLES[pageKey] || { title: 'TaskLoom', subtitle: '' };
+  const rawPathName = location.pathname.split('/')[1] || '';
+  const fallbackTitle = rawPathName ? rawPathName.charAt(0).toUpperCase() + rawPathName.slice(1) : 'TaskLoom';
+
+  const { title, subtitle } = PAGE_TITLES[pageKey] || { title: fallbackTitle, subtitle: '' };
 
   return (
     <header className="navbar">
