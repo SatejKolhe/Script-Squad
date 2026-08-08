@@ -449,4 +449,13 @@
 
 @media (max-width: 600px) {
   .kanban-board { grid-template-columns: 1fr; }
+  .project-detail-actions {
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+  .project-detail-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
 }

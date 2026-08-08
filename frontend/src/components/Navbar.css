@@ -157,8 +157,35 @@
 @media (max-width: 768px) {
   .navbar {
     left: 0;
-    padding: 0 1rem;
-    height: 72px;
+    padding: 0 0.85rem;
+    height: 64px;
+  }
+
+  .navbar-left {
+    position: relative;
+    left: auto;
+    transform: none;
+    pointer-events: auto;
+    flex: 1;
+    min-width: 0;
+    justify-content: flex-start;
+    gap: 0.65rem;
+  }
+
+  .navbar-left > div {
+    transform: none;
+    min-width: 0;
+  }
+
+  .navbar-title {
+    font-size: 1.1rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .navbar-subtitle {
+    display: none;
   }
 
   .navbar-date {
@@ -170,5 +197,16 @@
     display: flex !important;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .navbar-right {
+    gap: 0.35rem;
+  }
+
+  .theme-toggle,
+  .music-toggle {
+    width: 34px;
+    height: 34px;
   }
 }

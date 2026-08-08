@@ -519,8 +519,15 @@
 @media (max-width: 480px) {
   .profile-stats-row {
     grid-template-columns: 1fr 1fr;
+    gap: 0.65rem;
+  }
+  .profile-stat-card {
+    padding: 0.85rem 0.5rem;
+  }
+  .profile-stat-value {
+    font-size: 1.3rem;
   }
   .profile-name {
-    font-size: 1.4rem;
+    font-size: 1.35rem;
   }
 }

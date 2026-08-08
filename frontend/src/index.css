@@ -647,6 +647,31 @@ a:hover {
   border-top: 1px solid var(--border-color);
 }
 
+@media (max-width: 600px) {
+  .modal-overlay {
+    padding: 0.5rem;
+  }
+  .modal {
+    max-height: 94vh;
+    border-radius: var(--border-radius-lg);
+  }
+  .modal-header {
+    padding: 1.15rem 1.25rem 0.85rem;
+  }
+  .modal-body {
+    padding: 1.15rem 1.25rem;
+    gap: 1rem;
+  }
+  .modal-footer {
+    padding: 0.85rem 1.25rem 1.15rem;
+    flex-wrap: wrap;
+  }
+  .modal-footer .btn {
+    flex: 1;
+    justify-content: center;
+  }
+}
+
 /* ===== PRIORITY DOTS ===== */
 .priority-dot {
   width: 8px;

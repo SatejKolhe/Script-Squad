@@ -606,6 +606,21 @@
   min-height: 400px;
 }
 
+@media (max-width: 900px) {
+  .assign-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .assign-form-col {
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .assign-form-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 .assign-form-col {
   border-right: 1px solid var(--border-color);
   padding: 1.5rem;
