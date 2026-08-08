@@ -305,12 +305,38 @@
   font-size: 0.85rem;
   color: #475569;
   margin-bottom: 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .target-email-text {
   color: #0F172A;
   font-weight: 600;
 }
+
+.change-email-btn {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  color: #2563EB !important;
+  font-size: 0.825rem !important;
+  font-weight: 600 !important;
+  font-family: inherit !important;
+  cursor: pointer;
+  display: inline;
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.change-email-btn:hover {
+  color: #1D4ED8 !important;
+  text-decoration: underline !important;
+}
+
 
 .otp-input-grid {
   display: flex;
