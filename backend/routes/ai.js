@@ -4,6 +4,22 @@ const { protect } = require('../middleware/auth');
 
 const router = express.Router();
 
+/**
+ * Gets the best available working model from Gemini API.
+ * Uses gemini-flash-latest as primary, with robust fallbacks.
+ */
+function getGenerativeModel(genAI) {
+  const models = ['gemini-flash-latest', 'gemini-2.0-flash-lite', 'gemini-1.5-flash'];
+  for (const m of models) {
+    try {
+      return genAI.getGenerativeModel({ model: m });
+    } catch (e) {
+      // try next fallback model
+    }
+  }
+  return genAI.getGenerativeModel({ model: 'gemini-flash-latest' });
+}
+
 // @route   POST /api/ai/suggest-tasks
 // @desc    Use Gemini to generate task suggestions for a project
 // @access  Private
@@ -20,7 +36,7 @@ router.post('/suggest-tasks', protect, async (req, res) => {
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = getGenerativeModel(genAI);
 
     const prompt = `You are a professional project manager. A user just created a project with the following details:
 
@@ -58,7 +74,6 @@ Rules:
       return res.status(500).json({ success: false, message: 'AI returned an unexpected response. Please try again.' });
     }
 
-    // Validate and sanitize the array
     if (!Array.isArray(suggestions)) {
       return res.status(500).json({ success: false, message: 'AI returned an unexpected format. Please try again.' });
     }
@@ -92,14 +107,11 @@ Rules:
 });
 
 // @route   POST /api/ai/extract-task
-// @desc    Use Gemini to extract task title and date from an uploaded file (base64)
+// @route   POST /api/ai/extract-task
+// @desc    Use Gemini to extract/parse task title, description, priority, date, and subtask suggestions from text OR an uploaded file (base64)
 // @access  Private
 router.post('/extract-task', protect, async (req, res) => {
-  const { fileData, mimeType } = req.body;
-
-  if (!fileData || !mimeType) {
-    return res.status(400).json({ success: false, message: 'File data and mimeType are required' });
-  }
+  const { fileData, mimeType, text } = req.body;
 
   if (!process.env.GEMINI_API_KEY) {
     return res.status(503).json({ success: false, message: 'AI service not configured. Add GEMINI_API_KEY to .env' });
@@ -107,28 +119,106 @@ router.post('/extract-task', protect, async (req, res) => {
 
   try {
     const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    const model = getGenerativeModel(genAI);
+    const currentDate = new Date().toISOString().split('T')[0];
 
-    // Ensure it's base64 without data URI prefix (the frontend should send clean base64, but just in case)
-    const base64Data = fileData.replace(/^data:.*?;base64,/, '');
+    let result;
 
-    const prompt = `Analyze this file. I want to create a task from it.
-Return ONLY a valid JSON object with the following schema (no markdown, no explanations):
+    if (fileData && mimeType) {
+      // ── File Analysis Mode ──
+      const base64Data = fileData.replace(/^data:.*?;base64,/, '');
+
+      // Check if it's a plain text/code file
+      if (mimeType.startsWith('text/')) {
+        const textContent = Buffer.from(base64Data, 'base64').toString('utf-8');
+        const prompt = `Analyze the following file content and extract key actionable tasks and suggestions.
+Current Date: "${currentDate}"
+File Content:
+"""
+${textContent.substring(0, 8000)}
+"""
+
+Return ONLY a valid raw JSON object (no markdown code blocks, no extra text):
 {
-  "title": "Short, actionable task title (max 60 chars)",
-  "dueDate": "YYYY-MM-DD" // Extract a plausible deadline, or leave empty string "" if none is found
-}
-Make sure it is raw JSON.`;
+  "title": "Short, clear task title (max 60 chars)",
+  "description": "Summary description of what needs to be done (max 150 chars)",
+  "priority": "high" | "medium" | "low",
+  "dueDate": "YYYY-MM-DD", // Plausible date if found, else empty string ""
+  "suggestions": [
+    "Subtask 1 or action item",
+    "Subtask 2 or action item",
+    "Subtask 3 or action item"
+  ]
+}`;
+        result = await model.generateContent(prompt);
+      } else {
+        // Image or PDF file
+        const prompt = `Analyze this file. Extract the main task details and 3 to 5 actionable step suggestions.
+Current Date: "${currentDate}"
 
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          data: base64Data,
-          mimeType: mimeType
-        }
-      },
-      prompt
-    ]);
+Return ONLY a valid raw JSON object (no markdown code blocks, no extra text):
+{
+  "title": "Short, clear task title (max 60 chars)",
+  "description": "Summary description of the file/action item (max 150 chars)",
+  "priority": "high" | "medium" | "low",
+  "dueDate": "YYYY-MM-DD", // Plausible date if found or calculated, else empty string ""
+  "suggestions": [
+    "Subtask 1 or action item",
+    "Subtask 2 or action item",
+    "Subtask 3 or action item"
+  ]
+}`;
+
+        result = await model.generateContent([
+          {
+            inlineData: {
+              data: base64Data,
+              mimeType: mimeType,
+            },
+          },
+          prompt,
+        ]);
+      }
+    } else if (text && text.trim()) {
+      // ── Natural Language Text Smart Parsing Mode ──
+      const prompt = `You are an AI task assistant. Analyze this natural language task input and smart-parse it into task fields and suggestions.
+User Input: "${text.trim()}"
+Current Date: "${currentDate}"
+
+Return ONLY a valid raw JSON object (no markdown code blocks, no extra text):
+{
+  "title": "Cleaned, actionable task title (max 60 chars)",
+  "description": "Any additional context or brief description",
+  "priority": "high" | "medium" | "low",
+  "dueDate": "YYYY-MM-DD", // Calculated date if mentioned like 'tomorrow', 'next Monday', 'by Friday', else empty string ""
+  "suggestions": [
+    "Step 1 or subtask suggestion",
+    "Step 2 or subtask suggestion",
+    "Step 3 or subtask suggestion"
+  ]
+}`;
+
+      result = await model.generateContent(prompt);
+    } else {
+      // ── Smart Generation Fallback Mode ──
+      const prompt = `Generate a useful developer/student productivity task recommendation with subtask suggestions.
+Current Date: "${currentDate}"
+
+Return ONLY a valid raw JSON object (no markdown code blocks, no extra text):
+{
+  "title": "Actionable task title (max 60 chars)",
+  "description": "One sentence summary of the task",
+  "priority": "medium",
+  "dueDate": "YYYY-MM-DD",
+  "suggestions": [
+    "Step 1: Set up initial structure",
+    "Step 2: Implement core functionality",
+    "Step 3: Review and verify results"
+  ]
+}`;
+
+      result = await model.generateContent(prompt);
+    }
 
     const rawText = result.response.text().trim();
     const cleaned = rawText.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/i, '').trim();
@@ -136,18 +226,31 @@ Make sure it is raw JSON.`;
     let extracted;
     try {
       extracted = JSON.parse(cleaned);
-    } catch {
+    } catch (e) {
       console.error('Gemini returned non-JSON:', rawText);
       return res.status(500).json({ success: false, message: 'Failed to parse AI response.' });
     }
 
-    res.json({ success: true, data: extracted });
+    // Sanitize output
+    const validPriorities = ['high', 'medium', 'low'];
+    const sanitizedData = {
+      title: typeof extracted.title === 'string' ? extracted.title.trim() : 'New Task',
+      description: typeof extracted.description === 'string' ? extracted.description.trim() : '',
+      priority: validPriorities.includes(extracted.priority) ? extracted.priority : 'medium',
+      dueDate: typeof extracted.dueDate === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(extracted.dueDate) ? extracted.dueDate : '',
+      suggestions: Array.isArray(extracted.suggestions)
+        ? extracted.suggestions.filter((s) => typeof s === 'string' && s.trim()).slice(0, 5)
+        : [],
+    };
+
+    console.log(`✨ AI task extracted successfully: "${sanitizedData.title}" (${sanitizedData.suggestions.length} suggestions)`);
+    res.json({ success: true, data: sanitizedData });
   } catch (err) {
     console.error('Gemini extraction error:', err.message);
     const msg = err.message?.includes('API_KEY') || err.message?.includes('403')
       ? 'Invalid API key.'
       : err.message?.includes('quota') || err.message?.includes('429')
-      ? 'AI quota exceeded.'
+      ? 'AI quota exceeded. Please try again in a moment.'
       : 'AI service error.';
     res.status(500).json({ success: false, message: msg });
   }
