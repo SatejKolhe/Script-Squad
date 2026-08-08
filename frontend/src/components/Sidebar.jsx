@@ -54,7 +54,7 @@ const NAV_ITEMS = [
     ),
   },
   {
-    to: '/team', label: 'Team',
+    to: '/team', label: 'Friends',
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="9" cy="7" r="3" /><circle cx="17" cy="7" r="3" />
