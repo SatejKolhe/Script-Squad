@@ -435,8 +435,9 @@ export default function Profile() {
 
             <div className="form-group">
               <label className="form-label">
-                Type <strong style="color: #ef4444;">DELETE</strong> to confirm *
+                Type <strong style={{ color: '#ef4444' }}>DELETE</strong> to confirm *
               </label>
+
               <input
                 id="delete-account-confirm-text"
                 type="text"
