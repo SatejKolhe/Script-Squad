@@ -79,6 +79,33 @@ export default function Search() {
   }, [query, statusFilter, priorityFilter, dueDateFilter, sortBy, fetchSearchResults]);
 
 
+  const displayedTasks = React.useMemo(() => {
+    if (!results.tasks || results.tasks.length === 0) return [];
+    if (sortBy === 'none') return results.tasks;
+
+    const getDueDateMs = (t) => {
+      if (!t.dueDate) return null;
+      const ms = new Date(t.dueDate).getTime();
+      return isNaN(ms) ? null : ms;
+    };
+
+    const isAsc = sortBy === 'dueDateAsc';
+    return [...results.tasks].sort((a, b) => {
+      const timeA = getDueDateMs(a);
+      const timeB = getDueDateMs(b);
+
+      if (timeA !== null && timeB !== null) {
+        if (timeA !== timeB) {
+          return isAsc ? timeA - timeB : timeB - timeA;
+        }
+        return new Date(b.createdAt) - new Date(a.createdAt);
+      }
+      if (timeA !== null) return -1;
+      if (timeB !== null) return 1;
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+  }, [results.tasks, sortBy]);
+
   const totalResults = results.tasks.length + results.projects.length;
 
   const formatDueDate = (dateStr) => {
@@ -86,6 +113,7 @@ export default function Search() {
     const d = new Date(dateStr);
     return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
   };
+
 
   return (
     <div className="page-container animate-fadeIn">
@@ -226,10 +254,11 @@ export default function Search() {
           )}
 
           {/* Tasks */}
-          {results.tasks.length > 0 && (
+          {displayedTasks.length > 0 && (
             <div className="search-section">
-              <div className="search-section-title">✅ Tasks ({results.tasks.length})</div>
-              {results.tasks.map((task) => (
+              <div className="search-section-title">✅ Tasks ({displayedTasks.length})</div>
+              {displayedTasks.map((task) => (
+
                 <div
                   key={task._id}
                   className="search-result-card"

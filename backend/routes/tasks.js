@@ -238,27 +238,32 @@ router.get('/search', protect, async (req, res) => {
 
     let [tasks, projects] = await Promise.all([tasksPromise, projectsPromise]);
 
-    if (sortBy === 'dueDateAsc' || sortBy === 'dueDate') {
+    if (sortBy === 'dueDateAsc' || sortBy === 'dueDate' || sortBy === 'dueDateDesc') {
+      const isAsc = sortBy === 'dueDateAsc' || sortBy === 'dueDate';
+      const getDueDateMs = (t) => {
+        if (!t.dueDate) return null;
+        const ms = new Date(t.dueDate).getTime();
+        return isNaN(ms) ? null : ms;
+      };
+
       tasks.sort((a, b) => {
-        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : null;
-        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : null;
-        if (dateA !== null && dateB !== null) return dateA - dateB;
-        if (dateA !== null) return -1;
-        if (dateB !== null) return 1;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-    } else if (sortBy === 'dueDateDesc') {
-      tasks.sort((a, b) => {
-        const dateA = a.dueDate ? new Date(a.dueDate).getTime() : null;
-        const dateB = b.dueDate ? new Date(b.dueDate).getTime() : null;
-        if (dateA !== null && dateB !== null) return dateB - dateA;
-        if (dateA !== null) return -1;
-        if (dateB !== null) return 1;
+        const timeA = getDueDateMs(a);
+        const timeB = getDueDateMs(b);
+
+        if (timeA !== null && timeB !== null) {
+          if (timeA !== timeB) {
+            return isAsc ? timeA - timeB : timeB - timeA;
+          }
+          return new Date(b.createdAt) - new Date(a.createdAt);
+        }
+        if (timeA !== null) return -1;
+        if (timeB !== null) return 1;
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
     }
 
     res.json({ success: true, data: { tasks, projects } });
+
 
   } catch (err) {
     console.error(err);
