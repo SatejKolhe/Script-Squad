@@ -472,52 +472,79 @@ export default function Login() {
     <div className="auth-footer">
       <p>
         Remember your password?{' '}
-        <button type="button" className="auth-link auth-link-btn" onClick={switchToLogin}>
+        <button type="button" className="auth-link-btn" onClick={resetForgotState}>
           Back to Sign In
         </button>
       </p>
     </div>
   );
 
+
   return (
     <div className="auth-page">
-      {/* Animated background */}
-      <div className="auth-bg">
-        <div className="auth-orb orb-1" />
-        <div className="auth-orb orb-2" />
-        <div className="auth-orb orb-3" />
-      </div>
+      <div className="auth-split-wrapper">
+        {/* ── Left Column (50%): Warm Slate Off-White Panel (#F1F5F9) ── */}
+        <div className="auth-branding-panel">
+          <div className="auth-branding-header">
+            <Link to="/" className="landing-logo">
+              <div className="landing-logo-icon">⚡</div>
+              <span className="landing-logo-name">TaskLoom</span>
+            </Link>
+          </div>
 
-      <div className="auth-container">
-        {/* Logo */}
-        <div className="auth-logo">
-          <div className="auth-logo-icon">⚡</div>
-          <div>
-            <h1 className="auth-logo-name">TaskLoom</h1>
-            <p className="auth-logo-tagline">Work Smarter Together</p>
+          <div className="auth-branding-content">
+            <h2 className="branding-headline">
+              TaskLoom is where focused teams organize daily priorities.
+            </h2>
+            <p className="branding-sub">
+              Plan tasks, track progress in real-time, and build lasting momentum with zero clutter.
+            </p>
+
+            <div className="branding-features-list">
+              <div className="branding-feature-item">
+                <span className="branding-feature-icon">🎯</span>
+                <div>
+                  <strong>Focused Task Tracking</strong>
+                  <p>Prioritize by due dates, status, and project targets.</p>
+                </div>
+              </div>
+              <div className="branding-feature-item">
+                <span className="branding-feature-icon">⚡</span>
+                <div>
+                  <strong>Real-Time Sync</strong>
+                  <p>Instant status & activity updates across devices.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="auth-branding-footer">
+            <p className="branding-tagline">© {new Date().getFullYear()} TaskLoom · Built for focus</p>
           </div>
         </div>
 
-        {/* Card */}
-        <div className="auth-card card-glass">
-          <div className="auth-card-header">
-            <h2 className="auth-title">
-              {unverifiedMode && 'Verify Your Email'}
-              {!unverifiedMode && !forgotMode && 'Welcome back'}
-              {!unverifiedMode && forgotMode && forgotStep === 1 && 'Forgot Password'}
-              {!unverifiedMode && forgotMode && forgotStep === 2 && 'Verify Your Email'}
-              {!unverifiedMode && forgotMode && forgotStep === 3 && 'Create New Password'}
-              {!unverifiedMode && forgotMode && forgotStep === 4 && 'Password Reset!'}
-            </h2>
-            <p className="auth-subtitle">
-              {unverifiedMode && 'Enter the 6-digit verification code sent to your email to activate your account.'}
-              {!unverifiedMode && !forgotMode && 'Sign in to continue to your workspace'}
-              {!unverifiedMode && forgotMode && forgotStep === 1 && 'Enter your account email to receive a 6-digit verification code'}
-              {!unverifiedMode && forgotMode && forgotStep === 2 && 'Enter the 6-digit verification code sent to your email'}
-              {!unverifiedMode && forgotMode && forgotStep === 3 && 'Choose a strong new password that is different from your old one'}
-              {!unverifiedMode && forgotMode && forgotStep === 4 && 'Your password has been successfully updated'}
-            </p>
-          </div>
+        {/* ── Right Column (50%): Pure White (#FFFFFF) Form Panel ── */}
+        <div className="auth-form-panel">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <h2 className="auth-title">
+                {unverifiedMode && 'Verify your email'}
+                {!unverifiedMode && !forgotMode && 'Welcome back'}
+                {!unverifiedMode && forgotMode && forgotStep === 1 && 'Forgot password'}
+                {!unverifiedMode && forgotMode && forgotStep === 2 && 'Verify your email'}
+                {!unverifiedMode && forgotMode && forgotStep === 3 && 'Create new password'}
+                {!unverifiedMode && forgotMode && forgotStep === 4 && 'Password reset!'}
+              </h2>
+              <p className="auth-subtitle">
+                {unverifiedMode && 'Enter the 6-digit verification code sent to your email.'}
+                {!unverifiedMode && !forgotMode && 'Sign in to access your workspace'}
+                {!unverifiedMode && forgotMode && forgotStep === 1 && 'Enter your email to receive a 6-digit verification code'}
+                {!unverifiedMode && forgotMode && forgotStep === 2 && 'Enter the 6-digit verification code sent to your email'}
+                {!unverifiedMode && forgotMode && forgotStep === 3 && 'Choose a strong new password'}
+                {!unverifiedMode && forgotMode && forgotStep === 4 && 'Your password has been updated'}
+              </p>
+            </div>
+
 
           {/* ── FORGOT PASSWORD STEP PROGRESS ── */}
           {!unverifiedMode && forgotMode && forgotStep < 4 && (
@@ -739,7 +766,7 @@ export default function Login() {
                     type="password"
                     name="password"
                     className={`form-input ${errors.password ? 'error' : ''}`}
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     value={form.password}
                     onChange={handleLoginChange}
                     autoComplete="current-password"
@@ -899,31 +926,22 @@ export default function Login() {
                   )}
                 </div>
 
-                <div className="auth-btn-row">
-                  <button
-                    type="button"
-                    className="btn btn-secondary-dark w-full btn-lg"
-                    onClick={resetForgotState}
-                    disabled={forgotLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    id="verify-otp-btn"
-                    type="submit"
-                    className="btn btn-primary w-full btn-lg"
-                    disabled={forgotLoading || otp.join('').length !== 6}
-                  >
-                    {forgotLoading ? (
-                      <>
-                        <div className="spinner spinner-sm" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>✅ Verify OTP</>
-                    )}
-                  </button>
-                </div>
+                <button
+                  id="verify-otp-btn"
+                  type="submit"
+                  className="btn btn-primary w-full btn-lg"
+                  disabled={forgotLoading || otp.join('').length !== 6}
+                >
+                  {forgotLoading ? (
+                    <>
+                      <div className="spinner spinner-sm" />
+                      Verifying...
+                    </>
+                  ) : (
+                    <>Verify Code →</>
+                  )}
+                </button>
+
               </form>
               {renderAuthFooter()}
             </>
@@ -944,7 +962,7 @@ export default function Login() {
                       id="forgot-new-password"
                       type={showNewPassword ? 'text' : 'password'}
                       className={`form-input ${newPasswordError ? 'error' : ''}`}
-                      placeholder="At least 6 characters"
+                      placeholder="Enter new password (min. 6 chars)"
                       value={newPassword}
                       onChange={(e) => {
                         setNewPassword(e.target.value);
@@ -973,7 +991,7 @@ export default function Login() {
                     id="forgot-confirm-password"
                     type="password"
                     className={`form-input ${confirmPasswordError ? 'error' : ''}`}
-                    placeholder="Re-enter your new password"
+                    placeholder="Confirm new password"
                     value={confirmPassword}
                     onChange={(e) => {
                       setConfirmPassword(e.target.value);
@@ -985,31 +1003,22 @@ export default function Login() {
                   {confirmPasswordError && <span className="form-error">{confirmPasswordError}</span>}
                 </div>
 
-                <div className="auth-btn-row">
-                  <button
-                    type="button"
-                    className="btn btn-secondary-dark w-full btn-lg"
-                    onClick={resetForgotState}
-                    disabled={forgotLoading}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    id="submit-reset-password"
-                    type="submit"
-                    className="btn btn-primary w-full btn-lg"
-                    disabled={forgotLoading}
-                  >
-                    {forgotLoading ? (
-                      <>
-                        <div className="spinner spinner-sm" />
-                        Updating...
-                      </>
-                    ) : (
-                      <>🔒 Reset Password</>
-                    )}
-                  </button>
-                </div>
+                <button
+                  id="submit-reset-password"
+                  type="submit"
+                  className="btn btn-primary w-full btn-lg"
+                  disabled={forgotLoading}
+                >
+                  {forgotLoading ? (
+                    <>
+                      <div className="spinner spinner-sm" />
+                      Updating...
+                    </>
+                  ) : (
+                    <>🔒 Reset Password →</>
+                  )}
+                </button>
+
               </form>
               {renderAuthFooter()}
             </>
@@ -1032,12 +1041,13 @@ export default function Login() {
             </div>
           )}
         </div>
-
         <p className="auth-bottom-text">
-          By signing in, you agree to our Terms of Service and Privacy Policy.
+          By signing in, you agree to TaskLoom's Terms of Service and Privacy Policy.
         </p>
       </div>
     </div>
-  );
+  </div>
+);
 }
+
 

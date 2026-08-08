@@ -9,7 +9,7 @@ export default function AccountDeleted() {
         <div className="account-deleted-header">
           <div className="account-deleted-icon-badge">🗑️</div>
           <h1>Account Scheduled for Deletion</h1>
-          <p className="account-deleted-subtitle">Script Squad · 15-Day Grace Period</p>
+          <p className="account-deleted-subtitle">TaskLoom · 15-Day Grace Period</p>
         </div>
 
         <div className="account-deleted-body">
@@ -35,7 +35,7 @@ export default function AccountDeleted() {
         </div>
 
         <div className="account-deleted-footer">
-          <p>© {new Date().getFullYear()} Script Squad. Thank you for having been with us.</p>
+          <p>© {new Date().getFullYear()} TaskLoom. Thank you for having been with us.</p>
         </div>
       </div>
     </div>

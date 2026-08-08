@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import toast from 'react-hot-toast';
 import './Auth.css';
@@ -7,9 +7,23 @@ import './Auth.css';
 export default function Register() {
   const { register, resendVerification, verifyEmailOtp } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
 
   // ── Step 1 Form State ─────────────────────────────────────────────────────
   const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+
+  // ── Pre-fill email if passed from Landing Page Hero ───────────────────────
+  useEffect(() => {
+    const stateEmail = location.state?.email;
+    const searchParams = new URLSearchParams(location.search);
+    const queryEmail = searchParams.get('email');
+    const prefilled = stateEmail || queryEmail;
+
+    if (prefilled) {
+      setForm((prev) => ({ ...prev, email: prefilled }));
+    }
+  }, [location]);
+
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
@@ -39,6 +53,25 @@ export default function Register() {
       if (timer) clearInterval(timer);
     };
   }, [step, resendCooldown]);
+
+  // ── Auto Redirect after Successful Email Verification ──────────────────────
+  useEffect(() => {
+    let timer;
+    if (isVerifiedSuccess) {
+      timer = setTimeout(() => {
+        navigate('/login', {
+          state: {
+            email: registeredEmail,
+            message: 'Account activated successfully! Please sign in to access your workspace.',
+          },
+        });
+      }, 1800);
+    }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [isVerifiedSuccess, registeredEmail, navigate]);
+
 
   // ── Validation for Step 1 ──────────────────────────────────────────────────
   const validate = () => {
@@ -170,171 +203,163 @@ export default function Register() {
     }
   };
 
+  // ── Shared Branding Left Panel Component ───────────────────────────────────
+  const renderBrandingPanel = () => (
+    <div className="auth-branding-panel">
+      <div className="auth-branding-header">
+        <Link to="/" className="landing-logo">
+          <div className="landing-logo-icon">⚡</div>
+          <span className="landing-logo-name">TaskLoom</span>
+        </Link>
+      </div>
+
+      <div className="auth-branding-content">
+        <h2 className="branding-headline">
+          TaskLoom is where focused teams organize daily priorities.
+        </h2>
+        <p className="branding-sub">
+          Plan tasks, track progress in real-time, and build lasting momentum with zero clutter.
+        </p>
+
+        <div className="branding-features-list">
+          <div className="branding-feature-item">
+            <span className="branding-feature-icon">🎯</span>
+            <div>
+              <strong>Focused Task Tracking</strong>
+              <p>Prioritize by due dates, status, and project targets.</p>
+            </div>
+          </div>
+          <div className="branding-feature-item">
+            <span className="branding-feature-icon">⚡</span>
+            <div>
+              <strong>Real-Time Sync</strong>
+              <p>Instant status & activity updates across devices.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="auth-branding-footer">
+        <p className="branding-tagline">© {new Date().getFullYear()} TaskLoom · Built for focus</p>
+      </div>
+    </div>
+  );
+
   // ── Render Step 2: 2-Step OTP Verification Screen ──────────────────────────
   if (step === 2) {
     return (
       <div className="auth-page">
-        <div className="auth-bg">
-          <div className="auth-orb orb-1" />
-          <div className="auth-orb orb-2" />
-          <div className="auth-orb orb-3" />
-        </div>
+        <div className="auth-split-wrapper">
+          {renderBrandingPanel()}
 
-        <div className="auth-container">
-          <div className="auth-logo">
-            <div className="auth-logo-icon">⚡</div>
-            <div>
-              <h1 className="auth-logo-name">TaskLoom</h1>
-              <p className="auth-logo-tagline">Work Smarter Together</p>
+          <div className="auth-form-panel">
+            <div className="auth-card">
+              <div className="auth-card-header">
+                <h2 className="auth-title">Verify your email</h2>
+                <p className="auth-subtitle">
+                  We sent a 6-digit verification code to <strong style={{ color: '#2563EB' }}>{registeredEmail}</strong>
+                </p>
+              </div>
+
+              {isVerifiedSuccess ? (
+                <div className="auth-form" style={{ textAlign: 'center', padding: '1rem 0' }}>
+                  <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>🎉</div>
+                  <h3 style={{ color: '#10b981', fontSize: '1.25rem', fontWeight: 700, marginBottom: '0.5rem' }}>
+                    Email Verified Successfully!
+                  </h3>
+                  <p style={{ color: '#475569', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+                    Your account is active. Redirecting to workspace...
+                  </p>
+                  <div className="spinner" style={{ margin: '0 auto' }} />
+                </div>
+              ) : (
+                <>
+                  <form onSubmit={handleVerifyOtp} className="auth-form" noValidate>
+                    <div className="form-group">
+                      <label className="form-label" style={{ textAlign: 'center', display: 'block' }}>
+                        Enter 6-digit Verification Code
+                      </label>
+                      <div className="otp-input-grid" onPaste={handleOtpPaste}>
+                        {otp.map((digit, idx) => (
+                          <input
+                            key={idx}
+                            ref={(el) => (otpInputsRef.current[idx] = el)}
+                            type="text"
+                            inputMode="numeric"
+                            maxLength={1}
+                            className={`otp-digit-box ${digit ? 'filled' : ''} ${otpError ? 'error' : ''}`}
+                            value={digit}
+                            onChange={(e) => handleOtpChange(idx, e.target.value)}
+                            onKeyDown={(e) => handleOtpKeyDown(idx, e)}
+                            autoFocus={idx === 0}
+                          />
+                        ))}
+                      </div>
+                      {otpError && (
+                        <span className="form-error" style={{ textAlign: 'center', display: 'block', marginTop: '0.4rem' }}>
+                          {otpError}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="resend-otp-container">
+                      <span style={{ color: '#64748b' }}>Didn't receive the code?</span>
+                      {resendCooldown > 0 ? (
+                        <span className="resend-cooldown-badge">
+                          Resend in {resendCooldown}s
+                        </span>
+                      ) : (
+                        <button
+                          type="button"
+                          className="resend-btn-active"
+                          onClick={handleResend}
+                          disabled={resendLoading}
+                        >
+                          {resendLoading ? 'Sending...' : '🔄 Resend OTP'}
+                        </button>
+                      )}
+                    </div>
+
+                    {resendMsg && (
+                      <div
+                        className={
+                          resendMsg.toLowerCase().includes('could not') || resendMsg.toLowerCase().includes('wait')
+                            ? 'auth-error-banner'
+                            : 'auth-success-banner'
+                        }
+                        style={{ margin: 0 }}
+                      >
+                        {resendMsg}
+                      </div>
+                    )}
+
+                    <button
+                      id="verify-register-otp-btn"
+                      type="submit"
+                      className="btn btn-primary w-full btn-lg"
+                      disabled={verifyLoading || otp.join('').length !== 6}
+                    >
+                      {verifyLoading ? (
+                        <>
+                          <div className="spinner spinner-sm" />
+                          Verifying...
+                        </>
+                      ) : (
+                        <>Confirm & Activate Account →</>
+                      )}
+                    </button>
+                  </form>
+
+                  <div className="auth-footer">
+                    <p>
+                      Already verified?{' '}
+                      <Link to="/login" className="auth-link">Sign in →</Link>
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
           </div>
-
-          <div className="auth-card card-glass">
-            {isVerifiedSuccess ? (
-              // ── Verified Success View ──
-              <div className="auth-form" style={{ textAlign: 'center', gap: '1.25rem' }}>
-                <div style={{ fontSize: '3.5rem', margin: '0.5rem 0 0' }}>🎉</div>
-                <div className="auth-card-header" style={{ padding: 0 }}>
-                  <h2 className="auth-title">Email Verified!</h2>
-                  <p className="auth-subtitle">
-                    Your account is active. You can now log in to access your workspace.
-                  </p>
-                </div>
-
-                <div className="auth-success-banner" style={{ margin: 0 }}>
-                  ✅ Account activated successfully!
-                </div>
-
-                <button
-                  type="button"
-                  className="btn btn-primary w-full btn-lg"
-                  onClick={() => navigate('/login')}
-                >
-                  🔑 Sign in to Script Squad →
-                </button>
-              </div>
-            ) : (
-              // ── Step 2 OTP Form View ──
-              <>
-                <div className="auth-card-header">
-                  <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>🔐</div>
-                  <h2 className="auth-title">2-Step Email Verification</h2>
-                  <p className="auth-subtitle">
-                    We sent a 6-digit verification code to<br />
-                    <strong style={{ color: '#818cf8' }}>{registeredEmail}</strong>
-                  </p>
-                </div>
-
-                {/* Target email badge with change button */}
-                <div className="target-email-badge">
-                  <span>Code sent to: <span className="target-email-text">{registeredEmail}</span></span>
-                  <button
-                    type="button"
-                    className="change-email-btn"
-                    onClick={() => {
-                      setStep(1);
-                      setServerError('');
-                    }}
-                  >
-                    ✏️ Change
-                  </button>
-                </div>
-
-                <form onSubmit={handleVerifyOtp} className="auth-form" noValidate>
-                  <div className="form-group">
-                    <label className="form-label" style={{ textAlign: 'center', display: 'block' }}>
-                      Enter 6-digit Verification Code
-                    </label>
-                    <div className="otp-input-grid" onPaste={handleOtpPaste}>
-                      {otp.map((digit, idx) => (
-                        <input
-                          key={idx}
-                          ref={(el) => (otpInputsRef.current[idx] = el)}
-                          type="text"
-                          inputMode="numeric"
-                          maxLength={1}
-                          className={`otp-digit-box ${digit ? 'filled' : ''} ${otpError ? 'error' : ''}`}
-                          value={digit}
-                          onChange={(e) => handleOtpChange(idx, e.target.value)}
-                          onKeyDown={(e) => handleOtpKeyDown(idx, e)}
-                          autoFocus={idx === 0}
-                        />
-                      ))}
-                    </div>
-                    {otpError && (
-                      <span className="form-error" style={{ textAlign: 'center', display: 'block', marginTop: '0.4rem' }}>
-                        {otpError}
-                      </span>
-                    )}
-                  </div>
-
-                  {/* Resend OTP Row & 60-Second Cooldown */}
-                  <div className="resend-otp-container">
-                    <span style={{ color: '#64748b' }}>Didn't receive the code?</span>
-                    {resendCooldown > 0 ? (
-                      <span className="resend-cooldown-badge">
-                        <span className="cooldown-pulse-dot" />
-                        Resend in {resendCooldown}s
-                      </span>
-                    ) : (
-                      <button
-                        type="button"
-                        className="resend-btn-active"
-                        onClick={handleResend}
-                        disabled={resendLoading}
-                      >
-                        {resendLoading ? 'Sending...' : '🔄 Resend Code'}
-                      </button>
-                    )}
-                  </div>
-
-                  {resendMsg && (
-                    <div
-                      className={
-                        resendMsg.toLowerCase().includes('could not') || resendMsg.toLowerCase().includes('wait')
-                          ? 'auth-error-banner'
-                          : 'auth-success-banner'
-                      }
-                      style={{ margin: 0 }}
-                    >
-                      {resendMsg}
-                    </div>
-                  )}
-
-                  <button
-                    id="verify-register-otp-btn"
-                    type="submit"
-                    className="btn btn-primary w-full btn-lg"
-                    disabled={verifyLoading || otp.join('').length !== 6}
-                  >
-                    {verifyLoading ? (
-                      <>
-                        <div className="spinner spinner-sm" />
-                        Verifying...
-                      </>
-                    ) : (
-                      <>✅ Confirm & Activate Account</>
-                    )}
-                  </button>
-                </form>
-
-                <p style={{ color: '#8b95ae', fontSize: '0.825rem', textAlign: 'center', marginTop: '1rem' }}>
-                  💡 You can also click the verification link sent to your email.
-                </p>
-
-                <div className="auth-footer">
-                  <p>
-                    Already verified?{' '}
-                    <Link to="/login" className="auth-link">Sign in →</Link>
-                  </p>
-                </div>
-              </>
-            )}
-          </div>
-
-          <p className="auth-bottom-text">
-            Script Squad · 2-Step Authentication & Email Verification
-          </p>
         </div>
       </div>
     );
@@ -343,115 +368,105 @@ export default function Register() {
   // ── Render Step 1: Registration Details Form ───────────────────────────────
   return (
     <div className="auth-page">
-      <div className="auth-bg">
-        <div className="auth-orb orb-1" />
-        <div className="auth-orb orb-2" />
-        <div className="auth-orb orb-3" />
-      </div>
+      <div className="auth-split-wrapper">
+        {renderBrandingPanel()}
 
-      <div className="auth-container">
-        <div className="auth-logo">
-          <div className="auth-logo-icon">⚡</div>
-          <div>
-            <h1 className="auth-logo-name">TaskLoom</h1>
-            <p className="auth-logo-tagline">Work Smarter Together</p>
-          </div>
-        </div>
-
-        <div className="auth-card card-glass">
-          <div className="auth-card-header">
-            <h2 className="auth-title">Create your account</h2>
-            <p className="auth-subtitle">Join Script Squad — Step 1 of 2</p>
-          </div>
-
-          {serverError && (
-            <div className="auth-error-banner">⚠️ {serverError}</div>
-          )}
-
-          <form onSubmit={handleSubmit} className="auth-form" noValidate>
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-name">Full name</label>
-              <input
-                id="reg-name"
-                type="text"
-                name="name"
-                className={`form-input ${errors.name ? 'error' : ''}`}
-                placeholder="John Doe"
-                value={form.name}
-                onChange={handleChange}
-                autoComplete="name"
-                autoFocus
-              />
-              {errors.name && <span className="form-error">{errors.name}</span>}
+        <div className="auth-form-panel">
+          <div className="auth-card">
+            <div className="auth-card-header">
+              <h2 className="auth-title">Create your account</h2>
+              <p className="auth-subtitle">Step 1 of 2 · Enter your details to get started</p>
             </div>
 
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-email">Email address</label>
-              <input
-                id="reg-email"
-                type="email"
-                name="email"
-                className={`form-input ${errors.email ? 'error' : ''}`}
-                placeholder="you@example.com"
-                value={form.email}
-                onChange={handleChange}
-                autoComplete="email"
-              />
-              {errors.email && <span className="form-error">{errors.email}</span>}
+            {serverError && (
+              <div className="auth-error-banner">⚠️ {serverError}</div>
+            )}
+
+            <form onSubmit={handleSubmit} className="auth-form" noValidate>
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-name">Full name</label>
+                <input
+                  id="reg-name"
+                  type="text"
+                  name="name"
+                  className={`form-input ${errors.name ? 'error' : ''}`}
+                  placeholder="John Doe"
+                  value={form.name}
+                  onChange={handleChange}
+                  autoComplete="name"
+                  autoFocus
+                />
+                {errors.name && <span className="form-error">{errors.name}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-email">Email address</label>
+                <input
+                  id="reg-email"
+                  type="email"
+                  name="email"
+                  className={`form-input ${errors.email ? 'error' : ''}`}
+                  placeholder="you@example.com"
+                  value={form.email}
+                  onChange={handleChange}
+                  autoComplete="email"
+                />
+                {errors.email && <span className="form-error">{errors.email}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-password">Password</label>
+                <input
+                  id="reg-password"
+                  type="password"
+                  name="password"
+                  className={`form-input ${errors.password ? 'error' : ''}`}
+                  placeholder="Enter your password (min. 6 chars)"
+                  value={form.password}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                />
+                {errors.password && <span className="form-error">{errors.password}</span>}
+              </div>
+
+              <div className="form-group">
+                <label className="form-label" htmlFor="reg-confirm">Confirm password</label>
+                <input
+                  id="reg-confirm"
+                  type="password"
+                  name="confirmPassword"
+                  className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
+                  placeholder="Confirm your password"
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  autoComplete="new-password"
+                />
+                {errors.confirmPassword && <span className="form-error">{errors.confirmPassword}</span>}
+              </div>
+
+              <button
+                id="register-submit"
+                type="submit"
+                className="btn btn-primary w-full btn-lg"
+                disabled={loading}
+              >
+                {loading ? (
+                  <>
+                    <div className="spinner spinner-sm" />
+                    Sending Code...
+                  </>
+                ) : (
+                  <>Next: Send Verification Code →</>
+                )}
+              </button>
+            </form>
+
+            <div className="auth-footer">
+              <p>
+                Already have an account?{' '}
+                <Link to="/login" className="auth-link">Sign in →</Link>
+              </p>
             </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-password">Password</label>
-              <input
-                id="reg-password"
-                type="password"
-                name="password"
-                className={`form-input ${errors.password ? 'error' : ''}`}
-                placeholder="Min. 6 characters"
-                value={form.password}
-                onChange={handleChange}
-                autoComplete="new-password"
-              />
-              {errors.password && <span className="form-error">{errors.password}</span>}
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="reg-confirm">Confirm password</label>
-              <input
-                id="reg-confirm"
-                type="password"
-                name="confirmPassword"
-                className={`form-input ${errors.confirmPassword ? 'error' : ''}`}
-                placeholder="••••••••"
-                value={form.confirmPassword}
-                onChange={handleChange}
-                autoComplete="new-password"
-              />
-              {errors.confirmPassword && <span className="form-error">{errors.confirmPassword}</span>}
-            </div>
-
-            <button
-              id="register-submit"
-              type="submit"
-              className="btn btn-primary w-full btn-lg"
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <div className="spinner spinner-sm" />
-                  Verifying email domain...
-                </>
-              ) : (
-                <>🚀 Next: Send Verification Code →</>
-              )}
-            </button>
-          </form>
-
-          <div className="auth-footer">
-            <p>
-              Already have an account?{' '}
-              <Link to="/login" className="auth-link">Sign in →</Link>
-            </p>
           </div>
         </div>
       </div>

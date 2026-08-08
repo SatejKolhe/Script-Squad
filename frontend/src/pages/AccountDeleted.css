@@ -1,41 +1,42 @@
+/* ===== ACCOUNT DELETED PAGE — OPTION A WARM LIGHT THEME ===== */
+
 .account-deleted-container {
   min-height: 100vh;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: #0b0f19;
-  background-image: 
-    radial-gradient(at 0% 0%, rgba(239, 68, 68, 0.12) 0px, transparent 50%),
-    radial-gradient(at 100% 100%, rgba(99, 102, 241, 0.12) 0px, transparent 50%);
-  padding: 2rem 1rem;
-  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-  color: #f1f5f9;
+  background: #FAF9F6;
+  padding: 2.5rem 1.5rem;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  color: #0F172A;
+  box-sizing: border-box;
 }
 
 .account-deleted-card {
   width: 100%;
   max-width: 520px;
-  background: #111827;
-  border: 1px solid rgba(239, 68, 68, 0.25);
-  border-radius: 24px;
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 20px;
+  box-shadow: 0 15px 35px -10px rgba(15, 23, 42, 0.05);
   overflow: hidden;
+  text-align: left;
 }
 
 .account-deleted-header {
-  background: linear-gradient(135deg, rgba(220, 38, 38, 0.2) 0%, rgba(153, 27, 27, 0.2) 100%);
-  border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+  background: #FEF2F2;
+  border-bottom: 1px solid #FEE2E2;
   padding: 2.5rem 2rem 2rem;
   text-align: center;
 }
 
 .account-deleted-icon-badge {
-  width: 64px;
-  height: 64px;
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 20px;
-  font-size: 2rem;
+  width: 60px;
+  height: 60px;
+  background: #FEE2E2;
+  border: 1px solid #FCA5A5;
+  border-radius: 16px;
+  font-size: 1.85rem;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -44,17 +45,18 @@
 
 .account-deleted-header h1 {
   margin: 0 0 0.4rem 0;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #ffffff;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0F172A;
   letter-spacing: -0.02em;
 }
 
 .account-deleted-subtitle {
   margin: 0;
   font-size: 0.875rem;
-  color: #fca5a5;
-  font-weight: 500;
+  color: #DC2626;
+  font-weight: 600;
 }
 
 .account-deleted-body {
@@ -62,9 +64,9 @@
 }
 
 .account-deleted-alert {
-  background: rgba(245, 158, 11, 0.08);
-  border: 1px solid rgba(245, 158, 11, 0.25);
-  border-radius: 14px;
+  background: #FFFBEB;
+  border: 1px solid #FDE68A;
+  border-radius: 12px;
   padding: 1.25rem;
   display: flex;
   gap: 1rem;
@@ -73,47 +75,68 @@
 }
 
 .alert-icon {
-  font-size: 1.5rem;
+  font-size: 1.35rem;
   line-height: 1;
 }
 
 .account-deleted-alert strong {
   display: block;
-  color: #fbbf24;
+  color: #D97706;
   font-size: 0.95rem;
   margin-bottom: 0.35rem;
 }
 
 .account-deleted-alert p {
   margin: 0;
-  color: #d1d5db;
+  color: #475569;
   font-size: 0.875rem;
-  line-height: 1.5;
+  line-height: 1.55;
 }
 
 .account-deleted-notice {
-  color: #9ca3af;
+  color: #475569;
   font-size: 0.875rem;
-  line-height: 1.6;
+  line-height: 1.65;
   text-align: center;
   margin-bottom: 2rem;
 }
 
+.account-deleted-notice strong {
+  color: #0F172A;
+}
+
 .account-deleted-actions {
   display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
+  justify-content: center;
+}
+
+.account-deleted-actions .btn-primary {
+  background: #2563EB;
+  color: #ffffff;
+  border-radius: 9px;
+  font-weight: 600;
+  font-size: 0.925rem;
+  padding: 0.8rem 1.5rem;
+  text-decoration: none;
+  text-align: center;
+  transition: all 0.2s ease;
+  display: block;
+  box-sizing: border-box;
+}
+
+.account-deleted-actions .btn-primary:hover {
+  background: #1D4ED8;
 }
 
 .account-deleted-footer {
+  border-top: 1px solid #E2E8F0;
   padding: 1.25rem 2rem;
-  background: rgba(11, 15, 25, 0.5);
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
   text-align: center;
+  background: #F8FAFC;
 }
 
 .account-deleted-footer p {
   margin: 0;
-  font-size: 0.78rem;
-  color: #6b7280;
+  font-size: 0.8rem;
+  color: #64748B;
 }

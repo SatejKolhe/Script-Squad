@@ -132,6 +132,13 @@
 }
 
 /* Inline Quick Sign-Up Form */
+.hero-inline-form-wrapper {
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .hero-inline-form {
   display: flex;
   gap: 0.6rem;
@@ -143,6 +150,14 @@
   max-width: 480px;
   margin-bottom: 0;
 }
+
+.hero-inline-error {
+  color: #DC2626;
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding-left: 0.25rem;
+}
+
 
 .hero-inline-input {
   flex: 1;

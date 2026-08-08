@@ -96,15 +96,25 @@ function LiveDashboardPreview() {
 
 export default function LandingPage() {
   const [emailInput, setEmailInput] = useState('');
+  const [emailError, setEmailError] = useState('');
   const navigate = useNavigate();
 
   const handleInlineSignup = (e) => {
     e.preventDefault();
-    if (emailInput.trim()) {
-      navigate(`/register?email=${encodeURIComponent(emailInput.trim())}`);
-    } else {
+    const trimmed = emailInput.trim();
+    if (!trimmed) {
+      setEmailError('');
       navigate('/register');
+      return;
     }
+
+    if (!/^\S+@\S+\.\S+$/.test(trimmed)) {
+      setEmailError('Please enter a valid email address');
+      return;
+    }
+
+    setEmailError('');
+    navigate(`/register?email=${encodeURIComponent(trimmed)}`, { state: { email: trimmed } });
   };
 
   return (
@@ -137,19 +147,26 @@ export default function LandingPage() {
               Organize daily priorities, align your team, and build lasting momentum.
             </p>
 
-            <form onSubmit={handleInlineSignup} className="hero-inline-form">
-              <input
-                type="email"
-                className="hero-inline-input"
-                placeholder="Enter your work email..."
-                value={emailInput}
-                onChange={(e) => setEmailInput(e.target.value)}
-              />
-              <button type="submit" className="hero-inline-btn">
-                Start for free →
-              </button>
+            <form onSubmit={handleInlineSignup} className="hero-inline-form-wrapper">
+              <div className="hero-inline-form">
+                <input
+                  type="email"
+                  className={`hero-inline-input ${emailError ? 'error' : ''}`}
+                  placeholder="Enter your work email..."
+                  value={emailInput}
+                  onChange={(e) => {
+                    setEmailInput(e.target.value);
+                    if (emailError) setEmailError('');
+                  }}
+                />
+                <button type="submit" className="hero-inline-btn">
+                  Start for free →
+                </button>
+              </div>
+              {emailError && <span className="hero-inline-error">{emailError}</span>}
             </form>
           </div>
+
 
 
           {/* Right Column (55%): Live Product Workspace Board */}
