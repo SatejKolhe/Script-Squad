@@ -2,107 +2,97 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import './LandingPage.css';
 
-/* ── Option A: Live Interactive Product Board Preview Component ── */
-function LiveProductBoardPreview() {
-  const [tasks, setTasks] = useState([
-    { id: 1, title: 'Finalize Q3 Product Roadmap', category: 'Strategy', status: 'inprogress', priority: 'High' },
-    { id: 2, title: 'Review API Authentication Spec', category: 'Backend', status: 'todo', priority: 'High' },
-    { id: 3, title: 'Redesign Onboarding Experience', category: 'Design', status: 'done', priority: 'Medium' },
-    { id: 4, title: 'Database Indexing Optimization', category: 'DevOps', status: 'done', priority: 'Low' },
-  ]);
-
-  const toggleStatus = (id) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === id) {
-          const next = t.status === 'todo' ? 'inprogress' : t.status === 'inprogress' ? 'done' : 'todo';
-          return { ...t, status: next };
-        }
-        return t;
-      })
-    );
-  };
-
-  const getColumnTasks = (colStatus) => tasks.filter((t) => t.status === colStatus);
-  const doneCount = tasks.filter((t) => t.status === 'done').length;
-
+/* ── Option A: Live Dashboard Product Preview Component (Sidebar + Stats + Recent Tasks) ── */
+function LiveDashboardPreview() {
   return (
-    <div className="board-preview-card">
-      <div className="board-preview-topbar">
-        <div className="board-window-dots">
+    <div className="preview-frame">
+      <div className="preview-topbar">
+        <div className="preview-dots">
           <span className="dot dot-red" />
           <span className="dot dot-yellow" />
           <span className="dot dot-green" />
         </div>
-        <span className="board-url-text">app.taskloom.com/my-workspace</span>
-        <span className="board-active-badge">⚡ {doneCount * 25} XP</span>
+        <span className="preview-url-pill">app.taskloom.com/dashboard</span>
       </div>
 
-      <div className="board-columns-grid">
-        {/* To Do Column */}
-        <div className="board-col">
-          <div className="board-col-header">
-            <span className="col-title">To Do</span>
-            <span className="col-count">{getColumnTasks('todo').length}</span>
-          </div>
-          <div className="board-col-list">
-            {getColumnTasks('todo').map((t) => (
-              <div key={t.id} className="board-task-card" onClick={() => toggleStatus(t.id)}>
-                <div className="task-checkbox" />
-                <div className="task-info">
-                  <div className="task-title">{t.title}</div>
-                  <span className="task-tag">{t.category}</span>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* In Progress Column */}
-        <div className="board-col">
-          <div className="board-col-header">
-            <span className="col-title">In Progress</span>
-            <span className="col-count inprogress">{getColumnTasks('inprogress').length}</span>
-          </div>
-          <div className="board-col-list">
-            {getColumnTasks('inprogress').map((t) => (
-              <div key={t.id} className="board-task-card active" onClick={() => toggleStatus(t.id)}>
-                <div className="task-checkbox inprogress">••</div>
-                <div className="task-info">
-                  <div className="task-title">{t.title}</div>
-                  <span className="task-tag cobalt">{t.category}</span>
-                </div>
-              </div>
-            ))}
+      <div className="preview-body">
+        {/* Left Sidebar */}
+        <div className="preview-sidebar">
+          <div className="preview-brand">⚡ TaskLoom</div>
+          <div className="preview-nav-list">
+            <div className="preview-nav-item active">
+              <span className="nav-icon">⊞</span> Dashboard
+            </div>
+            <div className="preview-nav-item">
+              <span className="nav-icon">📁</span> Projects
+            </div>
+            <div className="preview-nav-item">
+              <span className="nav-icon">👥</span> Team
+            </div>
+            <div className="preview-nav-item">
+              <span className="nav-icon">📊</span> Analytics
+            </div>
           </div>
         </div>
 
-        {/* Completed Column */}
-        <div className="board-col">
-          <div className="board-col-header">
-            <span className="col-title">Completed</span>
-            <span className="col-count done">{getColumnTasks('done').length}</span>
+        {/* Main Workspace Area */}
+        <div className="preview-main">
+          {/* Top 4 Stat Counter Cards */}
+          <div className="preview-stats-grid">
+            <div className="preview-stat-card">
+              <div className="stat-line cobalt" />
+              <div className="stat-num">24</div>
+              <div className="stat-lbl">Active Tasks</div>
+            </div>
+            <div className="preview-stat-card">
+              <div className="stat-line amber" />
+              <div className="stat-num">8</div>
+              <div className="stat-lbl">In Progress</div>
+            </div>
+            <div className="preview-stat-card">
+              <div className="stat-line green" />
+              <div className="stat-num">12</div>
+              <div className="stat-lbl">Completed</div>
+            </div>
+            <div className="preview-stat-card">
+              <div className="stat-line red" />
+              <div className="stat-num">3</div>
+              <div className="stat-lbl">Overdue</div>
+            </div>
           </div>
-          <div className="board-col-list">
-            {getColumnTasks('done').map((t) => (
-              <div key={t.id} className="board-task-card done" onClick={() => toggleStatus(t.id)}>
-                <div className="task-checkbox checked">✓</div>
-                <div className="task-info">
-                  <div className="task-title line-through">{t.title}</div>
-                  <span className="task-tag green">{t.category}</span>
-                </div>
+
+          {/* Recent Tasks List */}
+          <div className="preview-tasks-section">
+            <div className="preview-tasks-header">Recent Tasks</div>
+            <div className="preview-tasks-list">
+              <div className="preview-task-row">
+                <span className="task-status-dot red" />
+                <span className="task-name">Deploy v2.4 Release Build</span>
+                <span className="task-badge red">High Priority</span>
               </div>
-            ))}
+              <div className="preview-task-row">
+                <span className="task-status-dot amber" />
+                <span className="task-name">Review Security & Auth Spec</span>
+                <span className="task-badge amber">In Progress</span>
+              </div>
+              <div className="preview-task-row">
+                <span className="task-status-dot green" />
+                <span className="task-name">Redesign Onboarding Flow</span>
+                <span className="task-badge green">Completed</span>
+              </div>
+              <div className="preview-task-row">
+                <span className="task-status-dot cobalt" />
+                <span className="task-name">Database Query Indexing</span>
+                <span className="task-badge cobalt">Scheduled</span>
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-
-      <div className="board-preview-footer">
-        <span>💡 Interactive Preview: Click any card to toggle its status</span>
       </div>
     </div>
   );
 }
+
 
 export default function LandingPage() {
   const [emailInput, setEmailInput] = useState('');
@@ -167,8 +157,9 @@ export default function LandingPage() {
 
           {/* Right Column (55%): Live Product Workspace Board */}
           <div className="hero-right">
-            <LiveProductBoardPreview />
+            <LiveDashboardPreview />
           </div>
+
         </div>
       </section>
 
