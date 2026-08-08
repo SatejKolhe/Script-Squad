@@ -64,7 +64,7 @@ export default function TeammateProfile() {
     <div className="page-container animate-fadeIn teammate-profile-container">
       <div className="teammate-profile-header">
         <button className="back-btn" onClick={() => navigate('/team')}>
-          ← Back to Team
+          ← Back to Friends
         </button>
       </div>
 

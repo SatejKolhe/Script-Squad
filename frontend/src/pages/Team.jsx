@@ -74,7 +74,7 @@ function MemberCard({ memberData, onRemove }) {
           <button
             className="member-remove-btn"
             onClick={(e) => { e.stopPropagation(); onRemove(user._id, user.name); }}
-            title="Remove from team"
+            title="Remove friend"
           >
             ✕ Remove
           </button>
@@ -592,7 +592,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
             ) : filtered.length === 0 ? (
               <div className="assign-empty">
                 <span>🎯</span>
-                <p>{assignedTasks.length === 0 ? 'No tasks assigned yet. Use the form to assign work to your team.' : 'No tasks match the current filters.'}</p>
+                <p>{assignedTasks.length === 0 ? 'No tasks assigned yet. Use the form to assign work to your friends.' : 'No tasks match the current filters.'}</p>
               </div>
             ) : (
               filtered.map((task) => {
@@ -694,10 +694,10 @@ export default function Team() {
   }, [loadActivity]);
 
   const handleRemove = async (userId, name) => {
-    if (!window.confirm(`Remove ${name} from your team?`)) return;
+    if (!window.confirm(`Remove ${name} from your friends?`)) return;
     try {
       await api.delete(`/team/members/${userId}`);
-      toast.success(`${name} removed from your team`);
+      toast.success(`${name} removed from your friends`);
       setActivity((prev) => prev.filter((m) => m.user._id !== userId));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to remove member');
@@ -711,7 +711,7 @@ export default function Team() {
       {/* Header */}
       <div className="team-header">
         <div className="team-header-info">
-          <h1>Team</h1>
+          <h1>Friends</h1>
           <p>Track who's working on what, in real time</p>
           {!loading && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
@@ -740,7 +740,7 @@ export default function Team() {
 
       {/* Member Cards */}
       <div className="team-section-divider">
-        <span className="team-section-label">👥 Team Members</span>
+        <span className="team-section-label">👥 Friends</span>
       </div>
 
       {loading ? (
@@ -748,9 +748,9 @@ export default function Team() {
       ) : activity.length === 0 ? (
         <div className="team-empty">
           <div className="team-empty-icon">👥</div>
-          <div className="team-empty-title">Your team is empty</div>
+          <div className="team-empty-title">Your friend list is empty</div>
           <p className="team-empty-desc">
-            Search for teammates above by name or email to add them. Once added, you'll see
+            Search for friends above by name or email to add them. Once added, you'll see
             which projects and tasks they're working on right now.
           </p>
         </div>
