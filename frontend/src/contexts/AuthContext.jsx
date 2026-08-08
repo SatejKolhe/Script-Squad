@@ -106,6 +106,12 @@ export const AuthProvider = ({ children }) => {
     return res.data;
   }, []);
 
+  // Verify 6-digit OTP code for email verification.
+  const verifyEmailOtp = useCallback(async (email, otp) => {
+    const res = await api.post('/auth/verify-email-otp', { email, otp });
+    return res.data;
+  }, []);
+
   const updateProfile = useCallback(async (data) => {
     const res = await api.put('/auth/profile', data);
     const updated = res.data.user;
@@ -123,7 +129,7 @@ export const AuthProvider = ({ children }) => {
   }, [user]);
 
   return (
-    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, resendVerification, api }}>
+    <AuthContext.Provider value={{ user, loading, register, login, logout, updateProfile, resendVerification, verifyEmailOtp, api }}>
       {children}
     </AuthContext.Provider>
   );

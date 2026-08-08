@@ -49,6 +49,8 @@ const userSchema = new mongoose.Schema(
     },
     emailVerifyToken: String,
     emailVerifyExpire: Date,
+    emailVerifyOtp: String,
+    emailVerifyOtpExpire: Date,
     // ── XP & Streak ─────────────────────────────────────────────────────────
     xp: {
       type: Number,
@@ -107,6 +109,21 @@ userSchema.methods.generateVerifyToken = function () {
   this.emailVerifyExpire = Date.now() + 30 * 60 * 1000;
 
   return rawToken;
+};
+
+// Generate and hash 6-digit email verification OTP
+userSchema.methods.generateVerifyOtp = function () {
+  const otp = Math.floor(100000 + Math.random() * 900000).toString();
+
+  this.emailVerifyOtp = crypto
+    .createHash('sha256')
+    .update(otp)
+    .digest('hex');
+
+  // Set expiry to 10 minutes from now
+  this.emailVerifyOtpExpire = Date.now() + 10 * 60 * 1000;
+
+  return otp;
 };
 
 // Generate and hash 6-digit password reset OTP

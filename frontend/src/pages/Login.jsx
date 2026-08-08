@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import './Auth.css';
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, resendVerification, verifyEmailOtp } = useAuth();
   const navigate = useNavigate();
 
   // ── Login state ────────────────────────────────────────────────────────────
@@ -14,6 +14,17 @@ export default function Login() {
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
   const [serverError, setServerError] = useState('');
+
+  // ── Unverified Email 2-Step state ─────────────────────────────────────────
+  const [unverifiedMode, setUnverifiedMode] = useState(false);
+  const [unverifiedEmail, setUnverifiedEmail] = useState('');
+  const [unverifiedOtp, setUnverifiedOtp] = useState(['', '', '', '', '', '']);
+  const [unverifiedOtpError, setUnverifiedOtpError] = useState('');
+  const [unverifiedLoading, setUnverifiedLoading] = useState(false);
+  const [unverifiedResendLoading, setUnverifiedResendLoading] = useState(false);
+  const [unverifiedResendCooldown, setUnverifiedResendCooldown] = useState(0);
+  const [unverifiedResendMsg, setUnverifiedResendMsg] = useState('');
+  const unverifiedOtpInputsRef = useRef([]);
 
   // ── Forgot password multi-step state ───────────────────────────────────────
   const [forgotMode, setForgotMode] = useState(false);
@@ -51,6 +62,18 @@ export default function Login() {
     };
   }, [forgotMode, forgotStep, resendCooldown]);
 
+  useEffect(() => {
+    let timer;
+    if (unverifiedMode && unverifiedResendCooldown > 0) {
+      timer = setInterval(() => {
+        setUnverifiedResendCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+      }, 1000);
+    }
+    return () => {
+      if (timer) clearInterval(timer);
+    };
+  }, [unverifiedMode, unverifiedResendCooldown]);
+
   // ── Login handlers ─────────────────────────────────────────────────────────
   const validateLogin = () => {
     const e = {};
@@ -75,9 +98,115 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       const data = err.response?.data;
-      setServerError(data?.message || 'Login failed. Please try again.');
+      if (data?.isUnverified) {
+        setUnverifiedEmail(data.email || form.email);
+        setUnverifiedMode(true);
+        setUnverifiedOtp(['', '', '', '', '', '']);
+        setUnverifiedOtpError('');
+        setUnverifiedResendCooldown(60);
+        toast.error('Email not verified. Enter the code sent to your email to log in.');
+        setTimeout(() => unverifiedOtpInputsRef.current[0]?.focus(), 150);
+      } else {
+        setServerError(data?.message || 'Login failed. Please try again.');
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  // ── Unverified Mode Handlers ───────────────────────────────────────────────
+  const handleUnverifiedOtpChange = (index, value) => {
+    const cleaned = value.replace(/\D/g, '');
+    if (unverifiedOtpError) setUnverifiedOtpError('');
+    if (unverifiedResendMsg) setUnverifiedResendMsg('');
+
+    if (!cleaned) {
+      const updated = [...unverifiedOtp];
+      updated[index] = '';
+      setUnverifiedOtp(updated);
+      return;
+    }
+
+    const updated = [...unverifiedOtp];
+    updated[index] = cleaned[cleaned.length - 1];
+    setUnverifiedOtp(updated);
+
+    if (index < 5 && cleaned) {
+      unverifiedOtpInputsRef.current[index + 1]?.focus();
+    }
+  };
+
+  const handleUnverifiedOtpKeyDown = (index, e) => {
+    if (e.key === 'Backspace' && !unverifiedOtp[index] && index > 0) {
+      unverifiedOtpInputsRef.current[index - 1]?.focus();
+    }
+  };
+
+  const handleUnverifiedOtpPaste = (e) => {
+    e.preventDefault();
+    const pasteData = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasteData) return;
+
+    const newOtp = ['', '', '', '', '', ''];
+    for (let i = 0; i < pasteData.length; i++) {
+      newOtp[i] = pasteData[i];
+    }
+    setUnverifiedOtp(newOtp);
+    if (unverifiedOtpError) setUnverifiedOtpError('');
+
+    const focusIdx = Math.min(pasteData.length, 5);
+    unverifiedOtpInputsRef.current[focusIdx]?.focus();
+  };
+
+  const handleUnverifiedVerifyOtp = async (e) => {
+    e.preventDefault();
+    const enteredOtp = unverifiedOtp.join('');
+    if (enteredOtp.length !== 6) {
+      setUnverifiedOtpError('Please enter all 6 digits of the verification code');
+      return;
+    }
+
+    setUnverifiedOtpError('');
+    setUnverifiedResendMsg('');
+    setUnverifiedLoading(true);
+
+    try {
+      const res = await verifyEmailOtp(unverifiedEmail, enteredOtp);
+      toast.success(res.message || 'Email verified successfully! Sign in to continue.');
+      setUnverifiedMode(false);
+      // Auto-submit login with current credentials
+      if (form.email && form.password) {
+        try {
+          await login(form.email, form.password);
+          navigate('/dashboard');
+        } catch {
+          // If auto-login fails, user stays on login screen to click Sign In
+        }
+      }
+    } catch (err) {
+      setUnverifiedOtpError(err.response?.data?.message || 'Invalid or expired verification code');
+    } finally {
+      setUnverifiedLoading(false);
+    }
+  };
+
+  const handleUnverifiedResendOtp = async () => {
+    if (unverifiedResendCooldown > 0 || unverifiedResendLoading) return;
+    setUnverifiedResendLoading(true);
+    setUnverifiedResendMsg('');
+    setUnverifiedOtpError('');
+
+    try {
+      const res = await resendVerification(unverifiedEmail);
+      toast.success('New verification code sent! Check your inbox.');
+      setUnverifiedResendMsg(res.message || 'Verification code resent!');
+      setUnverifiedOtp(['', '', '', '', '', '']);
+      setUnverifiedResendCooldown(60);
+      setTimeout(() => unverifiedOtpInputsRef.current[0]?.focus(), 150);
+    } catch (err) {
+      setUnverifiedResendMsg(err.response?.data?.message || 'Could not resend code. Please try again.');
+    } finally {
+      setUnverifiedResendLoading(false);
     }
   };
 
@@ -336,23 +465,25 @@ export default function Login() {
         <div className="auth-card card-glass">
           <div className="auth-card-header">
             <h2 className="auth-title">
-              {!forgotMode && 'Welcome back'}
-              {forgotMode && forgotStep === 1 && 'Forgot Password'}
-              {forgotMode && forgotStep === 2 && 'Verify Your Email'}
-              {forgotMode && forgotStep === 3 && 'Create New Password'}
-              {forgotMode && forgotStep === 4 && 'Password Reset!'}
+              {unverifiedMode && 'Verify Your Email'}
+              {!unverifiedMode && !forgotMode && 'Welcome back'}
+              {!unverifiedMode && forgotMode && forgotStep === 1 && 'Forgot Password'}
+              {!unverifiedMode && forgotMode && forgotStep === 2 && 'Verify Your Email'}
+              {!unverifiedMode && forgotMode && forgotStep === 3 && 'Create New Password'}
+              {!unverifiedMode && forgotMode && forgotStep === 4 && 'Password Reset!'}
             </h2>
             <p className="auth-subtitle">
-              {!forgotMode && 'Sign in to continue to your workspace'}
-              {forgotMode && forgotStep === 1 && 'Enter your account email to receive a 6-digit verification code'}
-              {forgotMode && forgotStep === 2 && 'Enter the 6-digit verification code sent to your email'}
-              {forgotMode && forgotStep === 3 && 'Choose a strong new password that is different from your old one'}
-              {forgotMode && forgotStep === 4 && 'Your password has been successfully updated'}
+              {unverifiedMode && 'Enter the 6-digit verification code sent to your email to activate your account.'}
+              {!unverifiedMode && !forgotMode && 'Sign in to continue to your workspace'}
+              {!unverifiedMode && forgotMode && forgotStep === 1 && 'Enter your account email to receive a 6-digit verification code'}
+              {!unverifiedMode && forgotMode && forgotStep === 2 && 'Enter the 6-digit verification code sent to your email'}
+              {!unverifiedMode && forgotMode && forgotStep === 3 && 'Choose a strong new password that is different from your old one'}
+              {!unverifiedMode && forgotMode && forgotStep === 4 && 'Your password has been successfully updated'}
             </p>
           </div>
 
           {/* ── FORGOT PASSWORD STEP PROGRESS ── */}
-          {forgotMode && forgotStep < 4 && (
+          {!unverifiedMode && forgotMode && forgotStep < 4 && (
             <div className="forgot-steps-bar">
               <div className={`forgot-step-item ${forgotStep === 1 ? 'active' : ''} ${forgotStep > 1 ? 'completed' : ''}`}>
                 <span className="forgot-step-dot">{forgotStep > 1 ? '✓' : '1'}</span>
@@ -371,8 +502,113 @@ export default function Login() {
             </div>
           )}
 
+          {/* ── UNVERIFIED EMAIL 2-STEP MODE ── */}
+          {unverifiedMode && (
+            <>
+              {/* Target email badge */}
+              <div className="target-email-badge">
+                <span>Code sent to: <span className="target-email-text">{unverifiedEmail}</span></span>
+              </div>
+
+              <form onSubmit={handleUnverifiedVerifyOtp} className="auth-form" noValidate>
+                <div className="form-group">
+                  <label className="form-label" style={{ textAlign: 'center', display: 'block' }}>
+                    Enter 6-digit Verification Code
+                  </label>
+                  <div className="otp-input-grid" onPaste={handleUnverifiedOtpPaste}>
+                    {unverifiedOtp.map((digit, idx) => (
+                      <input
+                        key={idx}
+                        ref={(el) => (unverifiedOtpInputsRef.current[idx] = el)}
+                        type="text"
+                        inputMode="numeric"
+                        maxLength={1}
+                        className={`otp-digit-box ${digit ? 'filled' : ''} ${unverifiedOtpError ? 'error' : ''}`}
+                        value={digit}
+                        onChange={(e) => handleUnverifiedOtpChange(idx, e.target.value)}
+                        onKeyDown={(e) => handleUnverifiedOtpKeyDown(idx, e)}
+                        autoFocus={idx === 0}
+                      />
+                    ))}
+                  </div>
+                  {unverifiedOtpError && (
+                    <span className="form-error" style={{ textAlign: 'center', display: 'block', marginTop: '0.4rem' }}>
+                      {unverifiedOtpError}
+                    </span>
+                  )}
+                </div>
+
+                {/* Resend OTP Row & 60-Second Cooldown */}
+                <div className="resend-otp-container">
+                  <span style={{ color: '#64748b' }}>Didn't receive the code?</span>
+                  {unverifiedResendCooldown > 0 ? (
+                    <span className="resend-cooldown-badge">
+                      <span className="cooldown-pulse-dot" />
+                      Resend in {unverifiedResendCooldown}s
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      className="resend-btn-active"
+                      onClick={handleUnverifiedResendOtp}
+                      disabled={unverifiedResendLoading}
+                    >
+                      {unverifiedResendLoading ? 'Sending...' : '🔄 Resend OTP'}
+                    </button>
+                  )}
+                </div>
+
+                {unverifiedResendMsg && (
+                  <div
+                    className={
+                      unverifiedResendMsg.toLowerCase().includes('could not') || unverifiedResendMsg.toLowerCase().includes('wait')
+                        ? 'auth-error-banner'
+                        : 'auth-success-banner'
+                    }
+                    style={{ margin: 0 }}
+                  >
+                    {unverifiedResendMsg}
+                  </div>
+                )}
+
+                <div className="auth-btn-row">
+                  <button
+                    type="button"
+                    className="btn btn-secondary-dark w-full btn-lg"
+                    onClick={() => setUnverifiedMode(false)}
+                    disabled={unverifiedLoading}
+                  >
+                    Back to Sign In
+                  </button>
+                  <button
+                    id="verify-unverified-login-btn"
+                    type="submit"
+                    className="btn btn-primary w-full btn-lg"
+                    disabled={unverifiedLoading || unverifiedOtp.join('').length !== 6}
+                  >
+                    {unverifiedLoading ? (
+                      <>
+                        <div className="spinner spinner-sm" />
+                        Verifying...
+                      </>
+                    ) : (
+                      <>✅ Verify & Continue</>
+                    )}
+                  </button>
+                </div>
+              </form>
+
+              <div className="auth-footer">
+                <p>
+                  Need a new account?{' '}
+                  <Link to="/register" className="auth-link">Register →</Link>
+                </p>
+              </div>
+            </>
+          )}
+
           {/* ── LOGIN FORM ── */}
-          {!forgotMode && (
+          {!unverifiedMode && !forgotMode && (
             <>
               {serverError && (
                 <div className="auth-error-banner">⚠️ {serverError}</div>
@@ -446,7 +682,7 @@ export default function Login() {
           )}
 
           {/* ── FORGOT PASSWORD: STEP 1 (EMAIL) ── */}
-          {forgotMode && forgotStep === 1 && (
+          {!unverifiedMode && forgotMode && forgotStep === 1 && (
             <>
               {forgotBannerError && (
                 <div className="auth-error-banner">⚠️ {forgotBannerError}</div>
