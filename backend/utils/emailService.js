@@ -230,12 +230,32 @@ async function sendDeadlineReminderEmail(user, tasks) {
 /**
  * @param {{ name: string, email: string }} user
  * @param {string} verifyUrl – Full URL with raw token
+ * @param {string} [otp] – 6-digit verification code
  */
-async function sendVerificationEmail(user, verifyUrl) {
+async function sendVerificationEmail(user, verifyUrl, otp) {
+  if (otp) {
+    console.log(`✉️  [EMAIL VERIFICATION OTP] Sent to ${user.email}: ${otp}`);
+  }
+
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email credentials not configured. Skipping verification email.');
+    console.warn('⚠️  Email credentials not configured. Skipping email dispatch (OTP logged above for dev).');
     return;
   }
+
+  const otpSection = otp
+    ? `
+            <!-- OTP Display Card -->
+            <div style="background:#1f2937;border:1px solid #374151;border-radius:16px;padding:24px;text-align:center;margin:24px 0;">
+              <div style="color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Verification Code</div>
+              <div style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#818cf8;background:#111827;padding:14px 20px;border-radius:10px;display:inline-block;border:1px dashed #6366f1;">
+                ${otp}
+              </div>
+              <p style="margin:14px 0 0;color:#f59e0b;font-size:12px;font-weight:500;">
+                ⏱️ Code expires in <strong>10 minutes</strong>.
+              </p>
+            </div>
+            `
+    : '';
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -260,16 +280,16 @@ async function sendVerificationEmail(user, verifyUrl) {
         <tr>
           <td style="background:#ffffff;padding:36px 40px;">
             <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Hi <strong>${user.name}</strong> 👋</p>
-            <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-              Thanks for joining <strong style="color:#6366f1;">Script Squad</strong>! Click the button below
-              to verify your email and activate your account.
-              This link expires in <strong style="color:#6366f1;">30 minutes</strong>.
+            <p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.6;">
+              Thanks for joining <strong style="color:#6366f1;">Script Squad</strong>! Enter the 6-digit verification code below or click the button to verify your email address and activate your account.
             </p>
+
+            ${otpSection}
 
             <div style="text-align:center;margin:28px 0;">
               <a href="${verifyUrl}"
                 style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:700;font-size:16px;letter-spacing:0.3px;">
-                ✅ Verify Email Address
+                ✅ Verify Email Address via Link
               </a>
             </div>
 
