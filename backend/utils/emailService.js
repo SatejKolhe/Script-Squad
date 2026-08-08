@@ -21,9 +21,9 @@ function formatDate(date) {
 
 function priorityBadge(priority) {
   const map = {
-    high:   { color: '#ef4444', bg: '#fee2e2', label: '🔴 High' },
-    medium: { color: '#f59e0b', bg: '#fef3c7', label: '🟡 Medium' },
-    low:    { color: '#22c55e', bg: '#dcfce7', label: '🟢 Low' },
+    high:   { color: '#ef4444', bg: '#fee2e2', label: 'High' },
+    medium: { color: '#f59e0b', bg: '#fef3c7', label: 'Medium' },
+    low:    { color: '#22c55e', bg: '#dcfce7', label: 'Low' },
   };
   const p = map[priority] || map['medium'];
   return `<span style="background:${p.bg};color:${p.color};padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">${p.label}</span>`;
@@ -43,11 +43,11 @@ function taskRow(task) {
         ${task.description ? `<div style="color:#64748b;font-size:13px;margin-bottom:6px;">${task.description.substring(0, 100)}${task.description.length > 100 ? '…' : ''}</div>` : ''}
         <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
           ${priorityBadge(task.priority)}
-          ${task.project?.title ? `<span style="background:#e0e7ff;color:#4338ca;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">📁 ${task.project.title}</span>` : ''}
+          ${task.project?.title ? `<span style="background:#e0e7ff;color:#4338ca;padding:2px 10px;border-radius:12px;font-size:12px;font-weight:600;">Folder: ${task.project.title}</span>` : ''}
         </div>
       </td>
       <td style="padding:14px 16px;border-bottom:1px solid #f1f5f9;text-align:right;white-space:nowrap;">
-        <div style="color:${urgency};font-weight:700;font-size:14px;">⏰ ${hoursLeft}h left</div>
+        <div style="color:${urgency};font-weight:700;font-size:14px;">${hoursLeft}h left</div>
         <div style="color:#94a3b8;font-size:12px;margin-top:2px;">${formatDate(task.dueDate)}</div>
       </td>
     </tr>`;
@@ -66,32 +66,29 @@ function buildDeadlineEmailHtml(userName, tasks) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Deadline Reminder – Script Squad</title>
 </head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
 
-  <!-- Wrapper -->
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
     <tr><td align="center">
       <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
 
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;">
-            <div style="font-size:32px;margin-bottom:8px;">⚡</div>
-            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Deadline Reminder</h1>
-            <p style="margin:8px 0 0;color:#c7d2fe;font-size:14px;">Script Squad · Task Manager</p>
+          <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);border-radius:16px 16px 0 0;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Deadline Reminder</h1>
+            <p style="margin:6px 0 0;color:#c7d2fe;font-size:14px;">Script Squad Task Manager</p>
           </td>
         </tr>
 
         <!-- Body -->
         <tr>
-          <td style="background:#ffffff;padding:36px 40px;">
-            <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Hi <strong>${userName}</strong> 👋</p>
+          <td style="background:#ffffff;padding:36px 40px;border-left:1px solid #e2e8f0;border-right:1px solid #e2e8f0;">
+            <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Hi <strong>${userName}</strong>,</p>
             <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-              You have <strong style="color:#6366f1;">${tasks.length} ${taskWord}</strong> with deadlines approaching in the next
-              <strong style="color:#6366f1;">${reminderHours} hours</strong>. Don't let them slip through the cracks!
+              You have <strong style="color:#4f46e5;">${tasks.length} ${taskWord}</strong> with deadlines approaching in the next
+              <strong style="color:#4f46e5;">${reminderHours} hours</strong>.
             </p>
 
-            <!-- Tasks Table -->
             <table width="100%" cellpadding="0" cellspacing="0"
               style="border:1px solid #e2e8f0;border-radius:12px;overflow:hidden;border-collapse:collapse;">
               <thead>
@@ -105,26 +102,24 @@ function buildDeadlineEmailHtml(userName, tasks) {
               </tbody>
             </table>
 
-            <!-- CTA -->
             <div style="text-align:center;margin-top:32px;">
               <a href="${process.env.CLIENT_URL || 'http://localhost:5173'}"
-                style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;letter-spacing:0.3px;">
-                Open Script Squad →
+                style="display:inline-block;background:linear-gradient(135deg,#4f46e5,#7c3aed);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Open Script Squad Workspace →
               </a>
             </div>
 
             <p style="margin:32px 0 0;color:#94a3b8;font-size:13px;text-align:center;line-height:1.6;">
-              This is an automated reminder from Script Squad.<br/>
-              Complete or reschedule your tasks to stop receiving these reminders.
+              This is an automated operational notification from Script Squad.
             </p>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="background:#f1f5f9;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+          <td style="background:#f1f5f9;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;border:1px solid #e2e8f0;border-top:none;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Built with ❤️ by the Script Squad team
+              © ${new Date().getFullYear()} Script Squad. All rights reserved.
             </p>
           </td>
         </tr>
@@ -137,61 +132,59 @@ function buildDeadlineEmailHtml(userName, tasks) {
 </html>`;
 }
 
-// ── OTP Email Template ────────────────────────────────────────────────────────
-function buildOtpEmailHtml(userName, otp) {
+// ── Clean Light OTP Email Template (Primary Inbox Optimized) ──────────────────
+function buildCleanOtpEmailHtml(userName, otp, actionTitle = 'Verification Code') {
   return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Password Reset Code – Script Squad</title>
+  <title>${actionTitle} – Script Squad</title>
 </head>
-<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,Helvetica,Arial,sans-serif;color:#f1f5f9;">
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
 
-  <!-- Wrapper -->
-  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
     <tr><td align="center">
-      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
 
         <!-- Header -->
         <tr>
-          <td style="background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);padding:36px 40px;text-align:center;">
-            <div style="display:inline-block;width:48px;height:48px;line-height:48px;background:rgba(255,255,255,0.15);border-radius:14px;font-size:24px;margin-bottom:12px;">⚡</div>
-            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Script Squad</h1>
-            <p style="margin:6px 0 0;color:#c7d2fe;font-size:14px;font-weight:500;">Password Reset Verification</p>
+          <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">${actionTitle}</p>
           </td>
         </tr>
 
         <!-- Body -->
         <tr>
-          <td style="padding:40px 40px 32px;background:#111827;">
-            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;font-weight:600;">Hello ${userName || 'there'},</p>
-            <p style="margin:0 0 24px;color:#9ca3af;font-size:14px;line-height:1.6;">
-              We received a request to reset your password for your Script Squad account. Use the 6-digit verification code below to complete the verification:
+          <td style="padding:36px 40px 32px;background:#ffffff;">
+            <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hello ${userName || 'User'},</p>
+            <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
+              Here is your 6-digit security code for your Script Squad account. Enter this code to complete authentication:
             </p>
 
-            <!-- OTP Display Card -->
-            <div style="background:#1f2937;border:1px solid #374151;border-radius:16px;padding:24px;text-align:center;margin:0 0 24px;">
-              <div style="color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Verification Code</div>
-              <div style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#818cf8;background:#111827;padding:14px 20px;border-radius:10px;display:inline-block;border:1px dashed #6366f1;">
+            <!-- OTP Box -->
+            <div style="background:#f8fafc;border:2px dashed #6366f1;border-radius:12px;padding:24px;text-align:center;margin:0 0 24px;">
+              <span style="color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:8px;">Your 6-Digit Code</span>
+              <span style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#4f46e5;display:inline-block;padding:8px 16px;background:#ffffff;border-radius:8px;border:1px solid #cbd5e1;">
                 ${otp}
-              </div>
-              <p style="margin:14px 0 0;color:#f59e0b;font-size:12px;font-weight:500;">
-                ⏱️ Code expires in <strong>10 minutes</strong>.
+              </span>
+              <p style="margin:12px 0 0;color:#d97706;font-size:12px;font-weight:600;">
+                Expires in 10 minutes. Do not share this code with anyone.
               </p>
             </div>
 
-            <p style="margin:0 0 16px;color:#9ca3af;font-size:13px;line-height:1.6;">
-              If you did not request a password reset, please ignore this email or reach out if you have concerns. Your password will remain unchanged.
+            <p style="margin:0;color:#94a3b8;font-size:13px;line-height:1.6;">
+              If you did not request this code, please ignore this email. Your account remains secure.
             </p>
           </td>
         </tr>
 
         <!-- Footer -->
         <tr>
-          <td style="background:#0b0f19;border-top:1px solid rgba(255,255,255,0.06);padding:20px 40px;text-align:center;">
-            <p style="margin:0;color:#6b7280;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Secure Authentication Service
+          <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
+            <p style="margin:0;color:#94a3b8;font-size:12px;">
+              © ${new Date().getFullYear()} Script Squad · Automated Account Security
             </p>
           </td>
         </tr>
@@ -205,57 +198,61 @@ function buildOtpEmailHtml(userName, otp) {
 }
 
 // ── Send Functions ────────────────────────────────────────────────────────────
+
 /**
  * @param {{ name: string, email: string }} user
  * @param {Array} tasks – Array of populated Task documents
  */
 async function sendDeadlineReminderEmail(user, tasks) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email credentials not configured. Skipping notification.');
+    console.warn('⚠️ Email credentials not configured. Skipping notification.');
     return;
   }
 
   const mailOptions = {
     from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: `⏰ ${tasks.length} task${tasks.length > 1 ? 's' : ''} due soon — Script Squad`,
+    subject: `Script Squad: ${tasks.length} task${tasks.length > 1 ? 's' : ''} due soon`,
+    text: `Hi ${user.name},\n\nYou have ${tasks.length} task(s) approaching deadlines within the next 24 hours. Please check your workspace:\n${process.env.CLIENT_URL || 'http://localhost:5173'}`,
     html: buildDeadlineEmailHtml(user.name, tasks),
+    headers: {
+      'X-Priority': '1',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High',
+      'Auto-Submitted': 'auto-generated',
+      'X-Auto-Response-Suppress': 'OOF, AutoReply',
+    },
   };
 
   await transporter.sendMail(mailOptions);
   console.log(`📧 Deadline reminder sent to ${user.email} (${tasks.length} task${tasks.length > 1 ? 's' : ''})`);
 }
 
-// ── Email Verification ────────────────────────────────────────────────────────
+// ── Email Verification (Primary Inbox Optimized) ──────────────────────────────
 /**
  * @param {{ name: string, email: string }} user
- * @param {string} verifyUrl – Full URL with raw token
+ * @param {string} [verifyUrl] – Full URL with raw token (optional)
  * @param {string} [otp] – 6-digit verification code
  */
 async function sendVerificationEmail(user, verifyUrl, otp) {
   if (otp) {
-    console.log(`✉️  [EMAIL VERIFICATION OTP] Sent to ${user.email}: ${otp}`);
+    console.log(`✉️ [EMAIL VERIFICATION OTP] Sent to ${user.email}: ${otp}`);
   }
 
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email credentials not configured. Skipping email dispatch (OTP logged above for dev).');
+    console.warn('⚠️ Email credentials not configured. Skipping email dispatch (OTP logged above for dev).');
     return;
   }
 
-  const otpSection = otp
-    ? `
-            <!-- OTP Display Card -->
-            <div style="background:#1f2937;border:1px solid #374151;border-radius:16px;padding:24px;text-align:center;margin:24px 0;">
-              <div style="color:#9ca3af;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:1.5px;margin-bottom:10px;">Verification Code</div>
-              <div style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#818cf8;background:#111827;padding:14px 20px;border-radius:10px;display:inline-block;border:1px dashed #6366f1;">
-                ${otp}
-              </div>
-              <p style="margin:14px 0 0;color:#f59e0b;font-size:12px;font-weight:500;">
-                ⏱️ Code expires in <strong>10 minutes</strong>.
-              </p>
-            </div>
-            `
-    : '';
+  // Primary inbox clean subject line pattern recognized by Gmail 2FA parsers
+  const subject = otp
+    ? `Script Squad: ${otp} is your verification code`
+    : 'Verify your Script Squad email address';
+
+  // Plain-text alternative (Essential for Primary Inbox deliverability)
+  const plainText = otp
+    ? `Hi ${user.name},\n\nYour Script Squad verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this verification, please ignore this email.`
+    : `Hi ${user.name},\n\nPlease verify your email address by opening this link:\n${verifyUrl}\n\nThis link expires in 30 minutes.`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -264,49 +261,63 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Verify your email – Script Squad</title>
 </head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
 
         <tr>
-          <td style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;">
-            <div style="font-size:32px;margin-bottom:8px;">✉️</div>
-            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Verify your email</h1>
-            <p style="margin:8px 0 0;color:#c7d2fe;font-size:14px;">Script Squad · Task Manager</p>
+          <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">Account Email Verification</p>
           </td>
         </tr>
 
         <tr>
-          <td style="background:#ffffff;padding:36px 40px;">
-            <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Hi <strong>${user.name}</strong> 👋</p>
-            <p style="margin:0 0 16px;color:#475569;font-size:15px;line-height:1.6;">
-              Thanks for joining <strong style="color:#6366f1;">Script Squad</strong>! Enter the 6-digit verification code below or click the button to verify your email address and activate your account.
+          <td style="padding:36px 40px 32px;background:#ffffff;">
+            <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hi <strong>${user.name}</strong>,</p>
+            <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
+              ${otp ? 'Thanks for joining Script Squad! Enter the 6-digit verification code below to activate your account.' : 'Thanks for joining Script Squad! Click the button below to activate your account.'}
             </p>
 
-            ${otpSection}
-
+            ${
+              otp
+                ? `
+            <!-- OTP Display Card -->
+            <div style="background:#f8fafc;border:2px dashed #6366f1;border-radius:12px;padding:24px;text-align:center;margin:20px 0;">
+              <span style="color:#64748b;font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1.5px;display:block;margin-bottom:8px;">Verification Code</span>
+              <span style="font-family:'Courier New',Courier,monospace;font-size:36px;font-weight:800;letter-spacing:10px;color:#4f46e5;display:inline-block;padding:8px 16px;background:#ffffff;border-radius:8px;border:1px solid #cbd5e1;">
+                ${otp}
+              </span>
+              <p style="margin:12px 0 0;color:#d97706;font-size:12px;font-weight:600;">
+                Expires in 10 minutes. Do not share this code with anyone.
+              </p>
+            </div>
+            `
+                : `
             <div style="text-align:center;margin:28px 0;">
               <a href="${verifyUrl}"
-                style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:700;font-size:16px;letter-spacing:0.3px;">
-                ✅ Verify Email Address via Link
+                style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Verify Email Address
               </a>
             </div>
-
             <p style="margin:24px 0 0;color:#94a3b8;font-size:13px;line-height:1.6;">
-              If the button doesn't work, paste this URL into your browser:<br/>
-              <a href="${verifyUrl}" style="color:#6366f1;word-break:break-all;">${verifyUrl}</a>
+              If the button doesn't work, open this link in your browser:<br/>
+              <a href="${verifyUrl}" style="color:#4f46e5;word-break:break-all;">${verifyUrl}</a>
             </p>
-            <p style="margin:16px 0 0;color:#94a3b8;font-size:13px;">
+            `
+            }
+
+            <p style="margin:20px 0 0;color:#94a3b8;font-size:13px;">
               If you didn't create a Script Squad account, you can safely ignore this email.
             </p>
           </td>
         </tr>
 
         <tr>
-          <td style="background:#f1f5f9;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+          <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Built with ❤️ by the Script Squad team
+              © ${new Date().getFullYear()} Script Squad · Account Security
             </p>
           </td>
         </tr>
@@ -317,12 +328,22 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 </body>
 </html>`;
 
-  await transporter.sendMail({
+  const mailOptions = {
     from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: '✅ Verify your Script Squad email address',
+    subject,
+    text: plainText,
     html,
-  });
+    headers: {
+      'X-Priority': '1',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High',
+      'Auto-Submitted': 'auto-generated',
+      'X-Auto-Response-Suppress': 'OOF, AutoReply',
+    },
+  };
+
+  await transporter.sendMail(mailOptions);
   console.log(`📧 Verification email sent to ${user.email}`);
 }
 
@@ -333,9 +354,12 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
  */
 async function sendPasswordResetEmail(user, resetUrl) {
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email credentials not configured. Skipping reset email.');
+    console.warn('⚠️ Email credentials not configured. Skipping reset email.');
     return;
   }
+
+  const subject = 'Script Squad: Reset your password';
+  const plainText = `Hi ${user.name},\n\nWe received a request to reset your Script Squad password. Open this link to set a new password:\n${resetUrl}\n\nThis link will expire in 15 minutes.`;
 
   const html = `<!DOCTYPE html>
 <html lang="en">
@@ -344,37 +368,35 @@ async function sendPasswordResetEmail(user, resetUrl) {
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Reset your password – Script Squad</title>
 </head>
-<body style="margin:0;padding:0;background:#f8fafc;font-family:'Segoe UI',Arial,sans-serif;">
+<body style="margin:0;padding:0;background:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#1e293b;">
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:40px 0;">
     <tr><td align="center">
-      <table width="600" cellpadding="0" cellspacing="0" style="max-width:600px;width:100%;">
+      <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#ffffff;border-radius:16px;border:1px solid #e2e8f0;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.05);">
 
         <tr>
-          <td style="background:linear-gradient(135deg,#6366f1 0%,#8b5cf6 100%);border-radius:16px 16px 0 0;padding:36px 40px;text-align:center;">
-            <div style="font-size:32px;margin-bottom:8px;">🔑</div>
-            <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:800;letter-spacing:-0.5px;">Reset your password</h1>
-            <p style="margin:8px 0 0;color:#c7d2fe;font-size:14px;">Script Squad · Task Manager</p>
+          <td style="background:#4f46e5;padding:32px 40px;text-align:center;">
+            <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:800;letter-spacing:-0.3px;">Script Squad</h1>
+            <p style="margin:4px 0 0;color:#e0e7ff;font-size:14px;font-weight:500;">Password Reset</p>
           </td>
         </tr>
 
         <tr>
-          <td style="background:#ffffff;padding:36px 40px;">
-            <p style="margin:0 0 8px;color:#1e293b;font-size:16px;">Hi <strong>${user.name}</strong> 👋</p>
-            <p style="margin:0 0 24px;color:#475569;font-size:15px;line-height:1.6;">
-              We received a request to reset your <strong style="color:#6366f1;">Script Squad</strong> password.
-              Click the button below — this link expires in <strong style="color:#6366f1;">15 minutes</strong>.
+          <td style="padding:36px 40px 32px;background:#ffffff;">
+            <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hi <strong>${user.name}</strong>,</p>
+            <p style="margin:0 0 24px;color:#475569;font-size:14px;line-height:1.6;">
+              We received a request to reset your password. Click the button below — this link expires in 15 minutes.
             </p>
 
             <div style="text-align:center;margin:28px 0;">
               <a href="${resetUrl}"
-                style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:16px 44px;border-radius:50px;font-weight:700;font-size:16px;letter-spacing:0.3px;">
-                🔑 Reset Password
+                style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Reset Password
               </a>
             </div>
 
             <p style="margin:24px 0 0;color:#94a3b8;font-size:13px;line-height:1.6;">
-              If the button doesn't work, paste this URL:<br/>
-              <a href="${resetUrl}" style="color:#6366f1;word-break:break-all;">${resetUrl}</a>
+              If the button doesn't work, open this link:<br/>
+              <a href="${resetUrl}" style="color:#4f46e5;word-break:break-all;">${resetUrl}</a>
             </p>
             <p style="margin:16px 0 0;color:#94a3b8;font-size:13px;">
               If you didn't request a password reset, you can safely ignore this email.
@@ -383,9 +405,9 @@ async function sendPasswordResetEmail(user, resetUrl) {
         </tr>
 
         <tr>
-          <td style="background:#f1f5f9;border-radius:0 0 16px 16px;padding:20px 40px;text-align:center;">
+          <td style="background:#f8fafc;border-top:1px solid #e2e8f0;padding:20px 40px;text-align:center;">
             <p style="margin:0;color:#94a3b8;font-size:12px;">
-              © ${new Date().getFullYear()} Script Squad · Built with ❤️ by the Script Squad team
+              © ${new Date().getFullYear()} Script Squad · Account Security
             </p>
           </td>
         </tr>
@@ -399,13 +421,21 @@ async function sendPasswordResetEmail(user, resetUrl) {
   await transporter.sendMail({
     from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: '🔑 Reset your Script Squad password',
+    subject,
+    text: plainText,
     html,
+    headers: {
+      'X-Priority': '1',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High',
+      'Auto-Submitted': 'auto-generated',
+      'X-Auto-Response-Suppress': 'OOF, AutoReply',
+    },
   });
   console.log(`📧 Password reset email sent to ${user.email}`);
 }
 
-// ── Password Reset OTP ────────────────────────────────────────────────────────
+// ── Password Reset OTP (Primary Inbox Optimized) ──────────────────────────────
 /**
  * Send a password reset OTP verification email to a user.
  * @param {{ name: string, email: string }} user
@@ -415,15 +445,26 @@ async function sendPasswordResetOtpEmail(user, otp) {
   console.log(`🔑 [PASSWORD RESET OTP] Sent to ${user.email}: ${otp}`);
 
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
-    console.warn('⚠️  Email credentials not configured in .env. OTP was logged above for development.');
+    console.warn('⚠️ Email credentials not configured in .env. OTP was logged above for development.');
     return;
   }
+
+  const subject = `Script Squad: ${otp} is your password reset code`;
+  const plainText = `Hello ${user.name || 'there'},\n\nYour Script Squad password reset code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request a password reset, please ignore this email. Your password will remain unchanged.`;
 
   const mailOptions = {
     from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
     to: user.email,
-    subject: `🔐 Your Script Squad Password Reset Code: ${otp}`,
-    html: buildOtpEmailHtml(user.name, otp),
+    subject,
+    text: plainText,
+    html: buildCleanOtpEmailHtml(user.name, otp, 'Password Reset Code'),
+    headers: {
+      'X-Priority': '1',
+      'X-MSMail-Priority': 'High',
+      'Importance': 'High',
+      'Auto-Submitted': 'auto-generated',
+      'X-Auto-Response-Suppress': 'OOF, AutoReply',
+    },
   };
 
   try {
