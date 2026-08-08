@@ -51,6 +51,7 @@ router.get('/search', protect, async (req, res) => {
 
     const users = await User.find({
       _id: { $nin: excludeIds },
+      deletionStatus: { $ne: 'pending_deletion' },
       $or: [
         { name: { $regex: q.trim(), $options: 'i' } },
         { email: { $regex: q.trim(), $options: 'i' } },
@@ -59,6 +60,7 @@ router.get('/search', protect, async (req, res) => {
       .select('name email avatar')
       .limit(8)
       .lean();
+
 
     // Fetch pending invites sent by this user
     const pendingInvites = await TeamInvite.find({

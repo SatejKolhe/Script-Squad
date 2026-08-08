@@ -18,7 +18,15 @@ const protect = async (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({ success: false, message: 'User not found' });
     }
+    if (req.user.deletionStatus === 'pending_deletion') {
+      return res.status(401).json({
+        success: false,
+        isPendingDeletion: true,
+        message: 'Account is scheduled for deletion. Please log in to restore access.',
+      });
+    }
     next();
+
   } catch (err) {
     return res.status(401).json({ success: false, message: 'Not authorized, token invalid' });
   }

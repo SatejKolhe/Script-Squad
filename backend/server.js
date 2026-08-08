@@ -5,6 +5,8 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const { startDeadlineReminderJob } = require('./jobs/deadlineReminder');
+const { startAccountCleanupJob } = require('./jobs/accountCleanup');
+
 
 // Connect to MongoDB
 connectDB();
@@ -109,6 +111,8 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 5000;
 server.listen(PORT, () => {
   console.log(`🚀 Script Squad API running on port ${PORT}`);
-  // Start deadline email reminder cron job
+  // Start cron jobs
   startDeadlineReminderJob();
+  startAccountCleanupJob();
 });
+

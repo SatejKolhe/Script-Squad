@@ -21,6 +21,7 @@ import Upcoming from './pages/Upcoming';
 import Search from './pages/Search';
 import Chat from './pages/Chat';
 import Profile from './pages/Profile';
+import AccountDeleted from './pages/AccountDeleted';
 import IntroAnimation from './components/IntroAnimation';
 
 const ProtectedRoute = ({ children }) => {
@@ -49,7 +50,9 @@ function AppRoutes() {
       <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       <Route path="/reset-password/:token" element={<PublicRoute><ResetPassword /></PublicRoute>} />
       <Route path="/verify-email/:token" element={<VerifyEmail />} />
+      <Route path="/account-deleted" element={<AccountDeleted />} />
       <Route path="/" element={<ProtectedRoute><AppLayout /></ProtectedRoute>}>
+
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="projects" element={<Projects />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
