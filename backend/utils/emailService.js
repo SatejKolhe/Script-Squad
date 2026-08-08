@@ -231,7 +231,7 @@ async function sendDeadlineReminderEmail(user, tasks) {
 // ── Email Verification (Primary Inbox Optimized) ──────────────────────────────
 /**
  * @param {{ name: string, email: string }} user
- * @param {string} verifyUrl – Full URL with raw token
+ * @param {string} [verifyUrl] – Full URL with raw token (optional)
  * @param {string} [otp] – 6-digit verification code
  */
 async function sendVerificationEmail(user, verifyUrl, otp) {
@@ -251,7 +251,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
 
   // Plain-text alternative (Essential for Primary Inbox deliverability)
   const plainText = otp
-    ? `Hi ${user.name},\n\nYour Script Squad verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nYou can also verify your email using this link:\n${verifyUrl}\n\nIf you did not request this verification, please ignore this email.`
+    ? `Hi ${user.name},\n\nYour Script Squad verification code is: ${otp}\n\nThis code will expire in 10 minutes.\n\nIf you did not request this verification, please ignore this email.`
     : `Hi ${user.name},\n\nPlease verify your email address by opening this link:\n${verifyUrl}\n\nThis link expires in 30 minutes.`;
 
   const html = `<!DOCTYPE html>
@@ -277,7 +277,7 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
           <td style="padding:36px 40px 32px;background:#ffffff;">
             <p style="margin:0 0 12px;color:#1e293b;font-size:16px;font-weight:600;">Hi <strong>${user.name}</strong>,</p>
             <p style="margin:0 0 20px;color:#475569;font-size:14px;line-height:1.6;">
-              Thanks for joining Script Squad! Enter the 6-digit verification code below or click the button to activate your account.
+              ${otp ? 'Thanks for joining Script Squad! Enter the 6-digit verification code below to activate your account.' : 'Thanks for joining Script Squad! Click the button below to activate your account.'}
             </p>
 
             ${
@@ -290,25 +290,25 @@ async function sendVerificationEmail(user, verifyUrl, otp) {
                 ${otp}
               </span>
               <p style="margin:12px 0 0;color:#d97706;font-size:12px;font-weight:600;">
-                Expires in 10 minutes.
+                Expires in 10 minutes. Do not share this code with anyone.
               </p>
             </div>
             `
-                : ''
-            }
-
+                : `
             <div style="text-align:center;margin:28px 0;">
               <a href="${verifyUrl}"
                 style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
                 Verify Email Address
               </a>
             </div>
-
             <p style="margin:24px 0 0;color:#94a3b8;font-size:13px;line-height:1.6;">
               If the button doesn't work, open this link in your browser:<br/>
               <a href="${verifyUrl}" style="color:#4f46e5;word-break:break-all;">${verifyUrl}</a>
             </p>
-            <p style="margin:16px 0 0;color:#94a3b8;font-size:13px;">
+            `
+            }
+
+            <p style="margin:20px 0 0;color:#94a3b8;font-size:13px;">
               If you didn't create a Script Squad account, you can safely ignore this email.
             </p>
           </td>
