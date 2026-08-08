@@ -82,6 +82,7 @@ export default function Dashboard() {
   const [quickDate, setQuickDate] = useState('');
   const [isQuickPrivate, setIsQuickPrivate] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
+  const [aiSuggestions, setAiSuggestions] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
   const [projects, setProjects] = useState([]);
   const [selectedProject, setSelectedProject] = useState('');
@@ -135,6 +136,7 @@ export default function Dashboard() {
       });
       setQuickTask('');
       setQuickDate('');
+      setAiSuggestions([]);
       setSelectedFile(null);
       if (fileInputRef.current) fileInputRef.current.value = '';
       toast.success('Task added to Urgent Work!');
@@ -150,35 +152,49 @@ export default function Dashboard() {
   };
 
   const handleAIAnalyze = async () => {
-    if (!selectedFile) {
-      toast.error('Attach a file using + first');
-      return;
-    }
-
     setAiLoading(true);
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      try {
-        const res = await api.post('/ai/extract-task', {
-          fileData: ev.target.result,
-          mimeType: selectedFile.type
-        });
+    setAiSuggestions([]);
+    try {
+      if (selectedFile) {
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const res = await api.post('/ai/extract-task', {
+              fileData: ev.target.result,
+              mimeType: selectedFile.type,
+              text: quickTask,
+            });
+            if (res.data?.data) {
+              if (res.data.data.title) setQuickTask(res.data.data.title);
+              if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
+              if (res.data.data.suggestions) setAiSuggestions(res.data.data.suggestions);
+              toast.success('✨ AI extracted task details from file!');
+            }
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to analyze file with AI.');
+          } finally {
+            setAiLoading(false);
+          }
+        };
+        reader.onerror = () => {
+          toast.error('Failed to read file.');
+          setAiLoading(false);
+        };
+        reader.readAsDataURL(selectedFile);
+      } else {
+        const res = await api.post('/ai/extract-task', { text: quickTask });
         if (res.data?.data) {
           if (res.data.data.title) setQuickTask(res.data.data.title);
           if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
-          toast.success('Task extracted! Press Add to save.');
+          if (res.data.data.suggestions) setAiSuggestions(res.data.data.suggestions);
+          toast.success(quickTask.trim() ? '✨ AI smart-parsed your task!' : '✨ AI generated a task suggestion!');
         }
-      } catch (err) {
-        toast.error('Failed to analyze file.');
-      } finally {
         setAiLoading(false);
       }
-    };
-    reader.onerror = () => {
-      toast.error('Failed to read file.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'AI service error.');
       setAiLoading(false);
-    };
-    reader.readAsDataURL(selectedFile);
+    }
   };
 
   const handleStatusChange = async (taskId, newStatus) => {
@@ -489,6 +505,25 @@ export default function Dashboard() {
                 <span style={{ fontWeight: '600' }}>Add</span>
               </button>
             </div>
+
+            {aiSuggestions.length > 0 && (
+              <div style={{
+                background: 'rgba(99, 102, 241, 0.08)',
+                border: '1px solid rgba(99, 102, 241, 0.2)',
+                borderRadius: '10px',
+                padding: '0.75rem 1rem',
+                marginTop: '0.25rem'
+              }}>
+                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#6366f1', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <span>✨</span> AI Extracted Action Steps & Suggestions:
+                </div>
+                <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.825rem', color: 'var(--text-color)' }}>
+                  {aiSuggestions.map((sug, i) => (
+                    <li key={i} style={{ marginBottom: '0.25rem' }}>{sug}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </form>
 
           {/* Project overview */}

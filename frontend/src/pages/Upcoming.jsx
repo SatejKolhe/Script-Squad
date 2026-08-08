@@ -162,35 +162,46 @@ export default function Upcoming() {
   };
 
   const handleAIAnalyze = async () => {
-    if (!selectedFile) {
-      toast.error('Attach a file using + first');
-      return;
-    }
-
     setAiLoading(true);
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      try {
-        const res = await api.post('/ai/extract-task', {
-          fileData: ev.target.result,
-          mimeType: selectedFile.type
-        });
+    try {
+      if (selectedFile) {
+        const reader = new FileReader();
+        reader.onload = async (ev) => {
+          try {
+            const res = await api.post('/ai/extract-task', {
+              fileData: ev.target.result,
+              mimeType: selectedFile.type,
+              text: quickTitle,
+            });
+            if (res.data?.data) {
+              if (res.data.data.title) setQuickTitle(res.data.data.title);
+              if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
+              toast.success('✨ AI extracted task from file!');
+            }
+          } catch (err) {
+            toast.error(err.response?.data?.message || 'Failed to analyze file with AI.');
+          } finally {
+            setAiLoading(false);
+          }
+        };
+        reader.onerror = () => {
+          toast.error('Failed to read file.');
+          setAiLoading(false);
+        };
+        reader.readAsDataURL(selectedFile);
+      } else {
+        const res = await api.post('/ai/extract-task', { text: quickTitle });
         if (res.data?.data) {
           if (res.data.data.title) setQuickTitle(res.data.data.title);
           if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
-          toast.success('Task extracted! Press Schedule Task to save.');
+          toast.success(quickTitle.trim() ? '✨ AI smart-parsed your task!' : '✨ AI generated a task suggestion!');
         }
-      } catch (err) {
-        toast.error('Failed to analyze file.');
-      } finally {
         setAiLoading(false);
       }
-    };
-    reader.onerror = () => {
-      toast.error('Failed to read file.');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'AI service error.');
       setAiLoading(false);
-    };
-    reader.readAsDataURL(selectedFile);
+    }
   };
 
   const groups = groupTasks(tasks);
