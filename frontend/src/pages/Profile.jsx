@@ -353,16 +353,11 @@ export default function Profile() {
             </button>
           </form>
 
-          {/* ── Danger Zone ─────────────────────────────────────────────────── */}
-          <div className="danger-zone-card" style={{ marginTop: '2.5rem' }}>
-            <div className="danger-zone-header">
-              <span className="danger-zone-icon">⚠️</span>
-              <div>
-                <h3 className="danger-zone-title">Danger Zone</h3>
-                <p className="danger-zone-desc">
-                  Deactivate your account with a 15-day restore window. Permanent deletion occurs automatically after 15 days.
-                </p>
-              </div>
+          {/* ── Delete Account Option ─────────────────────────────────────────── */}
+          <div className="delete-account-option-wrap" style={{ marginTop: '2.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+            <div>
+              <div style={{ fontWeight: 600, color: 'var(--text-primary)', fontSize: '0.95rem' }}>Delete Account</div>
+              <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)' }}>Deactivate your account with a 15-day restore window.</div>
             </div>
             <button
               id="delete-account-btn"
@@ -385,7 +380,8 @@ export default function Profile() {
         <Modal
           isOpen={showDeleteModal}
           onClose={() => setShowDeleteModal(false)}
-          title="⚠️ Delete Account Confirmation"
+          title="🗑️ Delete Account Confirmation"
+
           footer={
             <>
               <button
