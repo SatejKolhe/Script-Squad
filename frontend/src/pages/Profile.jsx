@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { api, useAuth } from '../contexts/AuthContext';
+import Modal from '../components/Modal';
 import toast from 'react-hot-toast';
 import './Profile.css';
 
@@ -17,7 +18,7 @@ function getLevelTitle(level) {
 }
 
 export default function Profile() {
-  const { user, updateProfile } = useAuth();
+  const { user, updateProfile, logout } = useAuth();
   const [name, setName] = useState(user?.name || '');
   const [bio, setBio] = useState(user?.bio || '');
   const [avatarUrl, setAvatarUrl] = useState(user?.avatar || '');
@@ -25,6 +26,38 @@ export default function Profile() {
   const [avatarPreview, setAvatarPreview] = useState(user?.avatar || '');
   const [activeTab, setActiveTab] = useState('profile');
   const avatarInputRef = useRef(null);
+
+  // Delete account state
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deletePassword, setDeletePassword] = useState('');
+  const [deleteConfirmText, setDeleteConfirmText] = useState('');
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteAccount = async () => {
+    if (deleteConfirmText !== 'DELETE') {
+      toast.error('Please type DELETE to confirm account deletion');
+      return;
+    }
+    if (!deletePassword) {
+      toast.error('Password is required');
+      return;
+    }
+
+    setDeleting(true);
+    try {
+      const res = await api.delete('/auth/account', {
+        data: { password: deletePassword },
+      });
+      toast.success(res.data.message || 'Account scheduled for deletion.');
+      setShowDeleteModal(false);
+      logout();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to request account deletion');
+    } finally {
+      setDeleting(false);
+    }
+  };
+
 
   useEffect(() => {
     if (user) {
@@ -311,8 +344,105 @@ export default function Profile() {
               )}
             </button>
           </form>
+
+          {/* ── Danger Zone ─────────────────────────────────────────────────── */}
+          <div className="danger-zone-card" style={{ marginTop: '2.5rem' }}>
+            <div className="danger-zone-header">
+              <span className="danger-zone-icon">⚠️</span>
+              <div>
+                <h3 className="danger-zone-title">Danger Zone</h3>
+                <p className="danger-zone-desc">
+                  Deactivate your account with a 15-day restore window. Permanent deletion occurs automatically after 15 days.
+                </p>
+              </div>
+            </div>
+            <button
+              id="delete-account-btn"
+              type="button"
+              className="btn btn-danger"
+              onClick={() => {
+                setDeletePassword('');
+                setDeleteConfirmText('');
+                setShowDeleteModal(true);
+              }}
+            >
+              🗑️ Delete Account
+            </button>
+          </div>
         </div>
       )}
+
+      {/* Delete Account Modal */}
+      {showDeleteModal && (
+        <Modal
+          isOpen={showDeleteModal}
+          onClose={() => setShowDeleteModal(false)}
+          title="⚠️ Delete Account Confirmation"
+          footer={
+            <>
+              <button
+                className="btn btn-secondary"
+                onClick={() => setShowDeleteModal(false)}
+                disabled={deleting}
+              >
+                Cancel
+              </button>
+              <button
+                id="confirm-delete-account-btn"
+                className="btn btn-danger"
+                onClick={handleDeleteAccount}
+                disabled={deleting || deleteConfirmText !== 'DELETE' || !deletePassword}
+              >
+                {deleting ? (
+                  <><div className="spinner spinner-sm" /> Deactivating...</>
+                ) : (
+                  'Confirm & Delete Account'
+                )}
+              </button>
+            </>
+          }
+        >
+          <div className="delete-modal-content">
+            <div className="delete-modal-alert">
+              <strong>Account Deactivation & Grace Period:</strong>
+              <ul>
+                <li>Your account will be <strong>deactivated immediately</strong> and logged out everywhere.</li>
+                <li>Your data will be retained for <strong>15 days</strong>. You can restore access by simply logging back in within 15 days.</li>
+                <li>After 15 days, your account and all associated data will be <strong>permanently deleted</strong>.</li>
+              </ul>
+            </div>
+
+            <div className="form-group" style={{ marginTop: '1rem' }}>
+              <label className="form-label">Confirm Your Password *</label>
+              <input
+                id="delete-account-password"
+                type="password"
+                className="form-input"
+                placeholder="Enter current password"
+                value={deletePassword}
+                onChange={(e) => setDeletePassword(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            <div className="form-group">
+              <label className="form-label">
+                Type <strong style="color: #ef4444;">DELETE</strong> to confirm *
+              </label>
+              <input
+                id="delete-account-confirm-text"
+                type="text"
+                className="form-input"
+                placeholder="Type DELETE in capital letters"
+                value={deleteConfirmText}
+                onChange={(e) => setDeleteConfirmText(e.target.value)}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </Modal>
+      )}
+
 
       {activeTab === 'achievements' && (
         <div className="profile-achievements">

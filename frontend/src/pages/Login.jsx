@@ -74,6 +74,31 @@ export default function Login() {
     };
   }, [unverifiedMode, unverifiedResendCooldown]);
 
+  // ── Soft-deleted account restore state ───────────────────────────────────
+  const [pendingDeletionMode, setPendingDeletionMode] = useState(false);
+  const [pendingDeletionData, setPendingDeletionData] = useState({ email: '', scheduledDate: '', daysRemaining: 15 });
+  const [restoring, setRestoring] = useState(false);
+
+  const handleRestoreAccount = async () => {
+    setRestoring(true);
+    try {
+      const res = await axios.post('/api/auth/restore-account', {
+        email: pendingDeletionData.email,
+        password: form.password,
+      });
+      if (res.data.token) {
+        localStorage.setItem('token', res.data.token);
+        axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+        toast.success('🎉 Welcome back! Your account has been restored.');
+        window.location.href = '/dashboard';
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to restore account.');
+    } finally {
+      setRestoring(false);
+    }
+  };
+
   // ── Login handlers ─────────────────────────────────────────────────────────
   const validateLogin = () => {
     const e = {};
@@ -98,7 +123,15 @@ export default function Login() {
       navigate('/dashboard');
     } catch (err) {
       const data = err.response?.data;
-      if (data?.isUnverified) {
+      if (data?.isPendingDeletion) {
+        setPendingDeletionData({
+          email: data.email || form.email,
+          scheduledDate: data.scheduledDate,
+          daysRemaining: data.daysRemaining,
+        });
+        setPendingDeletionMode(true);
+        toast.error(data.message || 'Your account is scheduled for deletion.');
+      } else if (data?.isUnverified) {
         setUnverifiedEmail(data.email || form.email);
         setUnverifiedMode(true);
         setUnverifiedOtp(['', '', '', '', '', '']);
@@ -113,6 +146,7 @@ export default function Login() {
       setLoading(false);
     }
   };
+
 
   // ── Unverified Mode Handlers ───────────────────────────────────────────────
   const handleUnverifiedOtpChange = (index, value) => {
@@ -607,8 +641,62 @@ export default function Login() {
             </>
           )}
 
+          {/* ── ACCOUNT PENDING DELETION RESTORE CARD ── */}
+          {pendingDeletionMode && (
+            <div className="pending-deletion-card">
+              <div className="pending-deletion-header">
+                <span className="pending-deletion-icon">⚠️</span>
+                <h3>Account Scheduled for Deletion</h3>
+              </div>
+              <p className="pending-deletion-text">
+                Your account is currently deactivated and scheduled for permanent deletion on{' '}
+                <strong style={{ color: '#ef4444' }}>
+                  {pendingDeletionData.scheduledDate
+                    ? new Date(pendingDeletionData.scheduledDate).toLocaleDateString(undefined, {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric',
+                      })
+                    : '15 days'}
+                </strong>{' '}
+                (<strong>{pendingDeletionData.daysRemaining || 15} days remaining</strong>).
+              </p>
+              <div className="pending-deletion-info">
+                Would you like to cancel deletion and restore full access to your account and data?
+              </div>
+
+              <div className="auth-btn-row" style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem' }}>
+                <button
+                  type="button"
+                  className="btn btn-secondary-dark w-full btn-lg"
+                  onClick={() => setPendingDeletionMode(false)}
+                  disabled={restoring}
+                >
+                  Cancel
+                </button>
+                <button
+                  id="restore-account-btn"
+                  type="button"
+                  className="btn btn-success w-full btn-lg"
+                  onClick={handleRestoreAccount}
+                  disabled={restoring}
+                >
+                  {restoring ? (
+                    <>
+                      <div className="spinner spinner-sm" />
+                      Restoring...
+                    </>
+                  ) : (
+                    <>🎉 Restore My Account</>
+                  )}
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* ── LOGIN FORM ── */}
-          {!unverifiedMode && !forgotMode && (
+          {!unverifiedMode && !forgotMode && !pendingDeletionMode && (
+
             <>
               {serverError && (
                 <div className="auth-error-banner">⚠️ {serverError}</div>

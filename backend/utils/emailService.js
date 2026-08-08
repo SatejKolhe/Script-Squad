@@ -434,9 +434,256 @@ async function sendPasswordResetOtpEmail(user, otp) {
   }
 }
 
+// ── Account Deletion Emails ───────────────────────────────────────────────────
+
+/**
+ * Send email notifying user that account is scheduled for deletion in 15 days.
+ */
+async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemaining = 15) {
+  const formattedDate = formatDate(scheduledDate);
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+
+  console.log(`⚠️  [ACCOUNT DELETION PENDING] ${user.email} scheduled for ${formattedDate} (${daysRemaining} days remaining)`);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured. Skipping account deletion pending email dispatch.');
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><title>Account Deletion Scheduled</title></head>
+<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(239,68,68,0.3);overflow:hidden;box-shadow:0 25px 50px -12px rgba(0,0,0,0.5);">
+        <tr>
+          <td style="background:linear-gradient(135deg,#dc2626 0%,#991b1b 100%);padding:36px 40px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:8px;">⚠️</div>
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Account Scheduled for Deletion</h1>
+            <p style="margin:6px 0 0;color:#fca5a5;font-size:14px;">Script Squad · 15-Day Grace Period</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px;background:#111827;">
+            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;font-weight:600;">Hi ${user.name},</p>
+            <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              We received a request to delete your Script Squad account. Your account is now deactivated and scheduled for permanent deletion on <strong style="color:#ef4444;">${formattedDate}</strong> (${daysRemaining} days remaining).
+            </p>
+            <div style="background:#1f2937;border-left:4px solid #ef4444;border-radius:8px;padding:16px 20px;margin:24px 0;">
+              <div style="color:#f87171;font-weight:700;font-size:14px;margin-bottom:4px;">Changed your mind?</div>
+              <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.5;">
+                You can restore your account at any time before <strong>${formattedDate}</strong> by simply logging back in to Script Squad and confirming restore.
+              </p>
+            </div>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${clientUrl}/login" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Restore My Account →
+              </a>
+            </div>
+            <p style="margin:24px 0 0;color:#6b7280;font-size:12px;text-align:center;">
+              After ${formattedDate}, all your tasks, projects, and personal data will be permanently and irreversibly deleted.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"Script Squad Security" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: `⚠️ Important: Your Script Squad account is scheduled for deletion on ${formattedDate}`,
+      html,
+    });
+    console.log(`📧 Account deletion pending email sent to ${user.email}`);
+  } catch (err) {
+    console.error(`⚠️ Failed to send deletion pending email to ${user.email}:`, err.message);
+  }
+}
+
+/**
+ * Send reminder email when 3 days remain before permanent deletion.
+ */
+async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  console.log(`⏰ [ACCOUNT DELETION REMINDER] ${user.email} (${daysRemaining} days left)`);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured. Skipping deletion reminder email.');
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><title>Account Deletion Reminder</title></head>
+<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(245,158,11,0.3);overflow:hidden;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#f59e0b 0%,#d97706 100%);padding:36px 40px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:8px;">⏳</div>
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">${daysRemaining} Days Left to Restore Account</h1>
+            <p style="margin:6px 0 0;color:#fef3c7;font-size:14px;">Script Squad · Deletion Reminder</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px;background:#111827;">
+            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Hi ${user.name},</p>
+            <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              This is a reminder that your Script Squad account will be <strong>permanently deleted in ${daysRemaining} days</strong>.
+            </p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${clientUrl}/login" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Log In to Restore Account →
+              </a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"Script Squad Security" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: `⏳ Final Reminder: ${daysRemaining} days left to restore your Script Squad account`,
+      html,
+    });
+    console.log(`📧 Account deletion reminder sent to ${user.email}`);
+  } catch (err) {
+    console.error(`⚠️ Failed to send deletion reminder email to ${user.email}:`, err.message);
+  }
+}
+
+/**
+ * Send email confirming account restoration.
+ */
+async function sendAccountRestoredEmail(user) {
+  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
+  console.log(`✅ [ACCOUNT RESTORED] ${user.email}`);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured. Skipping account restored email.');
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><title>Account Restored</title></head>
+<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(16,185,129,0.3);overflow:hidden;">
+        <tr>
+          <td style="background:linear-gradient(135deg,#10b981 0%,#059669 100%);padding:36px 40px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:8px;">🎉</div>
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Welcome Back! Account Restored</h1>
+            <p style="margin:6px 0 0;color:#a7f3d0;font-size:14px;">Script Squad · Account Active</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px;background:#111827;">
+            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Hi ${user.name},</p>
+            <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              Your Script Squad account has been successfully restored. Your tasks, projects, and settings are fully active again.
+            </p>
+            <div style="text-align:center;margin:32px 0;">
+              <a href="${clientUrl}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
+                Go to Dashboard →
+              </a>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: '🎉 Your Script Squad account has been successfully restored!',
+      html,
+    });
+    console.log(`📧 Account restored email sent to ${user.email}`);
+  } catch (err) {
+    console.error(`⚠️ Failed to send account restored email to ${user.email}:`, err.message);
+  }
+}
+
+/**
+ * Send final confirmation email after permanent account deletion.
+ */
+async function sendAccountPermanentlyDeletedEmail(user) {
+  console.log(`🗑️  [ACCOUNT PERMANENTLY DELETED] ${user.email}`);
+
+  if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+    console.warn('⚠️  Email credentials not configured. Skipping permanent deletion confirmation email.');
+    return;
+  }
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"/><title>Account Permanently Deleted</title></head>
+<body style="margin:0;padding:0;background:#0b0f19;font-family:'Segoe UI',system-ui,sans-serif;color:#f1f5f9;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#0b0f19;padding:40px 0;">
+    <tr><td align="center">
+      <table width="580" cellpadding="0" cellspacing="0" style="max-width:580px;width:100%;background:#111827;border-radius:20px;border:1px solid rgba(255,255,255,0.08);overflow:hidden;">
+        <tr>
+          <td style="background:#1f2937;padding:36px 40px;text-align:center;">
+            <div style="font-size:36px;margin-bottom:8px;">👋</div>
+            <h1 style="margin:0;color:#ffffff;font-size:24px;font-weight:800;">Account Permanently Deleted</h1>
+            <p style="margin:6px 0 0;color:#9ca3af;font-size:14px;">Script Squad</p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:40px;background:#111827;">
+            <p style="margin:0 0 12px;color:#f3f4f6;font-size:16px;">Goodbye ${user.name},</p>
+            <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
+              As requested, your 15-day grace period has ended and your Script Squad account and associated data have been permanently deleted from our servers.
+            </p>
+            <p style="margin:0;color:#6b7280;font-size:13px;">
+              Thank you for having been part of Script Squad. If you ever wish to return, you are welcome to sign up for a new account anytime.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>`;
+
+  try {
+    await transporter.sendMail({
+      from: process.env.EMAIL_FROM || `"Script Squad" <${process.env.EMAIL_USER}>`,
+      to: user.email,
+      subject: '👋 Your Script Squad account has been permanently deleted',
+      html,
+    });
+    console.log(`📧 Account permanently deleted confirmation sent to ${user.email}`);
+  } catch (err) {
+    console.error(`⚠️ Failed to send permanent deletion confirmation to ${user.email}:`, err.message);
+  }
+}
+
 module.exports = {
   sendDeadlineReminderEmail,
   sendVerificationEmail,
   sendPasswordResetEmail,
   sendPasswordResetOtpEmail,
+  sendAccountDeletionPendingEmail,
+  sendAccountDeletionReminderEmail,
+  sendAccountRestoredEmail,
+  sendAccountPermanentlyDeletedEmail,
 };
+

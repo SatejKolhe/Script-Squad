@@ -64,9 +64,28 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // ── Soft Delete & Restore ───────────────────────────────────────────────
+    deletedAt: {
+      type: Date,
+      default: null,
+    },
+    deletionScheduledFor: {
+      type: Date,
+      default: null,
+    },
+    deletionStatus: {
+      type: String,
+      enum: ['active', 'pending_deletion'],
+      default: 'active',
+    },
+    deletionReminderSent: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );
+
 
 // Hash password before saving
 userSchema.pre('save', async function () {
