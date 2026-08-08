@@ -473,14 +473,12 @@ async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemainin
             <div style="background:#1f2937;border-left:4px solid #ef4444;border-radius:8px;padding:16px 20px;margin:24px 0;">
               <div style="color:#f87171;font-weight:700;font-size:14px;margin-bottom:4px;">Changed your mind?</div>
               <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.5;">
-                You can restore your account at any time before <strong>${formattedDate}</strong> by simply logging back in to Script Squad and confirming restore.
+                You can restore your account at any time before <strong>${formattedDate}</strong> by logging back in to Script Squad.
               </p>
             </div>
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${clientUrl}/login" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
-                Restore My Account →
-              </a>
-            </div>
+            <p style="margin:24px 0;color:#f3f4f6;font-size:15px;text-align:center;line-height:1.6;">
+              🔑 <strong>Log in again to restore your account.</strong>
+            </p>
             <p style="margin:24px 0 0;color:#6b7280;font-size:12px;text-align:center;">
               After ${formattedDate}, all your tasks, projects, and personal data will be permanently and irreversibly deleted.
             </p>
@@ -509,7 +507,6 @@ async function sendAccountDeletionPendingEmail(user, scheduledDate, daysRemainin
  * Send reminder email when 3 days remain before permanent deletion.
  */
 async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
   console.log(`⏰ [ACCOUNT DELETION REMINDER] ${user.email} (${daysRemaining} days left)`);
 
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -537,11 +534,9 @@ async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
               This is a reminder that your Script Squad account will be <strong>permanently deleted in ${daysRemaining} days</strong>.
             </p>
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${clientUrl}/login" style="display:inline-block;background:linear-gradient(135deg,#6366f1,#8b5cf6);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
-                Log In to Restore Account →
-              </a>
-            </div>
+            <p style="margin:24px 0;color:#f3f4f6;font-size:15px;text-align:center;line-height:1.6;">
+              🔑 <strong>Log in again to restore your account.</strong>
+            </p>
           </td>
         </tr>
       </table>
@@ -567,7 +562,6 @@ async function sendAccountDeletionReminderEmail(user, daysRemaining = 3) {
  * Send email confirming account restoration.
  */
 async function sendAccountRestoredEmail(user) {
-  const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173';
   console.log(`✅ [ACCOUNT RESTORED] ${user.email}`);
 
   if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
@@ -595,11 +589,6 @@ async function sendAccountRestoredEmail(user) {
             <p style="margin:0 0 20px;color:#9ca3af;font-size:14px;line-height:1.6;">
               Your Script Squad account has been successfully restored. Your tasks, projects, and settings are fully active again.
             </p>
-            <div style="text-align:center;margin:32px 0;">
-              <a href="${clientUrl}" style="display:inline-block;background:linear-gradient(135deg,#10b981,#059669);color:#ffffff;text-decoration:none;padding:14px 36px;border-radius:50px;font-weight:700;font-size:15px;">
-                Go to Dashboard →
-              </a>
-            </div>
           </td>
         </tr>
       </table>
@@ -607,6 +596,7 @@ async function sendAccountRestoredEmail(user) {
   </table>
 </body>
 </html>`;
+
 
   try {
     await transporter.sendMail({
