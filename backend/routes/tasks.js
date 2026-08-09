@@ -14,9 +14,41 @@ const router = express.Router();
 router.get('/', protect, async (req, res) => {
   try {
     const { project, status, priority, search, dueDate, sortBy } = req.query;
-    const filter = { owner: req.user._id };
+    // Build base filter based on project scoping
+    let filter = {};
 
-    if (project) filter.project = project;
+    if (project) {
+      const proj = await Project.findById(project);
+      if (proj && proj.orgTeamId) {
+        const OrgTeamMember = require('../models/OrgTeamMember');
+        const membership = await OrgTeamMember.findOne({ teamId: proj.orgTeamId, userId: req.user._id });
+        if (membership) {
+          if (membership.role === 'leader') {
+            // Leaders see everything in the project
+            filter.project = project;
+          } else {
+            // Members see their own, assigned, AND public tasks in the project
+            filter.project = project;
+            filter.$or = [
+              { owner: req.user._id },
+              { assignees: req.user._id },
+              { isPrivate: false }
+            ];
+          }
+        } else {
+          // Not a member, can only see their own tasks in this project if any
+          filter.project = project;
+          filter.owner = req.user._id;
+        }
+      } else {
+        // Not a team project, default logic
+        filter.project = project;
+        filter.owner = req.user._id;
+      }
+    } else {
+      filter.owner = req.user._id;
+    }
+
     if (status) filter.status = status;
     if (priority) filter.priority = priority;
     if (search) filter.title = { $regex: search, $options: 'i' };
@@ -31,7 +63,7 @@ router.get('/', protect, async (req, res) => {
     if (sortBy === 'createdAt') sortOptions = { createdAt: -1 };
 
     const tasks = await Task.find(filter)
-      .populate('assignee', 'name email avatar')
+      .populate('assignees', 'name email avatar')
       .populate('project', 'title color')
       .sort(sortOptions);
 
@@ -53,6 +85,7 @@ router.post(
     body('project').notEmpty().withMessage('Project is required').isMongoId(),
     body('priority').optional().isIn(['low', 'medium', 'high']),
     body('status').optional().isIn(['todo', 'inprogress', 'done']),
+    body('isPrivate').optional().isBoolean(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -61,10 +94,31 @@ router.post(
     }
 
     try {
-      // Verify project belongs to user
-      const project = await Project.findOne({ _id: req.body.project, owner: req.user._id });
+      // Verify project belongs to user OR user is in the team that owns the project
+      let project = await Project.findOne({ _id: req.body.project, owner: req.user._id });
+      
+      // If not owned directly, check if it belongs to an orgTeam where user is a member
       if (!project) {
-        return res.status(404).json({ success: false, message: 'Project not found' });
+        project = await Project.findOne({ _id: req.body.project });
+        if (!project || !project.orgTeamId) {
+          return res.status(404).json({ success: false, message: 'Project not found or access denied' });
+        }
+        const OrgTeamMember = require('../models/OrgTeamMember');
+        const membership = await OrgTeamMember.findOne({ teamId: project.orgTeamId, userId: req.user._id });
+        if (!membership) {
+          return res.status(403).json({ success: false, message: 'Access denied to this team project' });
+        }
+      }
+
+      // If assignees are provided and it's a team project, validate them
+      if (req.body.assignees && req.body.assignees.length > 0 && project.orgTeamId) {
+        const OrgTeamMember = require('../models/OrgTeamMember');
+        for (const assigneeId of req.body.assignees) {
+          const isMember = await OrgTeamMember.findOne({ teamId: project.orgTeamId, userId: assigneeId });
+          if (!isMember) {
+            return res.status(400).json({ success: false, message: `Assignee ${assigneeId} is not a member of this team` });
+          }
+        }
       }
 
       // Get highest order in this project+status
@@ -80,7 +134,7 @@ router.post(
       });
 
       const populated = await task.populate([
-        { path: 'assignee', select: 'name email avatar' },
+        { path: 'assignees', select: 'name email avatar' },
         { path: 'project', select: 'title color' },
       ]);
 
@@ -223,7 +277,7 @@ router.get('/search', protect, async (req, res) => {
 
     const tasksPromise = Task.find(taskFilter)
       .populate('project', 'title color')
-      .populate('assignee', 'name email avatar')
+      .populate('assignees', 'name email avatar')
       .sort({ createdAt: -1 })
       .limit(50);
 
@@ -388,7 +442,7 @@ router.put('/reorder/bulk', protect, async (req, res) => {
 
     // Return updated tasks so the frontend gets fresh timerStartedAt / totalTimeSpent
     const updated = await Task.find({ _id: { $in: taskIds } })
-      .populate('assignee', 'name email avatar')
+      .populate('assignees', 'name email avatar')
       .populate('project', 'title color');
 
     res.json({ success: true, message: 'Tasks reordered', data: updated });
@@ -405,7 +459,7 @@ router.put('/reorder/bulk', protect, async (req, res) => {
 router.get('/:id', protect, async (req, res) => {
   try {
     const task = await Task.findOne({ _id: req.params.id, owner: req.user._id })
-      .populate('assignee', 'name email avatar')
+      .populate('assignees', 'name email avatar')
       .populate('project', 'title color');
 
     if (!task) {
@@ -427,6 +481,7 @@ router.put(
     body('title').optional().trim().notEmpty().isLength({ max: 200 }),
     body('priority').optional().isIn(['low', 'medium', 'high']),
     body('status').optional().isIn(['todo', 'inprogress', 'done']),
+    body('isPrivate').optional().isBoolean(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -448,7 +503,7 @@ router.put(
       await existing.save();
 
       const task = await Task.findById(existing._id)
-        .populate('assignee', 'name email avatar')
+        .populate('assignees', 'name email avatar')
         .populate('project', 'title color');
 
       // ── XP & Streak logic ────────────────────────────────────────────────

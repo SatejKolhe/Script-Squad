@@ -373,7 +373,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
 
   // Filtered task list
   const filtered = assignedTasks.filter((t) => {
-    const matchAssignee = filterAssignee === 'all' || t.assignee?._id === filterAssignee;
+    const matchAssignee = filterAssignee === 'all' || (t.assignees && t.assignees[0]?._id === filterAssignee);
     const matchStatus = filterStatus === 'all' || t.status === filterStatus;
     return matchAssignee && matchStatus;
   });
@@ -597,7 +597,8 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
             ) : (
               filtered.map((task) => {
                 const overdue = isOverdue(task.dueDate) && task.status !== 'done';
-                const initials = task.assignee?.name?.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+                const assignee = task.assignees && task.assignees[0];
+                const initials = assignee?.name?.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
                 return (
                   <div
                     key={task._id}
@@ -607,7 +608,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                     <div className="assign-task-top">
                       <div className="assign-task-assignee">
                         <div className="avatar avatar-sm">{initials}</div>
-                        <span className="assign-task-assignee-name">{task.assignee?.name}</span>
+                        <span className="assign-task-assignee-name">{assignee?.name}</span>
                       </div>
                       <div className="assign-task-meta">
                         {/* Privacy badge */}

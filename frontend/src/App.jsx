@@ -14,6 +14,8 @@ import ProjectDetail from './pages/ProjectDetail';
 import Analytics from './pages/Analytics';
 import Team from './pages/Team';
 import TeammateProfile from './pages/TeammateProfile';
+import OrgTeams from './pages/OrgTeams';
+import OrgTeamDetail from './pages/OrgTeamDetail';
 import LandingPage from './pages/LandingPage';
 import Inbox from './pages/Inbox';
 import Today from './pages/Today';
@@ -56,6 +58,8 @@ function AppRoutes() {
         <Route path="dashboard" element={<Dashboard />} />
         <Route path="projects" element={<Projects />} />
         <Route path="projects/:id" element={<ProjectDetail />} />
+        <Route path="org-teams" element={<OrgTeams />} />
+        <Route path="org-teams/:id" element={<OrgTeamDetail />} />
         <Route path="team" element={<Team />} />
         <Route path="team/:id" element={<TeammateProfile />} />
         <Route path="analytics" element={<Analytics />} />

@@ -331,14 +331,14 @@ router.post('/assign-task', protect, async (req, res) => {
       description: description?.trim() || '',
       project: project._id,
       owner: req.user._id,          // creator = leader
-      assignee: assigneeId,          // assigned to member
+      assignees: [assigneeId],          // assigned to member
       priority: priority || 'medium',
       dueDate: dueDate || null,
       status: 'todo',
       isPrivate: isPrivate === true || isPrivate === 'true',
     });
 
-    await task.populate('assignee', 'name email avatar');
+    await task.populate('assignees', 'name email avatar');
     await task.populate('project', 'title color');
 
     res.status(201).json({ success: true, data: task, message: 'Task assigned successfully' });
@@ -353,8 +353,8 @@ router.post('/assign-task', protect, async (req, res) => {
 // @access  Private
 router.get('/assigned-tasks', protect, async (req, res) => {
   try {
-    const tasks = await Task.find({ owner: req.user._id, assignee: { $ne: null } })
-      .populate('assignee', 'name email avatar')
+    const tasks = await Task.find({ owner: req.user._id, assignees: { $not: { $size: 0 } } })
+      .populate('assignees', 'name email avatar')
       .populate('project', 'title color')
       .sort({ createdAt: -1 })
       .limit(100);
@@ -384,7 +384,7 @@ router.patch('/assigned-tasks/:taskId/status', protect, async (req, res) => {
     task.status = status;
     await task.save();
 
-    await task.populate('assignee', 'name email avatar');
+    await task.populate('assignees', 'name email avatar');
     await task.populate('project', 'title color');
 
     res.json({ success: true, data: task });
@@ -423,7 +423,7 @@ router.patch('/assigned-tasks/:taskId/visibility', protect, async (req, res) => 
     task.isPrivate = !task.isPrivate;
     await task.save();
 
-    await task.populate('assignee', 'name email avatar');
+    await task.populate('assignees', 'name email avatar');
     await task.populate('project', 'title color');
 
     res.json({ success: true, data: task, message: task.isPrivate ? 'Task set to private' : 'Task set to public' });

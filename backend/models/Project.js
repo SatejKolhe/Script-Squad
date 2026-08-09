@@ -38,6 +38,11 @@ const projectSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    orgTeamId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'OrgTeam',
+      default: null,
+    },
   },
   { timestamps: true }
 );
