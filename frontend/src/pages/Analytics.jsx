@@ -88,6 +88,16 @@ export default function Analytics() {
 
   return (
     <div className="page-container animate-fadeIn">
+      {/* Page Header */}
+      <div className="page-header" style={{ marginBottom: '1.75rem' }}>
+        <h1 className="page-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+          Analytics
+        </h1>
+        <p className="page-subtitle" style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+          Track your productivity trends, task completion rates, and performance metrics
+        </p>
+      </div>
+
       {/* Asymmetric Option 1 KPI Layout: Hero Card (60%) + Secondary Stack (40%) */}
       <div className="analytics-kpi-layout">
         {/* Left Hero Card: Primary Metrics (Total Tasks & Completion Rate with Progress Bar) */}
