@@ -21,13 +21,19 @@
 }
 
 .project-count-badge {
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: var(--border-radius-full);
   padding: 0.25rem 0.75rem;
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-secondary);
+  color: #475569;
+}
+
+[data-theme='dark'] .project-count-badge {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
 }
 
 /* Project cards */
@@ -37,6 +43,17 @@
   overflow: hidden;
   cursor: pointer;
   display: block;
+  background: var(--bg-card);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  box-shadow: var(--shadow-sm);
+  transition: all var(--transition-fast);
+}
+
+.project-card:hover {
+  border-color: #cbd5e1;
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .project-card-bar {
@@ -58,8 +75,8 @@
 }
 
 .project-dot {
-  width: 12px;
-  height: 12px;
+  width: 10px;
+  height: 10px;
   border-radius: 50%;
 }
 
@@ -75,12 +92,16 @@
 }
 
 .project-card-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   letter-spacing: -0.01em;
-  color: var(--text-primary);
+  color: #0f172a;
   line-height: 1.3;
+}
+
+[data-theme='dark'] .project-card-title {
+  color: #f8fafc;
 }
 
 .project-card-desc {
@@ -99,8 +120,8 @@
   flex-direction: column;
   gap: 0.5rem;
   margin-top: auto;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border-light);
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .project-progress-info {
