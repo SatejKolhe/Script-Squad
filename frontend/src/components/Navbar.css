@@ -19,28 +19,13 @@
   position: fixed;
 }
 
-/* Top gradient accent line */
+/* Top border solid #e2e8f0 */
 .navbar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent 0%, #6366f1 25%, #7c3aed 50%, #ec4899 75%, transparent 100%);
-  opacity: 0.55;
+  display: none;
 }
 
-/* Bottom shadow for depth */
 .navbar::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 0;
-  right: 0;
-  height: 12px;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.04), transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .navbar-left {

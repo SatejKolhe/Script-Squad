@@ -15,18 +15,10 @@
   transition: transform var(--transition-base);
 }
 
-/* Gradient right edge */
+/* Right border solid #e2e8f0 */
 .sidebar::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 1px;
-  height: 100%;
-  background: linear-gradient(180deg, transparent 0%, #6366f1 30%, #7c3aed 60%, #ec4899 85%, transparent 100%);
-  opacity: 0.4;
+  display: none;
 }
-
 
 /* ── Logo area ── */
 .sidebar-logo {
@@ -37,34 +29,21 @@
   border-bottom: 1px solid var(--border-color);
   min-height: var(--navbar-height);
   position: relative;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.04) 0%, transparent 100%);
+  background: var(--bg-card);
   flex-shrink: 0;
 }
 
 .logo-icon {
-  width: 40px;
-  height: 40px;
-  background: linear-gradient(135deg, #6366f1, #7c3aed);
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  background: #2563eb;
+  border-radius: 10px;
   display: flex;
   align-items: center;
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
-  animation: logoPulse 4s ease-in-out infinite;
-}
-
-@keyframes logoPulse {
-
-  0%,
-  100% {
-    box-shadow: 0 0 16px rgba(99, 102, 241, 0.4);
-  }
-
-  50% {
-    box-shadow: 0 0 28px rgba(99, 102, 241, 0.7), 0 0 60px rgba(99, 102, 241, 0.15);
-  }
+  color: #ffffff;
 }
 
 .logo-text {
@@ -75,28 +54,26 @@
 }
 
 .logo-name {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  font-weight: 800;
-  font-size: 1.05rem;
-  letter-spacing: -0.02em;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.4));
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: -0.01em;
+  color: #0f172a;
   white-space: nowrap;
 }
 
+[data-theme='dark'] .logo-name {
+  color: #f8fafc;
+}
+
 .logo-tagline {
-  font-size: 0.55rem;
-  font-family: 'Orbitron', sans-serif;
+  font-size: 0.58rem;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.2em;
-  color: #22d3ee;
-  -webkit-text-fill-color: #22d3ee;
-  opacity: 0.85;
-  margin-top: 2px;
+  letter-spacing: 0.15em;
+  color: var(--text-muted);
+  margin-top: 1px;
 }
 
 /* ── Navigation ── */
