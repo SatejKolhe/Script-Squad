@@ -80,8 +80,8 @@ export default function Inbox() {
     <div className="page-container animate-fadeIn">
       <div className="inbox-header">
         <div>
-          <h1>📥 Inbox</h1>
-          <p>Team invites and uncompleted tasks</p>
+          <h1 className="inbox-title">Inbox</h1>
+          <p className="inbox-subtitle">Team invites and pending tasks</p>
         </div>
       </div>
 
@@ -91,14 +91,22 @@ export default function Inbox() {
           className={`inbox-tab ${tab === 'invites' ? 'active' : ''}`}
           onClick={() => setTab('invites')}
         >
-          <span>📨</span> Invites
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+            <polyline points="22,6 12,13 2,6"/>
+          </svg>
+          <span>Invites</span>
           {invites.length > 0 && <span className="inbox-tab-badge">{invites.length}</span>}
         </button>
         <button
           className={`inbox-tab ${tab === 'tasks' ? 'active' : ''}`}
           onClick={() => setTab('tasks')}
         >
-          <span>📋</span> Tasks
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="9 11 12 14 22 4"/>
+            <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+          </svg>
+          <span>Tasks</span>
           {tasks.length > 0 && <span className="inbox-tab-badge">{tasks.length}</span>}
         </button>
       </div>
@@ -114,7 +122,12 @@ export default function Inbox() {
         <div className="inbox-list">
           {invites.length === 0 ? (
             <div className="inbox-empty">
-              <span className="inbox-empty-icon">📭</span>
+              <div className="inbox-empty-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"/>
+                  <path d="M5.45 5.11L2 12v6a2 2 0 002 2h16a2 2 0 002-2v-6l-3.45-6.89A2 2 0 0016.76 4H7.24a2 2 0 00-1.79 1.11z"/>
+                </svg>
+              </div>
               <p>No pending invites</p>
               <span className="inbox-empty-sub">When a team leader invites you, it will appear here.</span>
             </div>
@@ -135,10 +148,16 @@ export default function Inbox() {
                 </div>
                 <div className="invite-actions">
                   <button className="btn btn-primary btn-sm" onClick={() => handleAccept(invite._id)}>
-                    ✓ Accept
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                    Accept
                   </button>
                   <button className="btn btn-ghost btn-sm" onClick={() => handleDecline(invite._id)}>
-                    ✕ Decline
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                    Decline
                   </button>
                 </div>
               </div>
@@ -149,7 +168,11 @@ export default function Inbox() {
         <div className="inbox-list">
           {tasks.length === 0 ? (
             <div className="inbox-empty">
-              <span className="inbox-empty-icon">🎉</span>
+              <div className="inbox-empty-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
               <p>All tasks completed!</p>
               <span className="inbox-empty-sub">You're all caught up. Go create some new tasks!</span>
             </div>
@@ -161,7 +184,13 @@ export default function Inbox() {
                   onClick={() => handleStatusChange(task._id, task.status === 'todo' ? 'inprogress' : 'done')}
                   title={task.status === 'todo' ? 'Start' : 'Complete'}
                 >
-                  {task.status === 'inprogress' ? '⏳' : '○'}
+                  {task.status === 'inprogress' ? (
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                  ) : (
+                    '○'
+                  )}
                 </button>
                 <div className="inbox-task-body" onClick={() => navigate(`/projects/${task.project?._id}`)}>
                   <div className="inbox-task-title">{task.title}</div>
@@ -171,12 +200,15 @@ export default function Inbox() {
                         {task.project.title}
                       </span>
                     )}
-                    <span className="inbox-task-priority" style={{ color: PRIORITY_COLORS[task.priority] }}>
-                      {PRIORITY_ICONS[task.priority]} {task.priority}
+                    <span className={`badge badge-${task.priority}`}>
+                      {task.priority}
                     </span>
                     {task.dueDate && (
-                      <span className={`inbox-task-due ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`}>
-                        📅 {formatDate(task.dueDate)}
+                      <span className={`inbox-task-due ${new Date(task.dueDate) < new Date() ? 'overdue' : ''}`} style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {formatDate(task.dueDate)}
                       </span>
                     )}
                   </div>
