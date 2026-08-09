@@ -108,11 +108,71 @@ export default function OrgTeamDetail() {
 // ────────────────────────────────────────────────────────
 // MEMBERS TAB
 // ────────────────────────────────────────────────────────
+// 2) TEAMMATE TASKS VIEW (Sub-view of MembersTab)
+// ────────────────────────────────────────────────────────
+function TeammateTasks({ team, member, onBack }) {
+  const [tasks, setTasks] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTasks();
+  }, [team._id, member.userId._id]);
+
+  const fetchTasks = async () => {
+    try {
+      const res = await api.get(`/orgTeams/${team._id}/members/${member.userId._id}/tasks`);
+      if (res.data.success) {
+        setTasks(res.data.data);
+      }
+    } catch (err) {
+      toast.error('Failed to load teammate tasks');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="teammate-tasks-view">
+      <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
+        <button className="btn btn-secondary" onClick={onBack}>← Back to Members</button>
+        <h2 style={{ margin: 0 }}>{member.userId.name}'s Tasks</h2>
+      </div>
+
+      {loading ? (
+        <div className="spinner" style={{ margin: '0 auto' }}></div>
+      ) : tasks.length === 0 ? (
+        <div className="empty-state">No visible tasks found for this member in this team.</div>
+      ) : (
+        <div className="task-list">
+          {tasks.map(task => (
+            <div key={task._id} className="task-card" style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <h4 style={{ margin: 0, fontWeight: '600' }}>{task.title}</h4>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {task.isPrivate && <span title="Private Task">🔒</span>}
+                  <span className={`badge badge-${task.priority}`}>{task.priority}</span>
+                  <span className={`badge`} style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>{task.status}</span>
+                </div>
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+                {task.project && <span><strong>Project:</strong> {task.project.title}</span>}
+                {task.dueDate && <span style={{ marginLeft: '1rem' }}><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ────────────────────────────────────────────────────────
 function MembersTab({ team }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [showInviteModal, setShowInviteModal] = useState(false);
   const [removeTarget, setRemoveTarget] = useState(null);
+  const [selectedMember, setSelectedMember] = useState(null);
 
   useEffect(() => {
     fetchMembers();
@@ -170,6 +230,10 @@ function MembersTab({ team }) {
     }
   };
 
+  if (selectedMember) {
+    return <TeammateTasks team={team} member={selectedMember} onBack={() => setSelectedMember(null)} />;
+  }
+
   return (
     <div>
       {team.myRole === 'leader' && (
@@ -187,7 +251,7 @@ function MembersTab({ team }) {
           {members.map((m) => {
             const isMe = m.userId._id === team.myRole; // wait, myRole is string. We don't have my user ID easily here, but we can check if it's the current user later if needed.
             return (
-              <div key={m._id} className="member-card">
+              <div key={m._id} className="member-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
                 <div className="member-info">
                   <div className="member-avatar">
                     {m.userId.name.charAt(0).toUpperCase()}
@@ -205,7 +269,7 @@ function MembersTab({ team }) {
                     <button
                       className="btn-icon text-muted"
                       style={{ fontSize: '1.25rem' }}
-                      onClick={() => handleMakeLeader(m.userId._id)}
+                      onClick={(e) => { e.stopPropagation(); handleMakeLeader(m.userId._id); }}
                       title="Make Leader"
                     >
                       👑
@@ -215,7 +279,7 @@ function MembersTab({ team }) {
                     <button
                       className="btn-icon text-muted"
                       style={{ fontSize: '1.25rem', transform: 'rotate(180deg)' }}
-                      onClick={() => handleMakeMember(m.userId._id)}
+                      onClick={(e) => { e.stopPropagation(); handleMakeMember(m.userId._id); }}
                       title="Make Member (Demote)"
                     >
                       👑
@@ -224,7 +288,7 @@ function MembersTab({ team }) {
                   {team.myRole === 'leader' && (
                     <button
                       className="btn-icon text-muted hover-danger"
-                      onClick={() => setRemoveTarget(m)}
+                      onClick={(e) => { e.stopPropagation(); setRemoveTarget(m); }}
                       title="Remove Member"
                     >
                       🗑️

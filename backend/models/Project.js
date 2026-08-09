@@ -43,6 +43,10 @@ const projectSchema = new mongoose.Schema(
       ref: 'OrgTeam',
       default: null,
     },
+    isPrivate: {
+      type: Boolean,
+      default: false,
+    },
   },
   { timestamps: true }
 );

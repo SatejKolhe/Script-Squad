@@ -99,9 +99,18 @@ router.get('/activity', protect, async (req, res) => {
 
     const memberIds = team.members.map((id) => new mongoose.Types.ObjectId(id));
 
-    // Task counts per member per status
+    // Find standalone, non-private projects for all members
+    const memberProjects = await Project.find({
+      owner: { $in: memberIds },
+      orgTeamId: null,
+      isPrivate: { $ne: true },
+    }).select('title color owner status').limit(100);
+
+    const allowedProjectIds = memberProjects.map(p => p._id);
+
+    // Task counts per member per status (filtered by allowed projects and not private)
     const taskStats = await Task.aggregate([
-      { $match: { owner: { $in: memberIds } } },
+      { $match: { owner: { $in: memberIds }, project: { $in: allowedProjectIds }, isPrivate: { $ne: true } } },
       {
         $group: {
           _id: { owner: '$owner', status: '$status' },
@@ -110,22 +119,16 @@ router.get('/activity', protect, async (req, res) => {
       },
     ]);
 
-    // In-Progress tasks (with project info) per member — exclude private tasks
+    // In-Progress tasks (with project info) per member — exclude private tasks and team projects
     const inProgressTasks = await Task.find({
       owner: { $in: memberIds },
       status: 'inprogress',
       isPrivate: { $ne: true },
+      project: { $in: allowedProjectIds },
     })
       .populate('project', 'title color')
       .select('title project timerStartedAt totalTimeSpent')
       .limit(50);
-
-    // Projects where member is the owner
-    const memberProjects = await Project.find({
-      owner: { $in: memberIds },
-    })
-      .select('title color owner status')
-      .limit(100);
 
     // Build per-member maps
     const statsMap = {}; // memberId → { todo, inprogress, done }
