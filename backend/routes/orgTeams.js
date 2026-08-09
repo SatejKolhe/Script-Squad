@@ -7,6 +7,8 @@ const OrgTeamMember = require('../models/OrgTeamMember');
 const OrgTeamJoinRequest = require('../models/OrgTeamJoinRequest');
 const Project = require('../models/Project');
 const User = require('../models/User');
+const ChatGroup = require('../models/ChatGroup');
+const orgTeamService = require('../services/orgTeamService');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -97,7 +99,18 @@ router.post(
         }
       }
 
-      // 4. Link projects if requested
+      // 4. Auto-create chat group for team
+      const initialMembers = req.body.members && Array.isArray(req.body.members) 
+        ? [req.user._id, ...req.body.members.filter(id => id !== req.user._id.toString())] 
+        : [req.user._id];
+        
+      await ChatGroup.create([{
+        name: newTeam.name,
+        orgTeamId: newTeam._id,
+        members: initialMembers
+      }], { session });
+
+      // 5. Link projects if requested
       if (req.body.projects && Array.isArray(req.body.projects)) {
         for (const projectId of req.body.projects) {
           await Project.findOneAndUpdate(
@@ -190,7 +203,7 @@ router.post('/join', protect, async (req, res) => {
 // @access  Private
 router.post('/:id/invite', protect, async (req, res) => {
   try {
-    const { email } = req.body;
+    const { email, intendedRole } = req.body;
     if (!email) return res.status(400).json({ success: false, message: 'Email is required' });
 
     // Verify leader
@@ -217,7 +230,8 @@ router.post('/:id/invite', protect, async (req, res) => {
       senderId: req.user._id,
       receiverId: userToInvite._id,
       type: 'invite',
-      status: 'pending'
+      status: 'pending',
+      intendedRole: intendedRole === 'leader' ? 'leader' : 'member'
     });
 
     res.json({ success: true, message: 'Invite sent!', data: request });
@@ -321,6 +335,12 @@ router.delete('/:id/members/:userId', protect, async (req, res) => {
 
     await targetMembership.deleteOne();
 
+    // Remove from group
+    await ChatGroup.findOneAndUpdate(
+      { orgTeamId: teamId },
+      { $pull: { members: targetUserId } }
+    );
+
     // Leader fallback logic
     if (targetMembership.role === 'leader') {
       const remainingLeaders = await OrgTeamMember.countDocuments({ teamId, role: 'leader' });
@@ -338,6 +358,41 @@ router.delete('/:id/members/:userId', protect, async (req, res) => {
     res.json({ success: true, message: isSelf ? 'Left the team' : 'Member removed' });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/orgTeams/:id/members/:userId/role
+// @desc    Promote member to leader
+// @access  Private
+router.put('/:id/members/:userId/role', protect, async (req, res) => {
+  try {
+    const { role } = req.body;
+    if (role !== 'leader') return res.status(400).json({ success: false, message: 'Invalid role' });
+
+    const member = await orgTeamService.promoteToLeader(req.params.id, req.params.userId, req.user._id);
+    res.json({ success: true, data: member, message: 'Member promoted to leader' });
+  } catch (err) {
+    console.error(err);
+    if (err.message.startsWith('Unauthorized') || err.message.startsWith('User is not')) {
+      return res.status(403).json({ success: false, message: err.message });
+    }
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
+
+// @route   PUT /api/orgTeams/:id/members/:userId/demote
+// @desc    Demote leader to member
+// @access  Private
+router.put('/:id/members/:userId/demote', protect, async (req, res) => {
+  try {
+    const member = await orgTeamService.demoteToMember(req.params.id, req.params.userId, req.user._id);
+    res.json({ success: true, data: member, message: 'Leader demoted to member' });
+  } catch (err) {
+    console.error(err);
+    if (err.message.startsWith('Unauthorized') || err.message.startsWith('User is not') || err.message.startsWith('A team must have')) {
+      return res.status(403).json({ success: false, message: err.message });
+    }
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
@@ -432,7 +487,13 @@ router.patch('/requests/:id/accept', protect, async (req, res) => {
       }
 
       // Add receiver to team
-      await OrgTeamMember.create({ teamId: request.teamId, userId: request.receiverId, role: 'member' });
+      await OrgTeamMember.create({ teamId: request.teamId, userId: request.receiverId, role: request.intendedRole || 'member' });
+      
+      // Add receiver to group
+      await ChatGroup.findOneAndUpdate(
+        { orgTeamId: request.teamId },
+        { $addToSet: { members: request.receiverId } }
+      );
     }
 
     request.status = 'accepted';

@@ -2,6 +2,7 @@ const express = require('express');
 const Message = require('../models/Message');
 const Team = require('../models/Team');
 const User = require('../models/User');
+const ChatGroup = require('../models/ChatGroup');
 const { protect } = require('../middleware/auth');
 
 const router = express.Router();
@@ -48,14 +49,35 @@ router.get('/conversations', protect, async (req, res) => {
       })
     );
 
+    // Get group chats where user is a member
+    const groupChats = await ChatGroup.find({ members: req.user._id }).lean();
+    const groupConversations = await Promise.all(
+      groupChats.map(async (group) => {
+        const lastMessage = await Message.findOne({ toGroup: group._id })
+          .sort({ createdAt: -1 })
+          .populate('from', 'name email avatar')
+          .lean();
+
+        return {
+          isGroup: true,
+          group,
+          lastMessage,
+          unreadCount: 0, // Simplify unread count for groups
+        };
+      })
+    );
+
+    // Combine and sort
+    const allConversations = [...conversations, ...groupConversations];
+    
     // Sort by last message time (most recent first)
-    conversations.sort((a, b) => {
+    allConversations.sort((a, b) => {
       const aTime = a.lastMessage?.createdAt || 0;
       const bTime = b.lastMessage?.createdAt || 0;
       return new Date(bTime) - new Date(aTime);
     });
 
-    res.json({ success: true, data: conversations });
+    res.json({ success: true, data: allConversations });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
@@ -68,25 +90,36 @@ router.get('/conversations', protect, async (req, res) => {
 router.get('/messages/:userId', protect, async (req, res) => {
   try {
     const { userId } = req.params;
+    const { isGroup } = req.query;
     const page = parseInt(req.query.page) || 1;
     const limit = 50;
 
-    const messages = await Message.find({
-      $or: [
-        { from: req.user._id, to: userId },
-        { from: userId, to: req.user._id },
-      ],
-    })
-      .sort({ createdAt: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean();
+    let messages;
+    if (isGroup === 'true') {
+      messages = await Message.find({ toGroup: userId })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .populate('from', 'name email avatar')
+        .lean();
+    } else {
+      messages = await Message.find({
+        $or: [
+          { from: req.user._id, to: userId },
+          { from: userId, to: req.user._id },
+        ],
+      })
+        .sort({ createdAt: -1 })
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .lean();
 
-    // Mark unread messages from this user as read
-    await Message.updateMany(
-      { from: userId, to: req.user._id, read: false },
-      { read: true }
-    );
+      // Mark unread messages from this user as read
+      await Message.updateMany(
+        { from: userId, to: req.user._id, read: false },
+        { read: true }
+      );
+    }
 
     res.json({ success: true, data: messages.reverse() });
   } catch (err) {
@@ -100,16 +133,33 @@ router.get('/messages/:userId', protect, async (req, res) => {
 // @access  Private
 router.post('/messages', protect, async (req, res) => {
   try {
-    const { to, text } = req.body;
-    if (!to || !text?.trim()) {
+    const { to, toGroup, text } = req.body;
+    if ((!to && !toGroup) || !text?.trim()) {
       return res.status(400).json({ success: false, message: 'Recipient and text are required' });
     }
 
-    const message = await Message.create({
+    // Deduplicate: prevent exact same message from same user in last 2 seconds
+    const twoSecondsAgo = new Date(Date.now() - 2000);
+    const recentDuplicate = await Message.findOne({
       from: req.user._id,
-      to,
       text: text.trim(),
-    });
+      ...(toGroup ? { toGroup } : { to }),
+      createdAt: { $gt: twoSecondsAgo }
+    }).populate('from', 'name email avatar');
+
+    if (recentDuplicate) {
+      // Just return the existing message to the client, pretending it succeeded
+      return res.status(200).json({ success: true, data: recentDuplicate.toObject() });
+    }
+
+    const messageData = {
+      from: req.user._id,
+      text: text.trim(),
+    };
+    if (toGroup) messageData.toGroup = toGroup;
+    else messageData.to = to;
+
+    const message = await Message.create(messageData);
 
     const populated = message.toObject();
     populated.from = {
@@ -121,7 +171,16 @@ router.post('/messages', protect, async (req, res) => {
 
     // Emit via Socket.io for real-time delivery
     if (req.io) {
-      req.io.to(`user-${to}`).emit('chat-message', populated);
+      if (toGroup) {
+        const group = await ChatGroup.findById(toGroup);
+        if (group) {
+          group.members.forEach((memberId) => {
+            req.io.to(`user-${memberId.toString()}`).emit('chat-message', populated);
+          });
+        }
+      } else {
+        req.io.to(`user-${to}`).emit('chat-message', populated);
+      }
     }
 
     res.status(201).json({ success: true, data: populated });

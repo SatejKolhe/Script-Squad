@@ -27,6 +27,11 @@ const orgTeamJoinRequestSchema = new mongoose.Schema(
       enum: ['pending', 'accepted', 'rejected'],
       default: 'pending',
     },
+    intendedRole: {
+      type: String,
+      enum: ['leader', 'member'],
+      default: 'member',
+    },
   },
   { timestamps: true }
 );

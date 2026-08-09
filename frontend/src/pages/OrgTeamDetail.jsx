@@ -146,6 +146,30 @@ function MembersTab({ team }) {
     }
   };
 
+  const handleMakeLeader = async (memberId) => {
+    try {
+      const res = await api.put(`/orgTeams/${team._id}/members/${memberId}/role`, { role: 'leader' });
+      if (res.data.success) {
+        toast.success('Member promoted to leader!');
+        fetchMembers();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to promote member');
+    }
+  };
+
+  const handleMakeMember = async (memberId) => {
+    try {
+      const res = await api.put(`/orgTeams/${team._id}/members/${memberId}/demote`);
+      if (res.data.success) {
+        toast.success('Leader demoted to member!');
+        fetchMembers();
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to demote leader');
+    }
+  };
+
   return (
     <div>
       {team.myRole === 'leader' && (
@@ -176,7 +200,27 @@ function MembersTab({ team }) {
                     {m.role}
                   </span>
                 </div>
-                <div className="member-actions">
+                <div className="member-actions" style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
+                  {team.myRole === 'leader' && m.role !== 'leader' && (
+                    <button
+                      className="btn-icon text-muted"
+                      style={{ fontSize: '1.25rem' }}
+                      onClick={() => handleMakeLeader(m.userId._id)}
+                      title="Make Leader"
+                    >
+                      👑
+                    </button>
+                  )}
+                  {team.myRole === 'leader' && m.role === 'leader' && (
+                    <button
+                      className="btn-icon text-muted"
+                      style={{ fontSize: '1.25rem', transform: 'rotate(180deg)' }}
+                      onClick={() => handleMakeMember(m.userId._id)}
+                      title="Make Member (Demote)"
+                    >
+                      👑
+                    </button>
+                  )}
                   {team.myRole === 'leader' && (
                     <button
                       className="btn-icon text-muted hover-danger"
@@ -214,6 +258,7 @@ function InviteMemberModal({ team, onClose }) {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const [invitingId, setInvitingId] = useState(null);
+  const [intendedRoles, setIntendedRoles] = useState({});
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -243,7 +288,8 @@ function InviteMemberModal({ team, onClose }) {
   const handleInvite = async (user) => {
     try {
       setInvitingId(user._id);
-      const res = await api.post(`/orgTeams/${team._id}/invite`, { email: user.email });
+      const role = intendedRoles[user._id] || 'member';
+      const res = await api.post(`/orgTeams/${team._id}/invite`, { email: user.email, intendedRole: role });
       if (res.data.success) {
         toast.success('Invite sent!');
         setResults(prev => prev.map(u => u._id === user._id ? { ...u, inviteStatus: 'pending' } : u));
@@ -298,13 +344,23 @@ function InviteMemberModal({ team, onClose }) {
                   ) : user.inviteStatus === 'pending' ? (
                     <span className="badge badge-todo">Requested</span>
                   ) : (
-                    <button 
-                      className="btn btn-primary btn-sm" 
-                      onClick={() => handleInvite(user)}
-                      disabled={invitingId === user._id}
-                    >
-                      {invitingId === user._id ? 'Sending...' : 'Invite'}
-                    </button>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', fontSize: '0.85rem', color: 'var(--text-secondary)', marginRight: '1rem', cursor: 'pointer' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={intendedRoles[user._id] === 'leader'}
+                          onChange={(e) => setIntendedRoles(prev => ({ ...prev, [user._id]: e.target.checked ? 'leader' : 'member' }))}
+                        /> 
+                        Add as Leader
+                      </label>
+                      <button 
+                        className="btn btn-primary btn-sm" 
+                        onClick={() => handleInvite(user)}
+                        disabled={invitingId === user._id}
+                      >
+                        {invitingId === user._id ? 'Sending...' : 'Invite'}
+                      </button>
+                    </div>
                   )}
                 </div>
               ))}

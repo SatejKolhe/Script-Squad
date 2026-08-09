@@ -110,9 +110,13 @@ router.post(
         }
       }
 
-      // If assignees are provided and it's a team project, validate them
+      // If assignees are provided and it's a team project, validate them and ensure caller is a leader
       if (req.body.assignees && req.body.assignees.length > 0 && project.orgTeamId) {
         const OrgTeamMember = require('../models/OrgTeamMember');
+        const myMembership = await OrgTeamMember.findOne({ teamId: project.orgTeamId, userId: req.user._id });
+        if (!myMembership || myMembership.role !== 'leader') {
+          return res.status(403).json({ success: false, message: 'Only team leaders can assign tasks to other members' });
+        }
         for (const assigneeId of req.body.assignees) {
           const isMember = await OrgTeamMember.findOne({ teamId: project.orgTeamId, userId: assigneeId });
           if (!isMember) {

@@ -145,7 +145,7 @@ export default function Inbox() {
                     {invite.isOrgTeam 
                       ? invite.isJoinRequest 
                           ? `Requested to join team "${invite.teamId?.name}"` 
-                          : `Invited you to join team "${invite.teamId?.name}"`
+                          : `Invited you to join team "${invite.teamId?.name}" as a ${invite.intendedRole === 'leader' ? 'Leader' : 'Member'}`
                       : `Invited you to be friends`
                     } · {timeAgo(invite.createdAt)}
                   </div>
