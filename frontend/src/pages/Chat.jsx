@@ -144,7 +144,7 @@ export default function Chat() {
         {/* Left: Conversations */}
         <div className={`chat-sidebar ${selectedUser ? 'chat-sidebar-hidden-mobile' : ''}`}>
           <div className="chat-sidebar-header">
-            <h2>💬 Chat</h2>
+            <h2 className="chat-sidebar-title">Chat</h2>
             <span className="chat-sidebar-sub">Team messages</span>
           </div>
 
@@ -156,7 +156,11 @@ export default function Chat() {
             </div>
           ) : conversations.length === 0 ? (
             <div className="chat-empty-sidebar">
-              <span>👥</span>
+              <div className="chat-empty-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+              </div>
               <p>No team members yet</p>
               <span className="chat-empty-sub">Add team members to start chatting.</span>
             </div>
@@ -209,7 +213,11 @@ export default function Chat() {
         <div className={`chat-main ${!selectedUser ? 'chat-main-empty' : ''}`}>
           {!selectedUser ? (
             <div className="chat-no-selection">
-              <span className="chat-no-selection-icon">💬</span>
+              <div className="chat-no-selection-icon">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+                </svg>
+              </div>
               <p>Select a conversation</p>
               <span>Choose a team member to start chatting.</span>
             </div>
@@ -239,7 +247,7 @@ export default function Chat() {
               <div className="chat-messages">
                 {messages.length === 0 ? (
                   <div className="chat-messages-empty">
-                    <p>No messages yet. Say hello! 👋</p>
+                    <p>No messages yet. Say hello!</p>
                   </div>
                 ) : (
                   messages.map((msg, idx) => {
