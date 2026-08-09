@@ -1,26 +1,12 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
-const PAGE_TITLES = {
-  '/dashboard': { title: 'Dashboard', subtitle: 'Overview of your work' },
-  '/inbox': { title: 'Inbox', subtitle: 'Unprocessed items and quick tasks' },
-  '/today': { title: 'Today', subtitle: 'Tasks scheduled for today' },
-  '/upcoming': { title: 'Upcoming', subtitle: 'Scheduled upcoming tasks' },
-  '/search': { title: 'Search', subtitle: 'Search tasks, projects, and team' },
-  '/projects': { title: 'Projects', subtitle: 'Manage all your projects' },
-  '/team': { title: 'Team', subtitle: "Track who's working on what" },
-  '/chat': { title: 'Chat', subtitle: 'Real-time team messaging & collaboration' },
-  '/analytics': { title: 'Analytics', subtitle: 'Insights & productivity trends' },
-  '/profile': { title: 'Profile', subtitle: 'Your account & achievements' },
-};
-
 export default function Navbar({ onMenuToggle, setMobileOpen }) {
   const { theme, toggleTheme, isDark } = useTheme();
   const { user } = useAuth();
-  const location = useLocation();
 
   // YouTube Audio Player State
   const [isMusicPlaying, setIsMusicPlaying] = React.useState(false);
@@ -39,7 +25,7 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
         playerRef.current = new window.YT.Player('navbar-yt-audio', {
           videoId: videoId,
           playerVars: {
-            autoplay: 0, // Wait for user to play, or autoplay if you want
+            autoplay: 0,
             mute: 0,
             controls: 0,
             showinfo: 0,
@@ -50,9 +36,7 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
             origin: window.location.origin
           },
           events: {
-            onReady: (event) => {
-              // event.target.playVideo();
-            },
+            onReady: (event) => {},
             onStateChange: (event) => {
               if (window.YT && event.data === window.YT.PlayerState.PLAYING) {
                 setIsMusicPlaying(true);
@@ -110,15 +94,11 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
     }
   };
 
-  // Match the most specific route first (longest key that is a prefix of pathname)
-  const pageKey = Object.keys(PAGE_TITLES)
-    .filter((k) => location.pathname === k || location.pathname.startsWith(k + '/'))
-    .sort((a, b) => b.length - a.length)[0];
-
-  const rawPathName = location.pathname.split('/')[1] || '';
-  const fallbackTitle = rawPathName ? rawPathName.charAt(0).toUpperCase() + rawPathName.slice(1) : 'TaskLoom';
-
-  const { title, subtitle } = PAGE_TITLES[pageKey] || { title: fallbackTitle, subtitle: '' };
+  const formattedDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric'
+  });
 
   return (
     <header className="navbar">
@@ -132,18 +112,12 @@ export default function Navbar({ onMenuToggle, setMobileOpen }) {
         >
           ☰
         </button>
-        <div>
-          <h1 className="navbar-title">{title}</h1>
-          {subtitle && <p className="navbar-subtitle">{subtitle}</p>}
+        <div className="navbar-date">
+          {formattedDate}
         </div>
       </div>
 
       <div className="navbar-right">
-        {/* Date display */}
-        <div className="navbar-date">
-          {new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
-        </div>
-
         {/* Music toggle */}
         <button
           className="music-toggle btn-icon"

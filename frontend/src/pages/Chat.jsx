@@ -173,8 +173,13 @@ export default function Chat() {
         {/* Left: Conversations */}
         <div className={`chat-sidebar ${selectedUser ? 'chat-sidebar-hidden-mobile' : ''}`}>
           <div className="chat-sidebar-header">
-            <h2>💬 Chat</h2>
-            <span className="chat-sidebar-sub">Team messages</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+              </svg>
+              <h2 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: '1.15rem' }}>Messages</h2>
+            </div>
+            <span className="chat-sidebar-sub">Team collaboration & chat</span>
           </div>
 
           {loading ? (
@@ -185,8 +190,12 @@ export default function Chat() {
             </div>
           ) : conversations.length === 0 ? (
             <div className="chat-empty-sidebar">
-              <span>👥</span>
-              <p>No team members yet</p>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem', color: '#94a3b8' }}>
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+              </div>
+              <p style={{ fontWeight: 600, color: 'var(--text-primary)', margin: 0 }}>No team conversations</p>
               <span className="chat-empty-sub">Add team members to start chatting.</span>
             </div>
           ) : (
@@ -201,9 +210,15 @@ export default function Chat() {
                   >
                     <div className="chat-conv-avatar">
                       {conv.isGroup ? (
-                        <span style={{ fontSize: '1.25rem' }}>👥</span>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                        </svg>
                       ) : target.avatar ? (
-                        <img src={target.avatar} alt={target.name} />
+                        <img 
+                          src={target.avatar} 
+                          alt={target.name} 
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
                       ) : (
                         getInitials(target.name)
                       )}
@@ -243,22 +258,35 @@ export default function Chat() {
         <div className={`chat-main ${!selectedUser ? 'chat-main-empty' : ''}`}>
           {!selectedUser ? (
             <div className="chat-no-selection">
-              <span className="chat-no-selection-icon">💬</span>
-              <p>Select a conversation</p>
-              <span>Choose a team member to start chatting.</span>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem', color: '#94a3b8' }}>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.25" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                </svg>
+              </div>
+              <p style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.1rem', fontWeight: 700 }}>Select a conversation</p>
+              <span>Choose a team member or group to start chatting.</span>
             </div>
           ) : (
             <>
               {/* Chat header */}
               <div className="chat-main-header">
                 <button className="chat-back-btn" onClick={() => setSelectedUser(null)}>
-                  ← Back
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+                    <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                  </svg>
+                  Back
                 </button>
                 <div className="chat-conv-avatar chat-conv-avatar-sm">
                   {selectedUser.isGroup ? (
-                    <span style={{ fontSize: '1.25rem' }}>👥</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                    </svg>
                   ) : selectedUser.avatar ? (
-                    <img src={selectedUser.avatar} alt={selectedUser.name} />
+                    <img 
+                      src={selectedUser.avatar} 
+                      alt={selectedUser.name} 
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
                   ) : (
                     getInitials(selectedUser.name)
                   )}
@@ -275,7 +303,7 @@ export default function Chat() {
               <div className="chat-messages">
                 {messages.length === 0 ? (
                   <div className="chat-messages-empty">
-                    <p>No messages yet. Say hello! 👋</p>
+                    <p style={{ margin: 0 }}>No messages yet. Start the conversation!</p>
                   </div>
                 ) : (
                   messages.map((msg, idx) => {

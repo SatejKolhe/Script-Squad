@@ -63,10 +63,12 @@ export default function OrgTeamDetail() {
         </div>
         <div className="org-team-detail-actions">
           {team.myRole === 'leader' && (
-            <div className="join-code-display" style={{ marginTop: 0, padding: '0.5rem 1rem', fontSize: '1rem' }}>
+            <div className="join-code-display" style={{ marginTop: 0, padding: '0.45rem 0.85rem', fontSize: '0.9rem' }}>
               <span>Code: <strong>{team.joinCode}</strong></span>
-              <button className="btn-icon btn-sm" onClick={copyJoinCode} title="Copy Code" style={{ marginLeft: '1rem' }}>
-                📋
+              <button className="btn-icon btn-sm" onClick={copyJoinCode} title="Copy Code" style={{ marginLeft: '0.75rem' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                </svg>
               </button>
             </div>
           )}
@@ -134,29 +136,49 @@ function TeammateTasks({ team, member, onBack }) {
   return (
     <div className="teammate-tasks-view">
       <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '1.5rem' }}>
-        <button className="btn btn-secondary" onClick={onBack}>← Back to Members</button>
-        <h2 style={{ margin: 0 }}>{member.userId.name}'s Tasks</h2>
+        <button className="btn btn-secondary btn-sm" onClick={onBack} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+          </svg>
+          Back to Members
+        </button>
+        <h2 style={{ margin: 0, fontFamily: "'Outfit', sans-serif", fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-primary)' }}>
+          {member.userId.name}'s Tasks
+        </h2>
       </div>
 
       {loading ? (
-        <div className="spinner" style={{ margin: '0 auto' }}></div>
+        <div className="spinner" style={{ margin: '2rem auto' }}></div>
       ) : tasks.length === 0 ? (
-        <div className="empty-state">No visible tasks found for this member in this team.</div>
+        <div className="empty-state card" style={{ padding: '3rem 1.5rem', textAlign: 'center' }}>
+          <p style={{ margin: 0, color: 'var(--text-muted)' }}>No visible tasks found for this member in this team.</p>
+        </div>
       ) : (
-        <div className="task-list">
+        <div className="task-list" style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
           {tasks.map(task => (
-            <div key={task._id} className="task-card" style={{ marginBottom: '1rem', padding: '1rem', background: 'var(--bg-card)', borderRadius: 'var(--radius)', border: '1px solid var(--border-color)' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
-                <h4 style={{ margin: 0, fontWeight: '600' }}>{task.title}</h4>
-                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  {task.isPrivate && <span title="Private Task">🔒</span>}
+            <div key={task._id} className="card task-card" style={{ padding: '1.125rem 1.25rem', background: 'var(--bg-card)', borderRadius: 'var(--border-radius-md)', border: '1px solid var(--border-color)', boxShadow: 'var(--shadow-sm)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem', gap: '0.75rem' }}>
+                <h4 style={{ margin: 0, fontFamily: "'Outfit', sans-serif", fontWeight: 700, fontSize: '0.95rem', color: 'var(--text-primary)' }}>
+                  {task.title}
+                </h4>
+                <div style={{ display: 'flex', gap: '0.4rem', alignItems: 'center', flexShrink: 0 }}>
+                  {task.isPrivate && (
+                    <span className="privacy-badge privacy-badge-private" title="Private Task">
+                      <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                      </svg>
+                      Private
+                    </span>
+                  )}
                   <span className={`badge badge-${task.priority}`}>{task.priority}</span>
-                  <span className={`badge`} style={{ background: 'var(--bg-secondary)', color: 'var(--text-secondary)' }}>{task.status}</span>
+                  <span className="badge" style={{ background: '#f8fafc', color: '#475569', border: '1px solid #e2e8f0', textTransform: 'capitalize' }}>
+                    {task.status}
+                  </span>
                 </div>
               </div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+              <div style={{ fontSize: '0.825rem', color: 'var(--text-muted)', display: 'flex', gap: '1rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
                 {task.project && <span><strong>Project:</strong> {task.project.title}</span>}
-                {task.dueDate && <span style={{ marginLeft: '1rem' }}><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</span>}
+                {task.dueDate && <span><strong>Due:</strong> {new Date(task.dueDate).toLocaleDateString()}</span>}
               </div>
             </div>
           ))}
@@ -238,23 +260,34 @@ function MembersTab({ team }) {
     <div>
       {team.myRole === 'leader' && (
         <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'flex-end' }}>
-          <button className="btn btn-primary" onClick={() => setShowInviteModal(true)}>
-            + Add Team Member
+          <button className="btn btn-primary btn-sm" onClick={() => setShowInviteModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Add Team Member
           </button>
         </div>
       )}
 
       {loading ? (
-        <div className="spinner" style={{ margin: '0 auto' }}></div>
+        <div className="spinner" style={{ margin: '2rem auto' }}></div>
       ) : (
         <div className="member-list">
           {members.map((m) => {
-            const isMe = m.userId._id === team.myRole; // wait, myRole is string. We don't have my user ID easily here, but we can check if it's the current user later if needed.
             return (
               <div key={m._id} className="member-card" style={{ cursor: 'pointer' }} onClick={() => setSelectedMember(m)}>
                 <div className="member-info">
                   <div className="member-avatar">
-                    {m.userId.name.charAt(0).toUpperCase()}
+                    {m.userId.avatar ? (
+                      <img 
+                        src={m.userId.avatar} 
+                        alt={m.userId.name} 
+                        style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      m.userId.name.charAt(0).toUpperCase()
+                    )}
                   </div>
                   <div className="member-details">
                     <h3>{m.userId.name}</h3>
@@ -268,21 +301,23 @@ function MembersTab({ team }) {
                   {team.myRole === 'leader' && m.role !== 'leader' && (
                     <button
                       className="btn-icon text-muted"
-                      style={{ fontSize: '1.25rem' }}
                       onClick={(e) => { e.stopPropagation(); handleMakeLeader(m.userId._id); }}
-                      title="Make Leader"
+                      title="Promote to Leader"
                     >
-                      👑
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+                      </svg>
                     </button>
                   )}
                   {team.myRole === 'leader' && m.role === 'leader' && (
                     <button
                       className="btn-icon text-muted"
-                      style={{ fontSize: '1.25rem', transform: 'rotate(180deg)' }}
                       onClick={(e) => { e.stopPropagation(); handleMakeMember(m.userId._id); }}
-                      title="Make Member (Demote)"
+                      title="Demote to Member"
                     >
-                      👑
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/>
+                      </svg>
                     </button>
                   )}
                   {team.myRole === 'leader' && (
@@ -291,7 +326,9 @@ function MembersTab({ team }) {
                       onClick={(e) => { e.stopPropagation(); setRemoveTarget(m); }}
                       title="Remove Member"
                     >
-                      🗑️
+                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/>
+                      </svg>
                     </button>
                   )}
                 </div>
@@ -482,15 +519,20 @@ function ProjectsTab({ team }) {
 
   return (
     <div>
-      <div className="search-filters-row" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem' }}>
-        <input
-          type="text"
-          className="form-input"
-          placeholder="Search projects..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flexGrow: 1 }}
-        />
+      <div className="search-filters-row" style={{ display: 'flex', gap: '1rem', marginBottom: '2rem', flexWrap: 'wrap' }}>
+        <div style={{ position: 'relative', flexGrow: 1, minWidth: '220px' }}>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }}>
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <input
+            type="text"
+            className="form-input"
+            placeholder="Search projects..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ paddingLeft: '2.25rem', width: '100%' }}
+          />
+        </div>
         <select
           className="form-select"
           value={statusFilter}
@@ -503,48 +545,52 @@ function ProjectsTab({ team }) {
           <option value="archived">Archived</option>
         </select>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
-          <button className="btn btn-secondary" onClick={() => setShowAddModal(true)}>
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowAddModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             + Add Existing
           </button>
-          <button className="btn btn-primary" onClick={() => setShowCreateModal(true)}>
+          <button className="btn btn-primary btn-sm" onClick={() => setShowCreateModal(true)} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
             + Create New
           </button>
         </div>
       </div>
 
       {loading ? (
-        <div className="spinner" style={{ margin: '0 auto' }}></div>
+        <div className="spinner" style={{ margin: '2rem auto' }}></div>
       ) : projects.length > 0 ? (
-        <div className="projects-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.5rem' }}>
+        <div className="projects-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '1.25rem' }}>
           {projects.map((p) => (
-            <Link to={`/projects/${p._id}`} key={p._id} className="card project-card" style={{ textDecoration: 'none', color: 'inherit' }}>
-              <div className="project-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem' }}>
+            <Link to={`/projects/${p._id}`} key={p._id} className="card project-card" style={{ textDecoration: 'none', color: 'inherit', background: 'var(--bg-card)', border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-md)', padding: '1.25rem', display: 'flex', flexDirection: 'column' }}>
+              <div className="project-card-header" style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '1rem', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  <div style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: p.color }}></div>
-                  <span className="badge badge-secondary">{p.status}</span>
+                  <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: p.color || '#2563eb' }}></div>
+                  <span className="badge badge-secondary" style={{ textTransform: 'capitalize' }}>{p.status}</span>
                 </div>
               </div>
-              <h3 style={{ fontSize: '1.25rem', fontWeight: 600, marginBottom: '0.5rem' }}>{p.title}</h3>
-              <div style={{ marginTop: '1.5rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.1rem', fontFamily: "'Outfit', sans-serif", fontWeight: 700, marginBottom: '0.5rem', color: 'var(--text-primary)' }}>{p.title}</h3>
+              <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.4rem', fontFamily: "'JetBrains Mono', monospace" }}>
                   <span>Progress</span>
                   <span>{p.progress}%</span>
                 </div>
-                <div style={{ height: '6px', background: 'var(--bg-hover)', borderRadius: '3px', overflow: 'hidden' }}>
-                  <div style={{ height: '100%', background: p.color, width: `${p.progress}%` }}></div>
+                <div style={{ height: '6px', background: '#e2e8f0', borderRadius: '3px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', background: '#2563eb', width: `${p.progress}%`, transition: 'width 0.3s ease' }}></div>
                 </div>
-                <div style={{ marginTop: '1rem', fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
-                  {p.taskCount} tasks
+                <div style={{ marginTop: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+                  {p.taskCount} task{p.taskCount !== 1 ? 's' : ''}
                 </div>
               </div>
             </Link>
           ))}
         </div>
       ) : (
-        <div className="empty-state card">
-          <div className="empty-icon">📁</div>
-          <h3>No projects found</h3>
-          <p>This team has no projects matching your filters.</p>
+        <div className="empty-state card" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
+          <div className="empty-icon" style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem', color: '#94a3b8' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+            </svg>
+          </div>
+          <h3 style={{ fontFamily: "'Outfit', sans-serif", fontWeight: 700, margin: '0 0 0.5rem 0' }}>No projects found</h3>
+          <p style={{ margin: 0, color: 'var(--text-muted)' }}>This team has no projects matching your filters.</p>
         </div>
       )}
 
@@ -858,7 +904,7 @@ function AssignTaskTab({ team }) {
             />
             <button
               type="button"
-              className="btn btn-secondary"
+              className="btn btn-secondary btn-sm"
               onClick={() => {
                 if (!form.title.trim()) {
                   fileInputRef.current?.click();
@@ -868,26 +914,37 @@ function AssignTaskTab({ team }) {
               }}
               disabled={aiLoading}
               title={form.title.trim() ? "Smart Parse with AI" : "Upload File for AI Parsing"}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}
             >
-              {aiLoading ? '⏳' : '✨ AI'}
+              {aiLoading ? (
+                <div className="spinner spinner-sm" />
+              ) : (
+                <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1 -8.313 -12.446z"/>
+                    <path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.93 4.93l2.83 2.83"/><path d="M16.24 16.24l2.83 2.83"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.93 19.07l2.83-2.83"/><path d="M16.24 7.76l2.83-2.83"/>
+                  </svg>
+                  AI Parse
+                </>
+              )}
             </button>
           </div>
         </div>
 
-        <div className="form-group" style={{ marginBottom: '1.5rem' }}>
-          <label>Description</label>
+        <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+          <label className="form-label">Description</label>
           <textarea
             className="form-textarea"
             placeholder="Details..."
             value={form.description}
             onChange={(e) => setForm({ ...form, description: e.target.value })}
-            rows={4}
+            rows={3}
           />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '1.5rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.25rem' }}>
           <div className="form-group">
-            <label>Project *</label>
+            <label className="form-label">Project *</label>
             <select
               className="form-select"
               value={form.project}
@@ -900,7 +957,7 @@ function AssignTaskTab({ team }) {
             </select>
           </div>
           <div className="form-group">
-            <label>Due Date</label>
+            <label className="form-label">Due Date</label>
             <input
               type="date"
               className="form-input"
@@ -910,9 +967,9 @@ function AssignTaskTab({ team }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.5rem', marginBottom: '2rem' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1.25rem', marginBottom: '1.5rem' }}>
           <div className="form-group">
-            <label>Priority</label>
+            <label className="form-label">Priority</label>
             <select
               className="form-select"
               value={form.priority}
@@ -924,26 +981,48 @@ function AssignTaskTab({ team }) {
             </select>
           </div>
           <div className="form-group">
-            <label>Assignees * (Multi-select)</label>
-            <div style={{ border: '1px solid var(--border-color)', borderRadius: '8px', padding: '0.5rem', maxHeight: '120px', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.4rem' }}>
+              <label className="form-label" style={{ margin: 0 }}>Assignees *</label>
+              <span style={{ fontSize: '0.72rem', color: 'var(--text-muted)', fontFamily: "'JetBrains Mono', monospace" }}>Multi-select</span>
+            </div>
+            <div className="assignees-checkbox-list" style={{ border: '1px solid var(--border-color)', borderRadius: 'var(--border-radius-sm)', padding: '0.5rem', maxHeight: '140px', overflowY: 'auto', background: 'var(--bg-secondary)' }}>
               {members.map(m => (
-                <label key={m.userId._id} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.25rem' }}>
+                <label key={m.userId._id} style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', padding: '0.35rem 0.5rem', borderRadius: '6px', cursor: 'pointer', transition: 'background 0.15s ease' }}>
                   <input
                     type="checkbox"
                     checked={form.assignees.includes(m.userId._id)}
                     onChange={() => handleToggleAssignee(m.userId._id)}
+                    style={{ width: '15px', height: '15px', flexShrink: 0, cursor: 'pointer' }}
                   />
-                  <span>{m.userId.name}</span>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flex: 1, minWidth: 0 }}>
+                    <div style={{ width: '22px', height: '22px', borderRadius: '50%', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.65rem', fontWeight: 700, flexShrink: 0 }}>
+                      {m.userId.avatar ? (
+                        <img 
+                          src={m.userId.avatar} 
+                          alt={m.userId.name} 
+                          style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                          onError={(e) => { e.target.style.display = 'none'; }}
+                        />
+                      ) : m.userId.name?.charAt(0).toUpperCase()}
+                    </div>
+                    <span style={{ fontSize: '0.825rem', fontWeight: 600, color: 'var(--text-primary)', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {m.userId.name}
+                    </span>
+                  </div>
                 </label>
               ))}
-              {members.length === 0 && <span style={{ color: 'var(--text-muted)' }}>No members found.</span>}
+              {members.length === 0 && <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', padding: '0.5rem', display: 'block' }}>No team members found.</span>}
             </div>
           </div>
         </div>
 
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-          <button type="submit" className="btn btn-primary" disabled={saving}>
-            {saving ? 'Assigning...' : 'Assign Shared Task'}
+          <button type="submit" className="btn btn-primary" disabled={saving} style={{ padding: '0.55rem 1.25rem' }}>
+            {saving ? (
+              <><div className="spinner spinner-sm" style={{ marginRight: '0.4rem' }} /> Assigning...</>
+            ) : (
+              'Assign Shared Task'
+            )}
           </button>
         </div>
       </form>
