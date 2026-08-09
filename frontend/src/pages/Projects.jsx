@@ -36,7 +36,11 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
     <div className="ai-suggestions-panel">
       <div className="ai-suggestions-header">
         <div className="ai-badge">
-          <span className="ai-badge-icon">✨</span>
+          <span className="ai-badge-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+            </svg>
+          </span>
           <span>AI Suggested Tasks</span>
           <span className="ai-badge-count">{suggestions.length}</span>
         </div>
@@ -68,7 +72,11 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
                 className="ai-task-checkbox"
               />
               <div className="ai-task-check-visual">
-                {isSelected && <span className="ai-task-checkmark">✓</span>}
+                {isSelected && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
               </div>
               <div className="ai-task-content">
                 <div className="ai-task-title">{task.title}</div>
@@ -76,19 +84,19 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
                   <div className="ai-task-desc">{task.description}</div>
                 )}
               </div>
-              <span
-                className="ai-priority-badge"
-                style={{ color: p.color, background: p.bg }}
-              >
-                {p.emoji} {p.label}
+              <span className={`badge badge-${task.priority}`}>
+                {p.label}
               </span>
             </label>
           );
         })}
       </div>
       {selected.size > 0 && (
-        <div className="ai-selection-info">
-          <span>✅ {selected.size} task{selected.size > 1 ? 's' : ''} selected</span>
+        <div className="ai-selection-info" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{selected.size} task{selected.size > 1 ? 's' : ''} selected</span>
         </div>
       )}
     </div>
@@ -445,7 +453,7 @@ export default function Projects() {
       <Modal
         isOpen={showModal}
         onClose={handleCloseModal}
-        title={editingProject ? 'Edit Project' : '✨ New Project'}
+        title={editingProject ? 'Edit Project' : 'New Project'}
         size={hasAiContent && !editingProject ? 'lg' : 'md'}
         footer={
           <>
@@ -461,7 +469,7 @@ export default function Projects() {
                 : editingProject
                 ? 'Save Changes'
                 : aiSuggestions.length > 0 && selectedTaskIds.size > 0
-                ? `🚀 Create Project + ${selectedTaskIds.size} Task${selectedTaskIds.size > 1 ? 's' : ''}`
+                ? `Create Project + ${selectedTaskIds.size} Task${selectedTaskIds.size > 1 ? 's' : ''}`
                 : 'Create Project'}
             </button>
           </>
@@ -517,9 +525,19 @@ export default function Projects() {
                 Generating with Gemini AI…
               </>
             ) : aiSuggestions.length > 0 ? (
-              <>✨ Regenerate AI Suggestions</>
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                </svg>
+                Regenerate AI Suggestions
+              </>
             ) : (
-              <>✨ Suggest Tasks with AI</>
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                </svg>
+                Suggest Tasks with AI
+              </>
             )}
           </button>
         )}
