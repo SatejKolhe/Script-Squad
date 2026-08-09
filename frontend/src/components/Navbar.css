@@ -64,22 +64,16 @@
 }
 
 .navbar-title {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.35rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
   line-height: 1.25;
-  padding-bottom: 2px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
-  transition: filter var(--transition-fast);
+  color: #0f172a;
 }
 
-.navbar-title:hover {
-  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.65));
+[data-theme='dark'] .navbar-title {
+  color: #f8fafc;
 }
 
 .navbar-subtitle {
