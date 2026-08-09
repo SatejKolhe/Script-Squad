@@ -56,6 +56,7 @@ router.post(
     body('title').trim().notEmpty().withMessage('Title is required').isLength({ max: 100 }),
     body('description').optional().isLength({ max: 500 }),
     body('color').optional().isHexColor().withMessage('Must be a valid hex color'),
+    body('orgTeamId').optional().isMongoId(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -80,12 +81,27 @@ router.post(
 // @access  Private
 router.get('/:id', protect, async (req, res) => {
   try {
-    const project = await Project.findOne({ _id: req.params.id, owner: req.user._id }).populate(
+    let project = await Project.findOne({ _id: req.params.id, owner: req.user._id }).populate(
       'owner',
       'name email avatar'
     );
+    
+    // If not owner, check if it's a team project and user is a member
     if (!project) {
-      return res.status(404).json({ success: false, message: 'Project not found' });
+      project = await Project.findOne({ _id: req.params.id }).populate('owner', 'name email avatar');
+      if (project && project.orgTeamId) {
+        const OrgTeamMember = require('../models/OrgTeamMember');
+        const membership = await OrgTeamMember.findOne({ teamId: project.orgTeamId, userId: req.user._id });
+        if (!membership) {
+          project = null; // Deny access
+        }
+      } else {
+        project = null; // Deny access
+      }
+    }
+
+    if (!project) {
+      return res.status(404).json({ success: false, message: 'Project not found or access denied' });
     }
     res.json({ success: true, data: project });
   } catch (err) {

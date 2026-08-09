@@ -74,7 +74,7 @@ function MemberCard({ memberData, onRemove }) {
           <button
             className="member-remove-btn"
             onClick={(e) => { e.stopPropagation(); onRemove(user._id, user.name); }}
-            title="Remove from team"
+            title="Remove friend"
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
               <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -387,7 +387,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
 
   // Filtered task list
   const filtered = assignedTasks.filter((t) => {
-    const matchAssignee = filterAssignee === 'all' || t.assignee?._id === filterAssignee;
+    const matchAssignee = filterAssignee === 'all' || (t.assignees && t.assignees[0]?._id === filterAssignee);
     const matchStatus = filterStatus === 'all' || t.status === filterStatus;
     return matchAssignee && matchStatus;
   });
@@ -625,7 +625,8 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
             ) : (
               filtered.map((task) => {
                 const overdue = isOverdue(task.dueDate) && task.status !== 'done';
-                const initials = task.assignee?.name?.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
+                const assignee = task.assignees && task.assignees[0];
+                const initials = assignee?.name?.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2);
                 return (
                   <div
                     key={task._id}
@@ -635,7 +636,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                     <div className="assign-task-top">
                       <div className="assign-task-assignee">
                         <div className="avatar avatar-sm">{initials}</div>
-                        <span className="assign-task-assignee-name">{task.assignee?.name}</span>
+                        <span className="assign-task-assignee-name">{assignee?.name}</span>
                       </div>
                       <div className="assign-task-meta">
                         {/* Privacy badge */}
@@ -722,10 +723,10 @@ export default function Team() {
   }, [loadActivity]);
 
   const handleRemove = async (userId, name) => {
-    if (!window.confirm(`Remove ${name} from your team?`)) return;
+    if (!window.confirm(`Remove ${name} from your friends?`)) return;
     try {
       await api.delete(`/team/members/${userId}`);
-      toast.success(`${name} removed from your team`);
+      toast.success(`${name} removed from your friends`);
       setActivity((prev) => prev.filter((m) => m.user._id !== userId));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to remove member');
@@ -793,7 +794,7 @@ export default function Team() {
           </div>
           <div className="team-empty-title">Your team is empty</div>
           <p className="team-empty-desc">
-            Search for teammates above by name or email to add them. Once added, you'll see
+            Search for friends above by name or email to add them. Once added, you'll see
             which projects and tasks they're working on right now.
           </p>
         </div>

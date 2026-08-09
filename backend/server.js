@@ -46,6 +46,7 @@ app.use('/api/uploads', require('./routes/uploads'));
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api/team', require('./routes/team'));
+app.use('/api/orgTeams', require('./routes/orgTeams'));
 app.use('/api/inbox', require('./routes/inbox'));
 app.use('/api/chat', require('./routes/chat'));
 

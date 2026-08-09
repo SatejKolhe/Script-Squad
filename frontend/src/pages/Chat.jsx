@@ -29,10 +29,19 @@ export default function Chat() {
     });
 
     socket.on('chat-message', (message) => {
-      setMessages((prev) => [...prev, message]);
+      setMessages((prev) => {
+        // Prevent socket echo duplication if message is already optimistically rendered
+        if (prev.some(m => m._id === message._id)) return prev;
+        
+        // Also need to know if the message belongs to current selectedChat
+        // (For robust UX, ideally we'd check if the message belongs to the active conversation)
+        return [...prev, message];
+      });
       setConversations((prev) =>
         prev.map((c) => {
-          if (c.user._id === message.from?._id || c.user._id === message.from) {
+          if (message.toGroup && c.isGroup && c.group._id === message.toGroup) {
+            return { ...c, lastMessage: message, unreadCount: c.unreadCount + 1 };
+          } else if (!message.toGroup && !c.isGroup && (c.user._id === message.from?._id || c.user._id === message.from)) {
             return { ...c, lastMessage: message, unreadCount: c.unreadCount + 1 };
           }
           return c;
@@ -70,16 +79,26 @@ export default function Chat() {
 
   useEffect(() => { loadConversations(); }, [loadConversations]);
 
-  // Load messages when selecting a user
+  // Load messages when selecting a user/group
   const selectConversation = async (conv) => {
-    setSelectedUser(conv.user);
+    const isGroup = conv.isGroup;
+    const target = isGroup ? { ...conv.group, isGroup: true } : conv.user;
+    setSelectedUser(target);
     try {
-      const res = await api.get(`/chat/messages/${conv.user._id}`);
+      const endpoint = isGroup 
+        ? `/chat/messages/${conv.group._id}?isGroup=true` 
+        : `/chat/messages/${conv.user._id}`;
+      const res = await api.get(endpoint);
       setMessages(res.data.data);
-      // Mark as read
-      await api.patch(`/chat/messages/read/${conv.user._id}`);
+      if (!isGroup) {
+        await api.patch(`/chat/messages/read/${conv.user._id}`);
+      }
       setConversations((prev) =>
-        prev.map((c) => (c.user._id === conv.user._id ? { ...c, unreadCount: 0 } : c))
+        prev.map((c) => {
+          if (isGroup && c.isGroup && c.group._id === conv.group._id) return { ...c, unreadCount: 0 };
+          if (!isGroup && !c.isGroup && c.user._id === conv.user._id) return { ...c, unreadCount: 0 };
+          return c;
+        })
       );
     } catch {
       toast.error('Failed to load messages');
@@ -99,16 +118,26 @@ export default function Chat() {
     setSending(true);
     try {
       const res = await api.post('/chat/messages', {
-        to: selectedUser._id,
+        to: selectedUser.isGroup ? undefined : selectedUser._id,
+        toGroup: selectedUser.isGroup ? selectedUser._id : undefined,
         text: newMessage.trim(),
       });
-      setMessages((prev) => [...prev, res.data.data]);
+      setMessages((prev) => {
+        if (prev.some(m => m._id === res.data.data._id)) return prev;
+        return [...prev, res.data.data];
+      });
       setNewMessage('');
       // Update last message in conversation list
       setConversations((prev) =>
-        prev.map((c) =>
-          c.user._id === selectedUser._id ? { ...c, lastMessage: res.data.data } : c
-        )
+        prev.map((c) => {
+          if (selectedUser.isGroup && c.isGroup && c.group._id === selectedUser._id) {
+            return { ...c, lastMessage: res.data.data };
+          }
+          if (!selectedUser.isGroup && !c.isGroup && c.user._id === selectedUser._id) {
+            return { ...c, lastMessage: res.data.data };
+          }
+          return c;
+        })
       );
       // Stop typing indicator
       socketRef.current?.emit('chat-stop-typing', { to: selectedUser._id, from: user._id });
@@ -162,24 +191,28 @@ export default function Chat() {
             </div>
           ) : (
             <div className="chat-conv-list">
-              {conversations.map((conv) => (
-                <button
-                  key={conv.user._id}
-                  className={`chat-conv-item ${selectedUser?._id === conv.user._id ? 'active' : ''}`}
-                  onClick={() => selectConversation(conv)}
-                >
-                  <div className="chat-conv-avatar">
-                    {conv.user.avatar ? (
-                      <img src={conv.user.avatar} alt={conv.user.name} />
-                    ) : (
-                      getInitials(conv.user.name)
-                    )}
-                  </div>
-                  <div className="chat-conv-info">
-                    <div className="chat-conv-name">{conv.user.name}</div>
-                    <div className="chat-conv-preview">
-                      {typingUsers[conv.user._id] ? (
-                        <span className="chat-typing-text">typing...</span>
+              {conversations.map((conv) => {
+                const target = conv.isGroup ? conv.group : conv.user;
+                return (
+                  <button
+                    key={target._id}
+                    className={`chat-conv-item ${selectedUser?._id === target._id ? 'active' : ''}`}
+                    onClick={() => selectConversation(conv)}
+                  >
+                    <div className="chat-conv-avatar">
+                      {conv.isGroup ? (
+                        <span style={{ fontSize: '1.25rem' }}>👥</span>
+                      ) : target.avatar ? (
+                        <img src={target.avatar} alt={target.name} />
+                      ) : (
+                        getInitials(target.name)
+                      )}
+                    </div>
+                    <div className="chat-conv-info">
+                      <div className="chat-conv-name">{target.name}</div>
+                      <div className="chat-conv-preview">
+                        {typingUsers[target._id] ? (
+                          <span className="chat-typing-text">typing...</span>
                       ) : conv.lastMessage ? (
                         <>
                           {conv.lastMessage.from === user._id || conv.lastMessage.from?._id === user._id ? 'You: ' : ''}
@@ -200,7 +233,8 @@ export default function Chat() {
                     )}
                   </div>
                 </button>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -221,7 +255,9 @@ export default function Chat() {
                   ← Back
                 </button>
                 <div className="chat-conv-avatar chat-conv-avatar-sm">
-                  {selectedUser.avatar ? (
+                  {selectedUser.isGroup ? (
+                    <span style={{ fontSize: '1.25rem' }}>👥</span>
+                  ) : selectedUser.avatar ? (
                     <img src={selectedUser.avatar} alt={selectedUser.name} />
                   ) : (
                     getInitials(selectedUser.name)
@@ -254,6 +290,11 @@ export default function Chat() {
                         )}
                         <div className={`chat-bubble-wrap ${isMine ? 'mine' : 'theirs'}`}>
                           <div className={`chat-bubble ${isMine ? 'mine' : 'theirs'}`}>
+                            {selectedUser.isGroup && !isMine && (
+                              <div style={{ fontSize: '0.75rem', color: 'var(--text-secondary)', marginBottom: '4px' }}>
+                                {msg.from?.name}
+                              </div>
+                            )}
                             <div className="chat-bubble-text">{msg.text}</div>
                             <div className="chat-bubble-time">{formatTime(msg.createdAt)}</div>
                           </div>

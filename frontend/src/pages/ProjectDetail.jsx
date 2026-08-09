@@ -39,7 +39,7 @@ const PRIORITY_OPTIONS = [
 ];
 
 const defaultTaskForm = {
-  title: '', description: '', priority: 'medium', dueDate: '', status: 'todo',
+  title: '', description: '', priority: 'medium', dueDate: '', status: 'todo', isPrivate: true,
 };
 
 // --- Format ms as HH:MM:SS clock ---
@@ -111,7 +111,7 @@ function ProjectTimePanel({ tasks }) {
 }
 
 // --- Sortable Task Card ---
-function TaskCard({ task, onEdit, onDelete, onStatusChange, isMobile = false, isDragging = false }) {
+function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isMobile = false, isDragging = false }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging: isSelf } = useSortable({
     id: task._id,
     data: { type: 'task', task },
@@ -143,8 +143,19 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, isMobile = false, is
       {...(isMobile ? {} : listeners)}
       className={`task-card ${isDragging ? 'dragging' : ''} ${isInProgress ? 'task-card-inprogress' : ''} ${isMobile ? 'is-mobile-card' : ''}`}
     >
-      <div className="task-card-header">
-        <span className={`badge badge-${task.priority}`}>{task.priority}</span>
+      <div className="task-card-header" style={{ marginBottom: '0.5rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <span className={`badge badge-${task.priority}`}>{task.priority}</span>
+          <button 
+            className="btn-icon btn-sm" 
+            style={{ padding: '2px 4px', fontSize: '0.85rem' }}
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={(e) => { e.stopPropagation(); onTogglePrivacy && onTogglePrivacy(task); }}
+            title={task.isPrivate ? "Private Task" : "Public Task"}
+          >
+            {task.isPrivate ? '🔒' : '🌐'}
+          </button>
+        </div>
         
         {/* On Mobile: Quick Status Select */}
         {isMobile && (
@@ -191,6 +202,27 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, isMobile = false, is
         <p className="task-card-desc">{task.description}</p>
       )}
 
+      {task.assignees && task.assignees.length > 0 && (
+        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
+          {task.assignees.map(u => (
+            <div 
+              key={u._id} 
+              title={u.name}
+              style={{
+                width: '24px', height: '24px', borderRadius: '50%', 
+                background: 'var(--brand-primary)', color: 'white', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                fontSize: '0.7rem', fontWeight: 'bold'
+              }}
+            >
+              {u.avatar ? (
+                <img src={u.avatar} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
+              ) : u.name?.charAt(0).toUpperCase()}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* ── Enhanced Timer Display ─────────────────────────────────────────── */}
       {hasTime && (
         <div className={`task-timer-wrap ${isInProgress ? 'task-timer-wrap-running' : 'task-timer-wrap-paused'}`}>
@@ -232,7 +264,7 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, isMobile = false, is
 }
 
 // --- Kanban Column ---
-function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChange, isMobile = false }) {
+function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChange, onTogglePrivacy, isMobile = false }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column.id,
     disabled: isMobile,
@@ -286,7 +318,7 @@ function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChan
       <div className="kanban-column-body">
         <SortableContext items={tasks.map((t) => t._id)} strategy={verticalListSortingStrategy} disabled={isMobile}>
           {tasks.map((task) => (
-            <TaskCard key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} isMobile={isMobile} />
+            <TaskCard key={task._id} task={task} onEdit={onEdit} onDelete={onDelete} onStatusChange={onStatusChange} onTogglePrivacy={onTogglePrivacy} isMobile={isMobile} />
           ))}
         </SortableContext>
         {tasks.length === 0 && (
@@ -318,6 +350,7 @@ export default function ProjectDetail() {
   const [activeTask, setActiveTask] = useState(null);
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
+  const [assigneeFilter, setAssigneeFilter] = useState('');
   const [teamMembers, setTeamMembers] = useState([]);
   const [isMobile, setIsMobile] = useState(
     typeof window !== 'undefined' ? window.innerWidth <= 768 : false
@@ -344,6 +377,17 @@ export default function ProjectDetail() {
       toast.success(`Task moved to ${COLUMNS.find((c) => c.id === newStatus)?.label || newStatus}`);
     } catch {
       toast.error('Failed to update status');
+    }
+  };
+
+  const handleTogglePrivacy = async (task) => {
+    try {
+      const res = await api.put(`/tasks/${task._id}`, { isPrivate: !task.isPrivate });
+      setTasks((prev) => prev.map((t) => (t._id === task._id ? res.data.data : t)));
+      socketRef.current?.emit('task-updated', { projectId: id, task: res.data.data });
+      toast.success(`Task is now ${res.data.data.isPrivate ? 'Private' : 'Public'}`);
+    } catch {
+      toast.error('Failed to update privacy');
     }
   };
 
@@ -395,6 +439,11 @@ export default function ProjectDetail() {
       .filter((t) => t.status === status)
       .filter((t) => !search || t.title.toLowerCase().includes(search.toLowerCase()))
       .filter((t) => !priorityFilter || t.priority === priorityFilter)
+      .filter((t) => {
+        if (!assigneeFilter) return true;
+        if (assigneeFilter === 'unassigned') return !t.assignees || t.assignees.length === 0;
+        return t.assignees?.some((a) => a._id === assigneeFilter);
+      })
       .sort((a, b) => a.order - b.order);
   };
 
@@ -413,6 +462,7 @@ export default function ProjectDetail() {
       priority: task.priority,
       status: task.status,
       dueDate: task.dueDate ? task.dueDate.split('T')[0] : '',
+      isPrivate: task.isPrivate,
     });
     setFormErrors({});
     setShowTaskModal(true);
@@ -686,6 +736,19 @@ export default function ProjectDetail() {
             <option value="medium">Medium</option>
             <option value="low">Low</option>
           </select>
+          {/* Assignee filter */}
+          <select
+            className="form-select"
+            style={{ width: 'auto' }}
+            value={assigneeFilter}
+            onChange={(e) => setAssigneeFilter(e.target.value)}
+          >
+            <option value="">All Assignees</option>
+            <option value="unassigned">Unassigned</option>
+            {teamMembers.map(m => (
+              <option key={m._id} value={m._id}>{m.name}</option>
+            ))}
+          </select>
           <button id="add-task-btn" className="btn btn-primary" onClick={() => openCreateTask()}>
             + Add Task
           </button>
@@ -721,6 +784,7 @@ export default function ProjectDetail() {
               onDelete={(task) => setDeleteTarget(task)}
               onAddTask={openCreateTask}
               onStatusChange={handleQuickStatusChange}
+              onTogglePrivacy={handleTogglePrivacy}
               isMobile={isMobile}
             />
           ))}
@@ -809,14 +873,27 @@ export default function ProjectDetail() {
           </div>
         </div>
 
-        <div className="form-group">
-          <label className="form-label">Due Date</label>
-          <input
-            type="date"
-            className="form-input"
-            value={taskForm.dueDate}
-            onChange={(e) => setTaskForm((p) => ({ ...p, dueDate: e.target.value }))}
-          />
+        <div className="grid-2">
+          <div className="form-group">
+            <label className="form-label">Due Date</label>
+            <input
+              type="date"
+              className="form-input"
+              value={taskForm.dueDate}
+              onChange={(e) => setTaskForm((p) => ({ ...p, dueDate: e.target.value }))}
+            />
+          </div>
+          <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '1.5rem' }}>
+            <input
+              type="checkbox"
+              id="task-privacy-toggle"
+              checked={taskForm.isPrivate}
+              onChange={(e) => setTaskForm((p) => ({ ...p, isPrivate: e.target.checked }))}
+            />
+            <label htmlFor="task-privacy-toggle" className="form-label" style={{ margin: 0 }}>
+              Private Task (Only visible to Assignees and Leader)
+            </label>
+          </div>
         </div>
       </Modal>
 

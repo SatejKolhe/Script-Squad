@@ -88,59 +88,75 @@ export default function Analytics() {
 
   return (
     <div className="page-container animate-fadeIn">
-      {/* KPI Cards */}
-      <div className="grid-4">
-        {/* Total Tasks - Neutral */}
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-neutral">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
-            </svg>
+      {/* Asymmetric Option 1 KPI Layout: Hero Card (60%) + Secondary Stack (40%) */}
+      <div className="analytics-kpi-layout">
+        {/* Left Hero Card: Primary Metrics (Total Tasks & Completion Rate with Progress Bar) */}
+        <div className="analytics-hero-card">
+          <div className="hero-card-header">
+            <span className="hero-card-tag">OVERALL PERFORMANCE</span>
           </div>
-          <div>
-            <div className="stat-number">{data.totalTasks}</div>
-            <div className="stat-label">Total Tasks</div>
+
+          <div className="hero-metrics-row">
+            <div className="hero-metric-item">
+              <div className="metric-label-inline">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+                TOTAL TASKS
+              </div>
+              <div className="hero-metric-val">{data.totalTasks}</div>
+            </div>
+
+            <div className="hero-metric-divider" />
+
+            <div className="hero-metric-item">
+              <div className="metric-label-inline green-accent">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                </svg>
+                COMPLETION RATE
+              </div>
+              <div className="hero-metric-val green-accent">{completionRate}%</div>
+            </div>
+          </div>
+
+          {/* Integrated Horizontal Progress Bar */}
+          <div className="hero-progress-wrapper">
+            <div className="hero-progress-track">
+              <div
+                className="hero-progress-fill"
+                style={{ width: `${Math.min(100, Math.max(0, completionRate))}%` }}
+              />
+            </div>
+            <div className="hero-progress-meta">
+              <span>{data.statusCounts?.find((s) => s._id === 'done')?.count || 0} of {data.totalTasks} tasks completed</span>
+              <span>{completionRate}% achieved</span>
+            </div>
           </div>
         </div>
 
-        {/* Completion Rate - Semantic Green */}
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-green">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
-            </svg>
+        {/* Right Stacked Column: Secondary Metrics (Total Projects & Overdue) */}
+        <div className="analytics-secondary-col">
+          <div className="secondary-stat-card">
+            <div className="metric-label-inline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+              </svg>
+              TOTAL PROJECTS
+            </div>
+            <div className="secondary-metric-val">{data.totalProjects}</div>
           </div>
-          <div>
-            <div className="stat-number">{completionRate}%</div>
-            <div className="stat-label">Completion Rate</div>
-          </div>
-        </div>
 
-        {/* Total Projects - Neutral */}
-        <div className="stat-card">
-          <div className="stat-icon stat-icon-neutral">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
-            </svg>
-          </div>
-          <div>
-            <div className="stat-number">{data.totalProjects}</div>
-            <div className="stat-label">Total Projects</div>
-          </div>
-        </div>
-
-        {/* Overdue - Semantic Red */}
-        <div className="stat-card">
-          <div className={`stat-icon ${data.overdue > 0 ? 'stat-icon-red' : 'stat-icon-red'}`}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-            </svg>
-          </div>
-          <div>
-            <div className="stat-number" style={{ color: data.overdue > 0 ? '#ef4444' : undefined }}>
+          <div className="secondary-stat-card">
+            <div className={`metric-label-inline ${data.overdue > 0 ? 'red-accent' : ''}`}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              OVERDUE TASKS
+            </div>
+            <div className={`secondary-metric-val ${data.overdue > 0 ? 'red-accent' : ''}`}>
               {data.overdue}
             </div>
-            <div className="stat-label">Overdue</div>
           </div>
         </div>
       </div>

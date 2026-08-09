@@ -32,21 +32,29 @@ export default function Inbox() {
 
   useEffect(() => { loadData(); }, [loadData]);
 
-  const handleAccept = async (id) => {
+  const handleAccept = async (invite) => {
     try {
-      await api.patch(`/inbox/invites/${id}/accept`);
+      if (invite.isOrgTeam) {
+        await api.patch(`/orgTeams/requests/${invite._id}/accept`);
+      } else {
+        await api.patch(`/inbox/invites/${invite._id}/accept`);
+      }
       toast.success('Invite accepted! 🎉');
-      setInvites((prev) => prev.filter((i) => i._id !== id));
+      setInvites((prev) => prev.filter((i) => i._id !== invite._id));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to accept');
     }
   };
 
-  const handleDecline = async (id) => {
+  const handleDecline = async (invite) => {
     try {
-      await api.patch(`/inbox/invites/${id}/decline`);
+      if (invite.isOrgTeam) {
+        await api.patch(`/orgTeams/requests/${invite._id}/decline`);
+      } else {
+        await api.patch(`/inbox/invites/${invite._id}/decline`);
+      }
       toast.success('Invite declined');
-      setInvites((prev) => prev.filter((i) => i._id !== id));
+      setInvites((prev) => prev.filter((i) => i._id !== invite._id));
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to decline');
     }
@@ -132,28 +140,37 @@ export default function Inbox() {
               <span className="inbox-empty-sub">When a team leader invites you, it will appear here.</span>
             </div>
           ) : (
-            invites.map((invite) => (
+            invites.map((invite) => {
+              const sender = invite.isOrgTeam ? invite.senderId : invite.from;
+              return (
               <div key={invite._id} className="invite-card animate-bounceIn">
                 <div className="invite-avatar">
-                  {invite.from?.avatar ? (
-                    <img src={invite.from.avatar} alt={invite.from.name} />
+                  {sender?.avatar ? (
+                    <img src={sender.avatar} alt={sender.name} />
                   ) : (
-                    invite.from?.name?.[0]?.toUpperCase()
+                    sender?.name?.[0]?.toUpperCase()
                   )}
                 </div>
                 <div className="invite-info">
-                  <div className="invite-name">{invite.from?.name}</div>
-                  <div className="invite-email">{invite.from?.email}</div>
-                  <div className="invite-time">Invited you to join their team · {timeAgo(invite.createdAt)}</div>
+                  <div className="invite-name">{sender?.name}</div>
+                  <div className="invite-email">{sender?.email}</div>
+                  <div className="invite-time">
+                    {invite.isOrgTeam 
+                      ? invite.isJoinRequest 
+                          ? `Requested to join team "${invite.teamId?.name}"` 
+                          : `Invited you to join team "${invite.teamId?.name}" as a ${invite.intendedRole === 'leader' ? 'Leader' : 'Member'}`
+                      : `Invited you to be friends`
+                    } · {timeAgo(invite.createdAt)}
+                  </div>
                 </div>
                 <div className="invite-actions">
-                  <button className="btn btn-primary btn-sm" onClick={() => handleAccept(invite._id)}>
+                  <button className="btn btn-primary btn-sm" onClick={() => handleAccept(invite)}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
                       <polyline points="20 6 9 17 4 12"/>
                     </svg>
                     Accept
                   </button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => handleDecline(invite._id)}>
+                  <button className="btn btn-ghost btn-sm" onClick={() => handleDecline(invite)}>
                     <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
                       <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                     </svg>
@@ -161,7 +178,7 @@ export default function Inbox() {
                   </button>
                 </div>
               </div>
-            ))
+            )})
           )}
         </div>
       ) : (

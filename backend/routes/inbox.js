@@ -23,9 +23,33 @@ router.get('/invites', protect, async (req, res) => {
   try {
     const invites = await TeamInvite.find({ to: req.user._id, status: 'pending' })
       .populate('from', 'name email avatar')
-      .sort({ createdAt: -1 });
+      .lean();
 
-    res.json({ success: true, data: invites });
+    // Fetch OrgTeamJoinRequests where the user is the receiver (direct invites)
+    const OrgTeamJoinRequest = require('../models/OrgTeamJoinRequest');
+    const OrgTeam = require('../models/OrgTeam');
+    const orgInvites = await OrgTeamJoinRequest.find({ receiverId: req.user._id, type: 'invite', status: 'pending' })
+      .populate('senderId', 'name email avatar')
+      .populate('teamId', 'name')
+      .lean();
+
+    // Fetch OrgTeamJoinRequests where the user is a leader of the team (join_requests)
+    const OrgTeamMember = require('../models/OrgTeamMember');
+    const myLeaderTeams = await OrgTeamMember.find({ userId: req.user._id, role: 'leader' }).select('teamId');
+    const leaderTeamIds = myLeaderTeams.map(m => m.teamId);
+    
+    const orgJoinReqs = await OrgTeamJoinRequest.find({ teamId: { $in: leaderTeamIds }, type: 'join_request', status: 'pending' })
+      .populate('senderId', 'name email avatar')
+      .populate('teamId', 'name')
+      .lean();
+
+    const merged = [
+      ...invites.map(i => ({ ...i, isOrgTeam: false })),
+      ...orgInvites.map(i => ({ ...i, isOrgTeam: true, isJoinRequest: false })),
+      ...orgJoinReqs.map(i => ({ ...i, isOrgTeam: true, isJoinRequest: true }))
+    ].sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+    res.json({ success: true, data: merged });
   } catch (err) {
     console.error(err);
     res.status(500).json({ success: false, message: 'Server error' });
