@@ -36,7 +36,11 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
     <div className="ai-suggestions-panel">
       <div className="ai-suggestions-header">
         <div className="ai-badge">
-          <span className="ai-badge-icon">✨</span>
+          <span className="ai-badge-icon">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+            </svg>
+          </span>
           <span>AI Suggested Tasks</span>
           <span className="ai-badge-count">{suggestions.length}</span>
         </div>
@@ -68,7 +72,11 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
                 className="ai-task-checkbox"
               />
               <div className="ai-task-check-visual">
-                {isSelected && <span className="ai-task-checkmark">✓</span>}
+                {isSelected && (
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                )}
               </div>
               <div className="ai-task-content">
                 <div className="ai-task-title">{task.title}</div>
@@ -76,19 +84,19 @@ function AISuggestionsPanel({ suggestions, selected, onToggle, onSelectAll, onDe
                   <div className="ai-task-desc">{task.description}</div>
                 )}
               </div>
-              <span
-                className="ai-priority-badge"
-                style={{ color: p.color, background: p.bg }}
-              >
-                {p.emoji} {p.label}
+              <span className={`badge badge-${task.priority}`}>
+                {p.label}
               </span>
             </label>
           );
         })}
       </div>
       {selected.size > 0 && (
-        <div className="ai-selection-info">
-          <span>✅ {selected.size} task{selected.size > 1 ? 's' : ''} selected</span>
+        <div className="ai-selection-info" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          <span>{selected.size} task{selected.size > 1 ? 's' : ''} selected</span>
         </div>
       )}
     </div>
@@ -308,12 +316,14 @@ export default function Projects() {
       <div className="page-header">
         <div>
           <div className="page-header-stats">
-            <span className="project-count-badge">{projects.length} projects</span>
+            <span className="project-count-badge">{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <div className="page-header-actions">
-          <div className="search-bar">
-            <span>🔍</span>
+          <div className="search-bar" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
             <input
               type="text"
               placeholder="Search projects..."
@@ -334,7 +344,10 @@ export default function Projects() {
             ))}
           </select>
           <button id="create-project-btn" className="btn btn-primary" onClick={openCreate}>
-            + New Project
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            <span>New Project</span>
           </button>
         </div>
       </div>
@@ -344,7 +357,11 @@ export default function Projects() {
         <div className="loading-overlay"><div className="spinner spinner-lg" /></div>
       ) : projects.length === 0 ? (
         <div className="empty-state">
-          <div className="empty-state-icon">📁</div>
+          <div className="empty-state-icon" style={{ marginBottom: '0.5rem' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+            </svg>
+          </div>
           <div className="empty-state-title">No projects found</div>
           <div className="empty-state-desc">
             {search ? 'Try a different search term.' : 'Create your first project to get started!'}
@@ -367,7 +384,11 @@ export default function Projects() {
                       className="btn-icon btn-sm"
                       onClick={(e) => openEdit(e, project)}
                       title="Edit project"
-                    >✏️</button>
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                      </svg>
+                    </button>
                     <button
                       id={`delete-project-${project._id}`}
                       className="btn-icon btn-sm"
@@ -377,7 +398,11 @@ export default function Projects() {
                         setDeleteTarget(project);
                       }}
                       title="Delete project"
-                    >🗑️</button>
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+                      </svg>
+                    </button>
                   </div>
                 </div>
                 <h3 className="project-card-title">{project.title}</h3>
@@ -389,7 +414,7 @@ export default function Projects() {
                     <span className="text-xs text-muted">
                       {project.completedCount || 0}/{project.taskCount || 0} tasks
                     </span>
-                    <span className="text-xs" style={{ color: project.color }}>
+                    <span className="text-xs" style={{ color: '#2563eb', fontWeight: '600' }}>
                       {project.taskCount
                         ? Math.round(((project.completedCount || 0) / project.taskCount) * 100)
                         : 0}%
@@ -402,15 +427,18 @@ export default function Projects() {
                         width: `${project.taskCount
                           ? Math.round(((project.completedCount || 0) / project.taskCount) * 100)
                           : 0}%`,
-                        background: project.color,
+                        background: '#2563eb',
                       }}
                     />
                   </div>
                   <div className="project-card-meta">
                     <span className={`badge badge-${project.status}`}>{project.status}</span>
                     {project.dueDate && (
-                      <span className="text-xs text-muted">
-                        📅 {format(new Date(project.dueDate), 'MMM d, yyyy')}
+                      <span className="text-xs text-muted" style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                        </svg>
+                        {format(new Date(project.dueDate), 'MMM d, yyyy')}
                       </span>
                     )}
                   </div>
@@ -425,7 +453,7 @@ export default function Projects() {
       <Modal
         isOpen={showModal}
         onClose={handleCloseModal}
-        title={editingProject ? 'Edit Project' : '✨ New Project'}
+        title={editingProject ? 'Edit Project' : 'New Project'}
         size={hasAiContent && !editingProject ? 'lg' : 'md'}
         footer={
           <>
@@ -441,7 +469,7 @@ export default function Projects() {
                 : editingProject
                 ? 'Save Changes'
                 : aiSuggestions.length > 0 && selectedTaskIds.size > 0
-                ? `🚀 Create Project + ${selectedTaskIds.size} Task${selectedTaskIds.size > 1 ? 's' : ''}`
+                ? `Create Project + ${selectedTaskIds.size} Task${selectedTaskIds.size > 1 ? 's' : ''}`
                 : 'Create Project'}
             </button>
           </>
@@ -497,9 +525,19 @@ export default function Projects() {
                 Generating with Gemini AI…
               </>
             ) : aiSuggestions.length > 0 ? (
-              <>✨ Regenerate AI Suggestions</>
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                </svg>
+                Regenerate AI Suggestions
+              </>
             ) : (
-              <>✨ Suggest Tasks with AI</>
+              <>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                </svg>
+                Suggest Tasks with AI
+              </>
             )}
           </button>
         )}

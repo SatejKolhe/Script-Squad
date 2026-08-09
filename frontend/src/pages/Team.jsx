@@ -68,7 +68,7 @@ function MemberCard({ memberData, onRemove }) {
         >
           <MemberAvatar user={user} size={48} showActiveDot={isActive} />
           <div className="member-info">
-            <div className="member-name" style={{ color: 'var(--primary-color)' }}>{user.name}</div>
+            <div className="member-name">{user.name}</div>
             <div className="member-email">{user.email}</div>
           </div>
           <button
@@ -76,7 +76,10 @@ function MemberCard({ memberData, onRemove }) {
             onClick={(e) => { e.stopPropagation(); onRemove(user._id, user.name); }}
             title="Remove friend"
           >
-            ✕ Remove
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ marginRight: 4 }}>
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Remove
           </button>
         </div>
 
@@ -98,8 +101,11 @@ function MemberCard({ memberData, onRemove }) {
 
         {/* Active Tasks */}
         <div className="member-active-section">
-          <div className="member-section-title">
-            {isActive ? '🚀 Currently working on' : '💤 Current work'}
+          <div className="member-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            {isActive ? 'Currently working on' : 'Current work'}
           </div>
           {isActive ? (
             inProgressTasks.slice(0, 3).map((task) => (
@@ -110,8 +116,9 @@ function MemberCard({ memberData, onRemove }) {
                   <span
                     className="member-task-project"
                     style={{
-                      background: task.project.color + '22',
+                      background: task.project.color + '18',
                       color: task.project.color,
+                      borderColor: task.project.color + '40',
                     }}
                   >
                     {task.project.title}
@@ -132,7 +139,12 @@ function MemberCard({ memberData, onRemove }) {
         {/* Projects */}
         {projects && projects.length > 0 && (
           <div>
-            <div className="member-section-title">📁 Projects</div>
+            <div className="member-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+              </svg>
+              Projects
+            </div>
             <div className="member-projects">
               {projects.slice(0, 6).map((p) => (
                 <span key={p._id} className="member-project-chip">
@@ -195,9 +207,8 @@ function AddMemberPanel() {
     setAdding(user._id);
     try {
       await api.post('/inbox/invites', { email: user.email });
-      toast.success(`Invite sent to ${user.name}! 🎉`);
+      toast.success(`Invite sent to ${user.name}!`);
       
-      // Optimistically update the local results so it shows "Requested" immediately
       setResults(prev => prev.map(u => 
         u._id === user._id ? { ...u, inviteStatus: 'pending' } : u
       ));
@@ -211,7 +222,10 @@ function AddMemberPanel() {
   return (
     <div className="add-member-card">
       <div className="add-member-title">
-        <span>➕</span> Add Team Member
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="17" y1="11" x2="23" y2="11"/>
+        </svg>
+        Add Team Member
       </div>
       <div className="add-member-search-wrap" ref={dropdownRef}>
         <div className="add-member-input-row">
@@ -247,8 +261,8 @@ function AddMemberPanel() {
                   onClick={() => handleAdd(user)}
                   disabled={adding === user._id || user.inviteStatus === 'pending' || user.inviteStatus === 'member'}
                   style={{
-                    backgroundColor: user.inviteStatus === 'member' ? '#e2e8f0' : (user.inviteStatus === 'pending' ? '#fef3c7' : ''),
-                    color: user.inviteStatus === 'member' ? '#64748b' : (user.inviteStatus === 'pending' ? '#d97706' : ''),
+                    backgroundColor: user.inviteStatus === 'member' ? '#e2e8f0' : (user.inviteStatus === 'pending' ? '#fef3c7' : '#2563eb'),
+                    color: user.inviteStatus === 'member' ? '#64748b' : (user.inviteStatus === 'pending' ? '#d97706' : '#ffffff'),
                     borderColor: 'transparent'
                   }}
                 >
@@ -280,7 +294,7 @@ function AddMemberPanel() {
 // ── Assign Task Panel ─────────────────────────────────────────────────────────
 const PRIORITY_OPTS = ['low', 'medium', 'high'];
 const STATUS_LABELS = { todo: 'To Do', inprogress: 'In Progress', done: 'Done' };
-const STATUS_COLORS = { todo: '#8b95ae', inprogress: '#6366f1', done: '#10b981' };
+const STATUS_COLORS = { todo: '#64748b', inprogress: '#2563eb', done: '#10b981' };
 
 function AssignTaskPanel({ members, onTaskAssigned }) {
   const [form, setForm] = useState({
@@ -329,7 +343,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
         dueDate: form.dueDate || null,
         isPrivate: form.isPrivate,
       });
-      toast.success('Task assigned successfully! 🎯');
+      toast.success('Task assigned successfully!');
       setForm({ assigneeId: '', title: '', description: '', priority: 'medium', dueDate: '', isPrivate: false });
       onTaskAssigned();
       loadAssignedTasks();
@@ -400,7 +414,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
         </div>
         <div className="assign-panel-stats">
           <span className="assign-stat-pill">
-            <span className="assign-stat-dot" style={{ background: '#6366f1' }} />
+            <span className="assign-stat-dot" style={{ background: '#2563eb' }} />
             {assignedTasks.filter(t => t.status === 'inprogress').length} Active
           </span>
           <span className="assign-stat-pill">
@@ -427,7 +441,9 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
             </div>
             {members.length === 0 ? (
               <div className="assign-no-members">
-                <span>👥</span>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/>
+                </svg>
                 <p>Add team members first to start assigning tasks.</p>
               </div>
             ) : (
@@ -489,7 +505,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                           className={`priority-btn priority-btn-${p} ${form.priority === p ? 'active' : ''}`}
                           onClick={() => handleChange('priority', p)}
                         >
-                          {p === 'high' ? '🔴' : p === 'medium' ? '🟡' : '🟢'} {p}
+                          {p}
                         </button>
                       ))}
                     </div>
@@ -509,7 +525,17 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                 {/* Privacy toggle */}
                 <div className="privacy-toggle-row">
                   <div className="privacy-toggle-info">
-                    <span className="privacy-toggle-icon">{form.isPrivate ? '🔒' : '🌐'}</span>
+                    <span className="privacy-toggle-icon">
+                      {form.isPrivate ? (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                        </svg>
+                      ) : (
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                        </svg>
+                      )}
+                    </span>
                     <div>
                       <div className="privacy-toggle-label">
                         {form.isPrivate ? 'Private task' : 'Public task'}
@@ -591,8 +617,10 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
               ))
             ) : filtered.length === 0 ? (
               <div className="assign-empty">
-                <span>🎯</span>
-                <p>{assignedTasks.length === 0 ? 'No tasks assigned yet. Use the form to assign work to your friends.' : 'No tasks match the current filters.'}</p>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10"/><path d="M22 12A10 10 0 0 0 12 2v10z"/>
+                </svg>
+                <p>{assignedTasks.length === 0 ? 'No tasks assigned yet. Use the form to assign work to your team.' : 'No tasks match the current filters.'}</p>
               </div>
             ) : (
               filtered.map((task) => {
@@ -617,7 +645,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                           onClick={() => handleToggleVisibility(task._id)}
                           title={task.isPrivate ? 'Private — click to make public' : 'Public — click to make private'}
                         >
-                          {task.isPrivate ? '🔒 Private' : '🌐 Public'}
+                          {task.isPrivate ? 'Private' : 'Public'}
                         </button>
                         <span className={`badge badge-${task.priority}`}>{task.priority}</span>
                         <button
@@ -647,7 +675,7 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                             <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                           </svg>
-                          {overdue ? '⚠ ' : ''}{formatDate(task.dueDate)}
+                          {overdue ? 'Overdue: ' : ''}{formatDate(task.dueDate)}
                         </span>
                       )}
                       {/* Status selector */}
@@ -712,20 +740,26 @@ export default function Team() {
       {/* Header */}
       <div className="team-header">
         <div className="team-header-info">
-          <h1>Friends</h1>
-          <p>Track who's working on what, in real time</p>
+          <h1 className="page-title">Team</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Track who's working on what, in real time</p>
           {!loading && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
               <span className="team-count-badge">
-                👥 {activity.length} member{activity.length !== 1 ? 's' : ''}
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+                </svg>
+                {activity.length} member{activity.length !== 1 ? 's' : ''}
               </span>
               {activeCount > 0 && (
                 <span className="team-count-badge" style={{
-                  background: 'rgba(16,185,129,0.1)',
-                  borderColor: 'rgba(16,185,129,0.25)',
-                  color: '#10b981',
+                  background: '#eff6ff',
+                  borderColor: '#bfdbfe',
+                  color: '#2563eb',
                 }}>
-                  🚀 {activeCount} active now
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
+                  {activeCount} active now
                 </span>
               )}
             </div>
@@ -741,15 +775,24 @@ export default function Team() {
 
       {/* Member Cards */}
       <div className="team-section-divider">
-        <span className="team-section-label">👥 Friends</span>
+        <span className="team-section-label" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+          </svg>
+          Team Members
+        </span>
       </div>
 
       {loading ? (
         <TeamSkeleton />
       ) : activity.length === 0 ? (
         <div className="team-empty">
-          <div className="team-empty-icon">👥</div>
-          <div className="team-empty-title">Your friend list is empty</div>
+          <div className="team-empty-icon" style={{ marginBottom: '0.5rem' }}>
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/>
+            </svg>
+          </div>
+          <div className="team-empty-title">Your team is empty</div>
           <p className="team-empty-desc">
             Search for friends above by name or email to add them. Once added, you'll see
             which projects and tasks they're working on right now.

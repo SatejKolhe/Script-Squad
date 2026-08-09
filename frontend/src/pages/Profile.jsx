@@ -190,17 +190,29 @@ export default function Profile() {
       {/* Stats Row */}
       <div className="profile-stats-row">
         <div className="profile-stat-card">
-          <div className="profile-stat-icon">⚡</div>
+          <div className="profile-stat-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </div>
           <div className="profile-stat-value">{xp}</div>
           <div className="profile-stat-label">Total XP</div>
         </div>
         <div className="profile-stat-card">
-          <div className="profile-stat-icon">🔥</div>
+          <div className="profile-stat-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 2.5z"/>
+            </svg>
+          </div>
           <div className="profile-stat-value">{streak}</div>
           <div className="profile-stat-label">Day Streak</div>
         </div>
         <div className="profile-stat-card">
-          <div className="profile-stat-icon">🏆</div>
+          <div className="profile-stat-icon-badge">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/>
+            </svg>
+          </div>
           <div className="profile-stat-value">{level}</div>
           <div className="profile-stat-label">Level</div>
         </div>
@@ -427,13 +439,6 @@ export default function Profile() {
                 onChange={(e) => setDeletePassword(e.target.value)}
                 autoFocus
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">
-                Type <strong style={{ color: '#ef4444' }}>DELETE</strong> to confirm *
-              </label>
-
               <input
                 id="delete-account-confirm-text"
                 type="text"
@@ -448,53 +453,52 @@ export default function Profile() {
         </Modal>
       )}
 
-
       {activeTab === 'achievements' && (
         <div className="profile-achievements">
           <AchievementBadge
-            icon="🌱"
+            iconKey="sprout"
             title="First Steps"
             desc="Complete your first task"
             unlocked={xp >= 10}
           />
           <AchievementBadge
-            icon="⚡"
+            iconKey="zap"
             title="Getting Started"
             desc="Reach 50 XP"
             unlocked={xp >= 50}
           />
           <AchievementBadge
-            icon="🔥"
+            iconKey="flame"
             title="On Fire"
             desc="Maintain a 3-day streak"
             unlocked={streak >= 3}
           />
           <AchievementBadge
-            icon="💎"
+            iconKey="award"
             title="Century Club"
             desc="Earn 100 XP"
             unlocked={xp >= 100}
           />
           <AchievementBadge
-            icon="🚀"
+            iconKey="rocket"
             title="Rockstar"
             desc="Reach Level 5"
             unlocked={level >= 5}
           />
           <AchievementBadge
-            icon="🏆"
+            iconKey="calendar"
             title="Week Warrior"
             desc="Maintain a 7-day streak"
             unlocked={streak >= 7}
           />
           <AchievementBadge
-            icon="👑"
+            iconKey="crown"
             title="500 Club"
             desc="Earn 500 XP"
             unlocked={xp >= 500}
           />
           <AchievementBadge
-            icon="🌟"
+            iconKey="medal"
             title="Legend"
             desc="Reach Level 10"
             unlocked={level >= 10}
@@ -505,19 +509,83 @@ export default function Profile() {
   );
 }
 
-function AchievementBadge({ icon, title, desc, unlocked }) {
+function AchievementBadge({ iconKey, title, desc, unlocked }) {
+  const renderIcon = () => {
+    switch (iconKey) {
+      case 'sprout':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M7 20h10"/><path d="M10 20c0-3 2-4 2-8 0-4-3-6-3-6s6 1 6 6c0 4 2 5 2 8"/>
+          </svg>
+        );
+      case 'zap':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+          </svg>
+        );
+      case 'flame':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8.5 14.5A2.5 2.5 0 0011 17c1.4 0 2.5-1.1 2.5-2.5 0-1.4-1.1-2.5-2.5-2.5a2.5 2.5 0 00-2.5 2.5z"/><path d="M12 2c0 4-5 6-5 11a5 5 0 0010 0c0-5-5-7-5-11z"/>
+          </svg>
+        );
+      case 'award':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="7"/><polyline points="8.21 13.89 7 23 12 20 17 23 15.79 13.88"/>
+          </svg>
+        );
+      case 'rocket':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 00-2.91-.09z"/><path d="M12 15l-3-3a22 22 0 012-3.95A12.88 12.88 0 0122 2c0 2.72-.78 7.5-3.05 11a22.35 22.35 0 01-3.95 2z"/>
+          </svg>
+        );
+      case 'calendar':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        );
+      case 'crown':
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M5 16L3 5l5.5 5L12 4l3.5 6L21 5l-2 11H5z"/><path d="M5 20h14"/>
+          </svg>
+        );
+      case 'medal':
+      default:
+        return (
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/>
+          </svg>
+        );
+    }
+  };
+
   return (
     <div className={`achievement-badge ${unlocked ? 'unlocked' : 'locked'}`}>
-      <div className="achievement-icon">{icon}</div>
+      <div className="achievement-icon-box">
+        {renderIcon()}
+      </div>
       <div className="achievement-info">
         <div className="achievement-title">{title}</div>
         <div className="achievement-desc">{desc}</div>
       </div>
       <div className="achievement-status">
         {unlocked ? (
-          <span className="achievement-check">✓</span>
+          <span className="achievement-check">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+          </span>
         ) : (
-          <span className="achievement-lock">🔒</span>
+          <span className="achievement-lock">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          </span>
         )}
       </div>
     </div>

@@ -24,11 +24,12 @@ const taskSchema = new mongoose.Schema(
       ref: 'User',
       required: true,
     },
-    assignee: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
+    assignees: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+      },
+    ],
     status: {
       type: String,
       enum: ['todo', 'inprogress', 'done'],
@@ -52,6 +53,10 @@ const taskSchema = new mongoose.Schema(
       default: 0,
     },
     tags: [{ type: String }],
+    isPrivate: {
+      type: Boolean,
+      default: true,
+    },
     completedAt: {
       type: Date,
       default: null,

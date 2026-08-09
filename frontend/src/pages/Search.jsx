@@ -118,8 +118,8 @@ export default function Search() {
   return (
     <div className="page-container animate-fadeIn">
       <div className="search-page-header">
-        <h1>🔍 Search & Filter</h1>
-        <p>Find tasks by name, status, priority, or due date across your workspace</p>
+        <h1 className="search-title">Search & Filter</h1>
+        <p className="search-subtitle">Find tasks by name, status, priority, or due date across your workspace</p>
       </div>
 
       <div className="search-input-wrap">
@@ -138,7 +138,9 @@ export default function Search() {
         />
         {(query || hasActiveFilters) && (
           <button className="search-clear-btn" onClick={handleClearAll} title="Clear search and filters">
-            ✕
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
           </button>
         )}
       </div>
@@ -201,11 +203,8 @@ export default function Search() {
             <option value="none">None</option>
             <option value="dueDateAsc">Ascending</option>
             <option value="dueDateDesc">Descending</option>
-
           </select>
         </div>
-
-
 
         {hasActiveFilters && (
           <button className="filter-reset-btn" onClick={resetFilters}>
@@ -233,7 +232,12 @@ export default function Search() {
           {/* Projects */}
           {results.projects.length > 0 && (
             <div className="search-section">
-              <div className="search-section-title">📁 Projects ({results.projects.length})</div>
+              <div className="search-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                </svg>
+                Projects ({results.projects.length})
+              </div>
               {results.projects.map((project) => (
                 <div
                   key={project._id}
@@ -256,9 +260,13 @@ export default function Search() {
           {/* Tasks */}
           {displayedTasks.length > 0 && (
             <div className="search-section">
-              <div className="search-section-title">✅ Tasks ({displayedTasks.length})</div>
+              <div className="search-section-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+                Tasks ({displayedTasks.length})
+              </div>
               {displayedTasks.map((task) => (
-
                 <div
                   key={task._id}
                   className="search-result-card"
@@ -288,8 +296,11 @@ export default function Search() {
                       {task.dueDate && (
                         <>
                           {' · '}
-                          <span className="task-due-badge">
-                            📅 {formatDueDate(task.dueDate)}
+                          <span className="task-due-badge" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            {formatDueDate(task.dueDate)}
                           </span>
                         </>
                       )}
@@ -303,7 +314,11 @@ export default function Search() {
 
           {totalResults === 0 && (
             <div className="search-empty">
-              <span className="search-empty-icon">🔎</span>
+              <div className="search-empty-icon">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+              </div>
               <p>No results match your criteria</p>
               <span className="search-empty-sub">Try broadening your search query or resetting filters.</span>
             </div>
@@ -313,7 +328,11 @@ export default function Search() {
 
       {!searched && !loading && (
         <div className="search-empty">
-          <span className="search-empty-icon">🔍</span>
+          <div className="search-empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+            </svg>
+          </div>
           <p>Search tasks or select a filter</p>
           <span className="search-empty-sub">Type a task name or choose status, priority, or due date filters.</span>
         </div>

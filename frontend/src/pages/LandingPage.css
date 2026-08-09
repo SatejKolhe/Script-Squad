@@ -644,3 +644,121 @@
     display: none;
   }
 }
+
+/* ── Animations & Transitions (Option A Fast & Snappy Motion) ── */
+
+/* Load-in Staggered Keyframes */
+@keyframes heroFadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.hero-anim-1 { animation: heroFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.02s both; }
+.hero-anim-2 { animation: heroFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both; }
+.hero-anim-3 { animation: heroFadeUp 0.3s cubic-bezier(0.16, 1, 0.3, 1) 0.14s both; }
+.hero-anim-4 { animation: heroFadeUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) 0.20s both; }
+
+/* Scroll-Triggered Reveal Classes (Test Mode: 1200ms Duration) */
+.reveal-on-scroll {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1), transform 1200ms cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: opacity, transform;
+}
+
+.reveal-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger child cards inside revealed grids (Test Mode: 1200ms duration with staggered delays) */
+.reveal-on-scroll .reveal-card-1 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1) 150ms, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1) 150ms;
+}
+.reveal-on-scroll .reveal-card-2 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1) 300ms, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1) 300ms;
+}
+.reveal-on-scroll .reveal-card-3 {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 1200ms cubic-bezier(0.16, 1, 0.3, 1) 450ms, transform 1200ms cubic-bezier(0.16, 1, 0.3, 1) 450ms;
+}
+
+.reveal-on-scroll.is-visible .reveal-card-1,
+.reveal-on-scroll.is-visible .reveal-card-2,
+.reveal-on-scroll.is-visible .reveal-card-3 {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Hover States & Dynamic Interactive Preview Transitions (Fast 130ms) */
+.preview-stat-card {
+  transition: transform 0.13s ease, border-color 0.13s ease, box-shadow 0.13s ease;
+}
+
+.preview-stat-card:hover {
+  transform: translateY(-1px);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.preview-task-row {
+  transition: all 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+  user-select: none;
+}
+
+.preview-task-row:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+  transform: translateX(2px);
+}
+
+.preview-task-row.status-changing {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+  transform: translateX(4px);
+}
+
+.task-status-dot, .task-badge {
+  transition: all 0.15s ease;
+}
+
+.feature-card, .step-card {
+  transition: transform 0.13s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.13s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.13s ease;
+}
+
+.feature-card:hover, .step-card:hover {
+  transform: translateY(-2px);
+  border-color: #cbd5e1;
+  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.06);
+}
+
+.feature-icon-badge {
+  color: #2563eb;
+  transition: transform 0.13s ease, background-color 0.13s ease;
+}
+
+.feature-card:hover .feature-icon-badge {
+  transform: scale(1.05);
+  background: #dbeafe;
+}
+
+.nav-link-btn, .hero-inline-btn {
+  transition: background-color 0.13s ease, transform 0.13s ease, box-shadow 0.13s ease;
+}
+
+.nav-link-btn:hover, .hero-inline-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(37, 99, 235, 0.25);
+}
