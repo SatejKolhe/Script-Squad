@@ -10,11 +10,15 @@
 }
 
 .analytics-section-title {
-  font-size: 1rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
+  font-family: 'Outfit', sans-serif;
   letter-spacing: -0.01em;
-  color: var(--text-primary);
+  color: #0f172a;
+}
+
+[data-theme='dark'] .analytics-section-title {
+  color: #f8fafc;
 }
 
 .analytics-meta {
@@ -25,6 +29,10 @@
 
 .chart-card {
   overflow: hidden;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-md);
+  background: var(--bg-card);
+  box-shadow: var(--shadow-sm);
 }
 
 .chart-tooltip {
@@ -33,7 +41,7 @@
   border-radius: var(--border-radius-sm);
   padding: 0.625rem 0.875rem;
   box-shadow: var(--shadow-md);
-  font-family:'Inter',sans-serif;
+  font-family: 'Inter', sans-serif;
 }
 
 .chart-tooltip-label {
