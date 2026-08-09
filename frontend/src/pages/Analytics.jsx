@@ -105,7 +105,7 @@ export default function Analytics() {
 
         {/* Completion Rate - Semantic Green */}
         <div className="stat-card">
-          <div className="stat-icon stat-icon-success">
+          <div className="stat-icon stat-icon-green">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
             </svg>
@@ -131,7 +131,7 @@ export default function Analytics() {
 
         {/* Overdue - Semantic Red */}
         <div className="stat-card">
-          <div className="stat-icon stat-icon-danger">
+          <div className={`stat-icon ${data.overdue > 0 ? 'stat-icon-red' : 'stat-icon-red'}`}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
             </svg>

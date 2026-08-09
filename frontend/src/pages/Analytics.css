@@ -1,3 +1,40 @@
+/* Stat Card Badges */
+.stat-icon-neutral {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+}
+
+[data-theme='dark'] .stat-icon-neutral {
+  background: #1e293b;
+  border-color: #334155;
+  color: #94a3b8;
+}
+
+.stat-icon-green {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #10b981;
+}
+
+[data-theme='dark'] .stat-icon-green {
+  background: rgba(16, 185, 129, 0.15);
+  border-color: rgba(16, 185, 129, 0.35);
+  color: #34d399;
+}
+
+.stat-icon-red {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #ef4444;
+}
+
+[data-theme='dark'] .stat-icon-red {
+  background: rgba(239, 68, 68, 0.15);
+  border-color: rgba(239, 68, 68, 0.35);
+  color: #f87171;
+}
+
 .analytics-section {
   margin-top: 2rem;
 }
