@@ -203,23 +203,41 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
       )}
 
       {task.assignees && task.assignees.length > 0 && (
-        <div style={{ display: 'flex', gap: '0.25rem', marginTop: '0.5rem' }}>
-          {task.assignees.map(u => (
-            <div 
-              key={u._id} 
-              title={u.name}
-              style={{
-                width: '24px', height: '24px', borderRadius: '50%', 
-                background: 'var(--brand-primary)', color: 'white', 
-                display: 'flex', alignItems: 'center', justifyContent: 'center', 
-                fontSize: '0.7rem', fontWeight: 'bold'
-              }}
-            >
-              {u.avatar ? (
-                <img src={u.avatar} alt={u.name} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }} />
-              ) : u.name?.charAt(0).toUpperCase()}
-            </div>
-          ))}
+        <div style={{ display: 'flex', gap: '0.35rem', marginTop: '0.5rem', flexWrap: 'wrap' }}>
+          {task.assignees.map(u => {
+            const isUserObj = u && typeof u === 'object';
+            const name = isUserObj ? (u.name || 'Assignee') : 'Assignee';
+            const avatar = isUserObj ? u.avatar : null;
+            const initials = name !== 'Assignee' ? name.split(' ').map(p => p[0]).join('').toUpperCase().slice(0, 2) : '?';
+            const keyId = isUserObj ? u._id : u;
+
+            return (
+              <div 
+                key={keyId} 
+                title={name}
+                style={{
+                  width: '24px', height: '24px', borderRadius: '50%', 
+                  background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe',
+                  display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                  fontSize: '0.65rem', fontWeight: 700, flexShrink: 0, overflow: 'hidden'
+                }}
+              >
+                {avatar ? (
+                  <img 
+                    src={avatar} 
+                    alt={name} 
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '50%' }}
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      if (e.target.parentNode) {
+                        e.target.parentNode.innerText = initials;
+                      }
+                    }}
+                  />
+                ) : initials}
+              </div>
+            );
+          })}
         </div>
       )}
 

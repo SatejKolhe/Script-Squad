@@ -645,7 +645,21 @@ function AssignTaskPanel({ members, onTaskAssigned }) {
                           onClick={() => handleToggleVisibility(task._id)}
                           title={task.isPrivate ? 'Private — click to make public' : 'Public — click to make private'}
                         >
-                          {task.isPrivate ? 'Private' : 'Public'}
+                          {task.isPrivate ? (
+                            <>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                              </svg>
+                              Private
+                            </>
+                          ) : (
+                            <>
+                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 014-10z"/>
+                              </svg>
+                              Public
+                            </>
+                          )}
                         </button>
                         <span className={`badge badge-${task.priority}`}>{task.priority}</span>
                         <button
