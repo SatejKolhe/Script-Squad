@@ -39,20 +39,29 @@ function TaskRow({ task, onStatusChange, navigate }) {
         className={`upcoming-check ${task.status}`}
         onClick={() => onStatusChange(task._id, task.status === 'todo' ? 'inprogress' : 'done')}
       >
-        {task.status === 'inprogress' ? '⏳' : '○'}
+        {task.status === 'inprogress' ? (
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        ) : (
+          '○'
+        )}
       </button>
       <div className="upcoming-task-body" onClick={() => navigate(`/projects/${task.project?._id}`)}>
         <div className="upcoming-task-title">{task.title}</div>
         <div className="upcoming-task-meta">
           {task.project && (
-            <span className="upcoming-task-project" style={{ background: task.project.color + '18', color: task.project.color }}>
+            <span className="upcoming-task-project" style={{ background: task.project.color + '18', color: task.project.color, borderColor: task.project.color + '40' }}>
               {task.project.title}
             </span>
           )}
-          <span style={{ color: PRIORITY_COLORS[task.priority], fontSize: '0.7rem' }}>
-            {PRIORITY_ICONS[task.priority]} {task.priority}
+          <span className={`badge badge-${task.priority}`}>
+            {task.priority}
           </span>
-          <span className="upcoming-task-date">
+          <span className="upcoming-task-date" style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
             {new Date(task.dueDate).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}
           </span>
         </div>
@@ -61,6 +70,7 @@ function TaskRow({ task, onStatusChange, navigate }) {
         className="upcoming-status-select"
         value={task.status}
         onChange={(e) => onStatusChange(task._id, e.target.value)}
+        style={{ color: task.status === 'inprogress' ? '#2563eb' : 'var(--text-secondary)' }}
       >
         <option value="todo">To Do</option>
         <option value="inprogress">In Progress</option>
@@ -206,18 +216,18 @@ export default function Upcoming() {
 
   const groups = groupTasks(tasks);
   const sections = [
-    { key: 'overdue', label: '🔴 Overdue', color: '#ef4444', data: groups.overdue },
-    { key: 'today', label: '☀️ Today', color: '#f59e0b', data: groups.today },
-    { key: 'tomorrow', label: '🌅 Tomorrow', color: '#6366f1', data: groups.tomorrow },
-    { key: 'thisWeek', label: '📅 This Week', color: '#8b5cf6', data: groups.thisWeek },
-    { key: 'later', label: '📆 Later', color: '#64748b', data: groups.later },
+    { key: 'overdue', label: 'Overdue', color: '#ef4444', data: groups.overdue },
+    { key: 'today', label: 'Today', color: '#f59e0b', data: groups.today },
+    { key: 'tomorrow', label: 'Tomorrow', color: '#2563eb', data: groups.tomorrow },
+    { key: 'thisWeek', label: 'This Week', color: '#64748b', data: groups.thisWeek },
+    { key: 'later', label: 'Later', color: '#64748b', data: groups.later },
   ];
 
   return (
     <div className="page-container animate-fadeIn">
       <div className="upcoming-header">
-        <h1>📅 Upcoming</h1>
-        <p>Tasks with deadlines, organized by time</p>
+        <h1 className="upcoming-title">Upcoming</h1>
+        <p className="upcoming-subtitle">Tasks with deadlines, organized by time</p>
       </div>
 
       <form className="upcoming-quick-add" onSubmit={handleQuickAdd}>
@@ -250,15 +260,17 @@ export default function Upcoming() {
           <button
             type="button"
             className="btn btn-outline"
-            style={{ padding: '0.4rem 0.75rem', fontSize: '1.2rem', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+            style={{ padding: '0.4rem 0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             onClick={() => fileInputRef.current?.click()}
             title="Attach file"
           >
-            +
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
           </button>
 
           {selectedFile && (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.3rem 0.6rem', borderRadius: '4px', border: '1px solid var(--border-color)', fontSize: '0.8rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', background: 'var(--bg-secondary)', padding: '0.3rem 0.6rem', borderRadius: '6px', border: '1px solid var(--border-color)', fontSize: '0.78rem' }}>
               <span style={{ maxWidth: '100px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                 {selectedFile.name}
               </span>
@@ -268,7 +280,7 @@ export default function Upcoming() {
                   setSelectedFile(null);
                   if (fileInputRef.current) fileInputRef.current.value = '';
                 }}
-                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '1rem', lineHeight: '1' }}
+                style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: '1' }}
                 title="Remove attachment"
               >
                 &times;
@@ -279,12 +291,21 @@ export default function Upcoming() {
           <button
             type="button"
             className="btn btn-outline"
-            style={{ padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#8b5cf6', color: '#8b5cf6' }}
+            style={{ padding: '0.45rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#2563eb', color: '#2563eb' }}
             onClick={handleAIAnalyze}
             disabled={aiLoading}
             title="Extract task from attached file"
           >
-            {aiLoading ? '⏳' : '✨ AI'}
+            {aiLoading ? (
+              <div className="spinner spinner-sm" />
+            ) : (
+              <>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                </svg>
+                AI
+              </>
+            )}
           </button>
         </div>
 
@@ -292,18 +313,27 @@ export default function Upcoming() {
           type="button"
           className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
           style={{ 
-            padding: '0.5rem 0.75rem', 
+            padding: '0.45rem 0.75rem', 
             display: 'flex', 
             alignItems: 'center', 
             gap: '0.4rem',
-            background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(16, 185, 129, 0.1)',
-            borderColor: isQuickPrivate ? 'var(--border-color)' : '#10b981',
-            color: isQuickPrivate ? 'var(--text-muted)' : '#10b981',
+            background: isQuickPrivate ? 'var(--bg-secondary)' : '#eff6ff',
+            borderColor: isQuickPrivate ? 'var(--border-color)' : '#bfdbfe',
+            color: isQuickPrivate ? 'var(--text-muted)' : '#2563eb',
           }}
           onClick={() => setIsQuickPrivate(!isQuickPrivate)}
           title={isQuickPrivate ? "Private task" : "Public task"}
         >
-          {isQuickPrivate ? '🔒 Private' : '🌍 Public'}
+          {isQuickPrivate ? (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+            </svg>
+          ) : (
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+          )}
+          <span>{isQuickPrivate ? 'Private' : 'Public'}</span>
         </button>
         <button
           type="submit"
@@ -322,7 +352,11 @@ export default function Upcoming() {
         </div>
       ) : tasks.length === 0 ? (
         <div className="upcoming-empty">
-          <span className="upcoming-empty-icon">📅</span>
+          <div className="upcoming-empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+            </svg>
+          </div>
           <p>No upcoming deadlines</p>
           <span className="upcoming-empty-sub">Add due dates to your tasks to see them here.</span>
         </div>
