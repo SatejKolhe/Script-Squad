@@ -187,6 +187,10 @@
   border-color: #cbd5e1;
 }
 
+[data-theme='dark'] .member-card:hover {
+  border-color: #334155;
+}
+
 /* Gradient top strip */
 .member-card-strip {
   display: none;
@@ -236,6 +240,12 @@
   color: #2563eb;
   background: #eff6ff;
   border: 1px solid #bfdbfe;
+}
+
+[data-theme='dark'] .member-avatar {
+  color: #60a5fa;
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.35);
 }
 
 .member-avatar img {
@@ -569,6 +579,12 @@
   justify-content: center;
   color: #2563eb;
   flex-shrink: 0;
+}
+
+[data-theme='dark'] .assign-panel-icon {
+  background: rgba(37, 99, 235, 0.15);
+  border-color: rgba(37, 99, 235, 0.35);
+  color: #60a5fa;
 }
 
 .assign-panel-title {

@@ -739,7 +739,7 @@ export default function Team() {
       {/* Header */}
       <div className="team-header">
         <div className="team-header-info">
-          <h1 className="page-title" style={{ fontFamily: 'Outfit, sans-serif', fontSize: '1.6rem', fontWeight: 700, color: '#0f172a' }}>Team</h1>
+          <h1 className="page-title">Team</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Track who's working on what, in real time</p>
           {!loading && (
             <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.5rem' }}>
