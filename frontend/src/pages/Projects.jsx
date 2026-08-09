@@ -25,7 +25,10 @@ const PRIORITY_META = {
 };
 
 const defaultForm = {
-  title: '', description: '', color: '#6366f1', status: 'active', dueDate: '',
+  title: '', description: '',  color: '#6366f1',
+  status: 'active',
+  dueDate: '',
+  isPrivate: false,
 };
 
 // ── AI Suggestions Panel ──────────────────────────────────────────────────────
@@ -187,6 +190,7 @@ export default function Projects() {
       color: project.color,
       status: project.status,
       dueDate: project.dueDate ? project.dueDate.split('T')[0] : '',
+      isPrivate: project.isPrivate || false,
     });
     setFormErrors({});
     setAiSuggestions([]);
@@ -594,6 +598,22 @@ export default function Projects() {
               onChange={(e) => setForm((p) => ({ ...p, dueDate: e.target.value }))}
             />
           </div>
+        </div>
+
+        <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginTop: '0.5rem' }}>
+          <input 
+            type="checkbox" 
+            id="isPrivate" 
+            checked={form.isPrivate} 
+            onChange={(e) => setForm({ ...form, isPrivate: e.target.checked })}
+            style={{ width: '1rem', height: '1rem', cursor: 'pointer' }}
+          />
+          <label htmlFor="isPrivate" style={{ margin: 0, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            {form.isPrivate ? '🔒 Private' : '🌍 Public'}
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', fontWeight: 'normal' }}>
+              {form.isPrivate ? '(Hidden from Friends)' : '(Visible to Friends)'}
+            </span>
+          </label>
         </div>
       </Modal>
 

@@ -396,6 +396,68 @@ router.put('/:id/members/:userId/demote', protect, async (req, res) => {
     res.status(500).json({ success: false, message: 'Server error' });
   }
 });
+// @route   GET /api/orgTeams/:id/members/:userId/tasks
+// @desc    Get a specific teammate's tasks within this team
+// @access  Private
+router.get('/:id/members/:userId/tasks', protect, async (req, res) => {
+  try {
+    const teamId = req.params.id;
+    const targetUserId = req.params.userId;
+    const currentUserId = req.user._id;
+
+    // 1. Verify current user is a member of the team
+    const myMembership = await OrgTeamMember.findOne({ teamId, userId: currentUserId });
+    if (!myMembership) {
+      return res.status(403).json({ success: false, message: 'Not a member of this team' });
+    }
+
+    // 2. Fetch team projects
+    const teamProjects = await Project.find({ orgTeamId: teamId }).select('_id');
+    const projectIds = teamProjects.map(p => p._id);
+
+    // 3. Find tasks where the target is an assignee (or the owner if there are no assignees)
+    const Task = require('../models/Task');
+    let query = {
+      project: { $in: projectIds },
+      $or: [
+        { assignees: targetUserId },
+        { owner: targetUserId, assignees: { $size: 0 } }
+      ]
+    };
+
+    // 4. Apply visibility rules
+    // If I am NOT a leader and I am NOT viewing myself
+    if (myMembership.role !== 'leader' && currentUserId.toString() !== targetUserId.toString()) {
+      // Find all leaders of this team to check if the task was assigned by them
+      const leaders = await OrgTeamMember.find({ teamId, role: 'leader' }).select('userId');
+      const leaderIds = leaders.map(l => l.userId);
+
+      // We must use $and to combine the assignee filter with the visibility filter,
+      // otherwise this second $or will overwrite the assignee $or in the query object!
+      query = {
+        $and: [
+          query,
+          {
+            $or: [
+              { isPrivate: false },
+              { owner: { $in: leaderIds } } // Assigned by a leader
+            ]
+          }
+        ]
+      };
+    }
+
+    const tasks = await Task.find(query)
+      .populate('project', 'title color')
+      .populate('assignees', 'name avatar')
+      .sort({ createdAt: -1 });
+
+    res.json({ success: true, data: tasks });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ success: false, message: 'Server error' });
+  }
+});
 
 // @route   GET /api/orgTeams/:id/projects
 // @desc    Get team projects

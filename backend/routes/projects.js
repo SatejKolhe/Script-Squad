@@ -57,6 +57,7 @@ router.post(
     body('description').optional().isLength({ max: 500 }),
     body('color').optional().isHexColor().withMessage('Must be a valid hex color'),
     body('orgTeamId').optional().isMongoId(),
+    body('isPrivate').optional().isBoolean(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
@@ -118,6 +119,7 @@ router.put(
   [
     body('title').optional().trim().notEmpty().isLength({ max: 100 }),
     body('description').optional().isLength({ max: 500 }),
+    body('isPrivate').optional().isBoolean(),
   ],
   async (req, res) => {
     const errors = validationResult(req);
