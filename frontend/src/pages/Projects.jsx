@@ -317,9 +317,15 @@ export default function Projects() {
   return (
     <div className="page-container animate-fadeIn">
       {/* Header */}
-      <div className="page-header">
+      <div className="page-header" style={{ marginBottom: '1.75rem', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
-          <div className="page-header-stats">
+          <h1 className="page-title" style={{ fontFamily: "'Outfit', sans-serif", fontSize: '1.75rem', fontWeight: 700, margin: '0 0 0.25rem 0', color: 'var(--text-primary)', letterSpacing: '-0.02em' }}>
+            Projects
+          </h1>
+          <p className="page-subtitle" style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+            Organize, track, and manage all your team and personal projects
+          </p>
+          <div className="page-header-stats" style={{ marginTop: '0.5rem' }}>
             <span className="project-count-badge">{projects.length} project{projects.length !== 1 ? 's' : ''}</span>
           </div>
         </div>
