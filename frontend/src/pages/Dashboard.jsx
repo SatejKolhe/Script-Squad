@@ -84,7 +84,6 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
   const [quickTask, setQuickTask] = useState('');
   const [quickDate, setQuickDate] = useState('');
-  const [isQuickPrivate, setIsQuickPrivate] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiSuggestions, setAiSuggestions] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -135,8 +134,7 @@ export default function Dashboard() {
       await api.post('/tasks', { 
         title: quickTask.trim(), 
         dueDate: quickDate || undefined,
-        project: urgentProject._id,
-        isPrivate: isQuickPrivate
+        project: urgentProject._id
       });
       setQuickTask('');
       setQuickDate('');
@@ -508,36 +506,6 @@ export default function Dashboard() {
                   <span style={{ fontWeight: '600' }}>AI</span>
                 </button>
               </div>
-
-              <button
-                type="button"
-                className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
-                style={{ 
-                  padding: '0 0.75rem',
-                  minHeight: '40px',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '6px',
-                  background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(37, 99, 235, 0.06)',
-                  borderColor: isQuickPrivate ? 'var(--border-color)' : '#2563eb',
-                  color: isQuickPrivate ? 'var(--text-muted)' : '#2563eb',
-                  borderRadius: '8px',
-                  transition: 'all 0.15s ease'
-                }}
-                onClick={() => setIsQuickPrivate(!isQuickPrivate)}
-                title={isQuickPrivate ? "Private task" : "Public task"}
-              >
-                {isQuickPrivate ? (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-                  </svg>
-                ) : (
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-                  </svg>
-                )}
-                <span style={{ fontWeight: '500' }}>{isQuickPrivate ? 'Private' : 'Public'}</span>
-              </button>
               
               <button 
                 type="submit" 

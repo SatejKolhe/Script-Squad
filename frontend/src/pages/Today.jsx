@@ -14,7 +14,6 @@ export default function Today() {
 
   // Quick Add State
   const [quickTitle, setQuickTitle] = useState('');
-  const [isQuickPrivate, setIsQuickPrivate] = useState(false);
   const [adding, setAdding] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
@@ -84,8 +83,7 @@ export default function Today() {
       await api.post('/tasks', {
         title: quickTitle.trim(),
         dueDate: localISOTime,
-        project: urgentProject._id,
-        isPrivate: isQuickPrivate
+        project: urgentProject._id
       });
       toast.success('Task scheduled for today!');
       setQuickTitle('');
@@ -168,30 +166,6 @@ export default function Today() {
             onChange={(e) => setQuickTitle(e.target.value)}
             maxLength={100}
           />
-          <button
-            type="button"
-            className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
-            style={{ 
-              padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              background: isQuickPrivate ? 'var(--bg-secondary)' : '#eff6ff',
-              borderColor: isQuickPrivate ? 'var(--border-color)' : '#bfdbfe',
-              color: isQuickPrivate ? 'var(--text-muted)' : '#2563eb',
-              whiteSpace: 'nowrap'
-            }}
-            onClick={() => setIsQuickPrivate(!isQuickPrivate)}
-            title={isQuickPrivate ? "Private task" : "Public task"}
-          >
-            {isQuickPrivate ? (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
-              </svg>
-            ) : (
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-              </svg>
-            )}
-            <span>{isQuickPrivate ? 'Private' : 'Public'}</span>
-          </button>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', justifyContent: 'space-between' }}>

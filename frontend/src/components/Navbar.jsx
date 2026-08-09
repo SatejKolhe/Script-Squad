@@ -4,6 +4,7 @@ import { useTheme } from '../contexts/ThemeContext';
 import { useAuth } from '../contexts/AuthContext';
 import './Navbar.css';
 
+
 export default function Navbar({ onMenuToggle, setMobileOpen }) {
   const { theme, toggleTheme, isDark } = useTheme();
   const { user } = useAuth();
