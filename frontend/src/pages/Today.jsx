@@ -149,8 +149,8 @@ export default function Today() {
     <div className="page-container animate-fadeIn">
       <div className="today-header">
         <div>
-          <h1>☀️ Today</h1>
-          <p>{todayStr}</p>
+          <h1 className="today-title">Today</h1>
+          <p className="today-subtitle">{todayStr}</p>
         </div>
         <div className="today-count">
           <span className="today-count-num">{tasks.length}</span>
@@ -158,15 +158,11 @@ export default function Today() {
         </div>
       </div>
 
-      <form className="today-quick-add" onSubmit={handleQuickAdd} style={{
-        marginBottom: '2rem', padding: '1rem', background: 'var(--bg-card)', 
-        border: '1px solid var(--border-color)', borderRadius: '12px'
-      }}>
+      <form className="today-quick-add" onSubmit={handleQuickAdd}>
         <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '0.75rem' }}>
           <input
             type="text"
             className="today-input flex-1"
-            style={{ width: '100%', padding: '0.6rem 0.85rem', border: '1px solid var(--border-color)', borderRadius: '8px', background: 'var(--bg-secondary)', color: 'var(--text-primary)', outline: 'none' }}
             placeholder="Add a new task for today..."
             value={quickTitle}
             onChange={(e) => setQuickTitle(e.target.value)}
@@ -177,15 +173,24 @@ export default function Today() {
             className={`btn ${isQuickPrivate ? 'btn-ghost' : 'btn-outline'}`}
             style={{ 
               padding: '0.5rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
-              background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(16, 185, 129, 0.1)',
-              borderColor: isQuickPrivate ? 'var(--border-color)' : '#10b981',
-              color: isQuickPrivate ? 'var(--text-muted)' : '#10b981',
+              background: isQuickPrivate ? 'var(--bg-secondary)' : '#eff6ff',
+              borderColor: isQuickPrivate ? 'var(--border-color)' : '#bfdbfe',
+              color: isQuickPrivate ? 'var(--text-muted)' : '#2563eb',
               whiteSpace: 'nowrap'
             }}
             onClick={() => setIsQuickPrivate(!isQuickPrivate)}
             title={isQuickPrivate ? "Private task" : "Public task"}
           >
-            {isQuickPrivate ? '🔒 Private' : '🌍 Public'}
+            {isQuickPrivate ? (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+              </svg>
+            ) : (
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+              </svg>
+            )}
+            <span>{isQuickPrivate ? 'Private' : 'Public'}</span>
           </button>
         </div>
 
@@ -201,11 +206,13 @@ export default function Today() {
             <button
               type="button"
               className="btn btn-outline"
-              style={{ padding: '0.4rem 0.75rem', fontSize: '1.2rem', lineHeight: '1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{ padding: '0.4rem 0.65rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               onClick={() => fileInputRef.current?.click()}
               title="Add file"
             >
-              +
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+              </svg>
             </button>
             
             {selectedFile && (
@@ -216,12 +223,21 @@ export default function Today() {
                 <button
                   type="button"
                   className="btn btn-outline"
-                  style={{ padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#8b5cf6', color: '#8b5cf6' }}
+                  style={{ padding: '0.4rem 0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem', borderColor: '#2563eb', color: '#2563eb' }}
                   onClick={handleAIAnalyze}
                   disabled={aiLoading}
                   title="Analyze file with AI"
                 >
-                  {aiLoading ? '⏳' : '✨ AI'}
+                  {aiLoading ? (
+                    <div className="spinner spinner-sm" />
+                  ) : (
+                    <>
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                      </svg>
+                      AI
+                    </>
+                  )}
                 </button>
               </>
             )}
@@ -244,7 +260,11 @@ export default function Today() {
         </div>
       ) : tasks.length === 0 ? (
         <div className="today-empty">
-          <span className="today-empty-icon">🌟</span>
+          <div className="today-empty-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="M4.93 4.93l1.41 1.41"/><path d="M17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="M6.34 17.66l-1.41 1.41"/><path d="M19.07 4.93l-1.41 1.41"/>
+            </svg>
+          </div>
           <p>No tasks due today!</p>
           <span className="today-empty-sub">Enjoy your free day or set some due dates on your tasks.</span>
         </div>
@@ -258,21 +278,23 @@ export default function Today() {
                 title={task.status === 'todo' ? 'Start task' : 'Complete task'}
               >
                 {task.status === 'inprogress' ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+                  </svg>
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/></svg>
+                  '○'
                 )}
               </button>
               <div className="today-task-body" onClick={() => navigate(`/projects/${task.project?._id}`)}>
                 <div className="today-task-title">{task.title}</div>
                 <div className="today-task-meta">
                   {task.project && (
-                    <span className="today-task-project" style={{ background: task.project.color + '18', color: task.project.color }}>
+                    <span className="today-task-project" style={{ background: task.project.color + '18', color: task.project.color, borderColor: task.project.color + '40' }}>
                       {task.project.title}
                     </span>
                   )}
-                  <span className="today-task-priority" style={{ color: PRIORITY_COLORS[task.priority] }}>
-                    {PRIORITY_ICONS[task.priority]} {task.priority}
+                  <span className={`badge badge-${task.priority}`}>
+                    {task.priority}
                   </span>
                 </div>
               </div>
@@ -280,7 +302,7 @@ export default function Today() {
                 className="today-task-status"
                 value={task.status}
                 onChange={(e) => handleStatusChange(task._id, e.target.value)}
-                style={{ color: task.status === 'inprogress' ? '#6366f1' : '#8b95ae' }}
+                style={{ color: task.status === 'inprogress' ? '#2563eb' : 'var(--text-secondary)' }}
               >
                 <option value="todo">To Do</option>
                 <option value="inprogress">In Progress</option>
