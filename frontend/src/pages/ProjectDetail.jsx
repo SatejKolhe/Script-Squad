@@ -27,15 +27,15 @@ import { io } from 'socket.io-client';
 import './ProjectDetail.css';
 
 const COLUMNS = [
-  { id: 'todo', label: '📋 Todo', color: '#94a3b8' },
-  { id: 'inprogress', label: '🚀 In Progress', color: '#6366f1' },
-  { id: 'done', label: '✅ Done', color: '#10b981' },
+  { id: 'todo', label: 'Todo', color: '#64748b' },
+  { id: 'inprogress', label: 'In Progress', color: '#2563eb' },
+  { id: 'done', label: 'Done', color: '#10b981' },
 ];
 
 const PRIORITY_OPTIONS = [
-  { value: 'high', label: '🔴 High' },
-  { value: 'medium', label: '🟡 Medium' },
-  { value: 'low', label: '🟢 Low' },
+  { value: 'high', label: 'High' },
+  { value: 'medium', label: 'Medium' },
+  { value: 'low', label: 'Low' },
 ];
 
 const defaultTaskForm = {
@@ -90,7 +90,11 @@ function ProjectTimePanel({ tasks }) {
     <div className={`project-time-panel ${isActive ? 'project-time-panel-active' : ''}`}>
       <div className="project-time-panel-header">
         {isActive && <span className="project-time-dot" />}
-        <span className="project-time-panel-icon">{isActive ? '⏱️' : '🕐'}</span>
+        <span className="project-time-panel-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </span>
         <span className="project-time-panel-label">Time Invested</span>
       </div>
       <div className="project-time-panel-clock">{timeStr}</div>
@@ -153,7 +157,7 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
           </button>
         </div>
         
-        {/* On Mobile: Quick Status Select (since Drag & Drop is removed on mobile) */}
+        {/* On Mobile: Quick Status Select */}
         {isMobile && (
           <select
             className="task-mobile-status-select"
@@ -163,9 +167,9 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
             onChange={(e) => { e.stopPropagation(); onStatusChange(task, e.target.value); }}
             title="Change task status"
           >
-            <option value="todo">📋 Todo</option>
-            <option value="inprogress">🚀 In Progress</option>
-            <option value="done">✅ Done</option>
+            <option value="todo">Todo</option>
+            <option value="inprogress">In Progress</option>
+            <option value="done">Done</option>
           </select>
         )}
 
@@ -176,7 +180,9 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
             onClick={(e) => { e.stopPropagation(); onEdit(task); }}
             title="Edit task"
           >
-            ✏️
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
           </button>
           <button
             className="btn-icon btn-sm"
@@ -184,7 +190,9 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
             onClick={(e) => { e.stopPropagation(); onDelete(task); }}
             title="Delete task"
           >
-            🗑️
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"/>
+            </svg>
           </button>
         </div>
       </div>
@@ -236,9 +244,17 @@ function TaskCard({ task, onEdit, onDelete, onStatusChange, onTogglePrivacy, isM
       {task.dueDate && (
         <div
           className="task-card-due"
-          style={{ color: overdue ? '#ef4444' : dueSoon ? '#f59e0b' : 'var(--text-muted)' }}
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '4px',
+            color: overdue ? '#ef4444' : dueSoon ? '#f59e0b' : 'var(--text-muted)'
+          }}
         >
-          📅 {format(new Date(task.dueDate), 'MMM d, yyyy')}
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          {format(new Date(task.dueDate), 'MMM d, yyyy')}
           {overdue && ' • Overdue!'}
           {dueSoon && ' • Due today!'}
         </div>
@@ -254,6 +270,28 @@ function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChan
     disabled: isMobile,
   });
 
+  const renderColIcon = (id) => {
+    if (id === 'todo') {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/>
+        </svg>
+      );
+    }
+    if (id === 'inprogress') {
+      return (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+      );
+    }
+    return (
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+    );
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -261,7 +299,8 @@ function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChan
       data-status={column.id}
     >
       <div className="kanban-column-header">
-        <div className="kanban-column-title">
+        <div className="kanban-column-title" style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+          <span style={{ color: column.color, display: 'inline-flex' }}>{renderColIcon(column.id)}</span>
           <span>{column.label}</span>
           <span className="kanban-count">{tasks.length}</span>
         </div>
@@ -270,7 +309,9 @@ function KanbanColumn({ column, tasks, onEdit, onDelete, onAddTask, onStatusChan
           onClick={() => onAddTask(column.id)}
           title={`Add task to ${column.label}`}
         >
-          +
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+          </svg>
         </button>
       </div>
 

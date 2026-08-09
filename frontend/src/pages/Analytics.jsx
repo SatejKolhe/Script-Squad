@@ -88,36 +88,75 @@ export default function Analytics() {
 
   return (
     <div className="page-container animate-fadeIn">
-      {/* KPI Cards */}
-      <div className="grid-4">
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(99,102,241,0.12)' }}>📋</div>
-          <div>
-            <div className="stat-number">{data.totalTasks}</div>
-            <div className="stat-label">Total Tasks</div>
+      {/* Asymmetric Option 1 KPI Layout: Hero Card (60%) + Secondary Stack (40%) */}
+      <div className="analytics-kpi-layout">
+        {/* Left Hero Card: Primary Metrics (Total Tasks & Completion Rate with Progress Bar) */}
+        <div className="analytics-hero-card">
+          <div className="hero-card-header">
+            <span className="hero-card-tag">OVERALL PERFORMANCE</span>
+          </div>
+
+          <div className="hero-metrics-row">
+            <div className="hero-metric-item">
+              <div className="metric-label-inline">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/>
+                </svg>
+                TOTAL TASKS
+              </div>
+              <div className="hero-metric-val">{data.totalTasks}</div>
+            </div>
+
+            <div className="hero-metric-divider" />
+
+            <div className="hero-metric-item">
+              <div className="metric-label-inline green-accent">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/>
+                </svg>
+                COMPLETION RATE
+              </div>
+              <div className="hero-metric-val green-accent">{completionRate}%</div>
+            </div>
+          </div>
+
+          {/* Integrated Horizontal Progress Bar */}
+          <div className="hero-progress-wrapper">
+            <div className="hero-progress-track">
+              <div
+                className="hero-progress-fill"
+                style={{ width: `${Math.min(100, Math.max(0, completionRate))}%` }}
+              />
+            </div>
+            <div className="hero-progress-meta">
+              <span>{data.statusCounts?.find((s) => s._id === 'done')?.count || 0} of {data.totalTasks} tasks completed</span>
+              <span>{completionRate}% achieved</span>
+            </div>
           </div>
         </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(16,185,129,0.12)' }}>✅</div>
-          <div>
-            <div className="stat-number">{completionRate}%</div>
-            <div className="stat-label">Completion Rate</div>
+
+        {/* Right Stacked Column: Secondary Metrics (Total Projects & Overdue) */}
+        <div className="analytics-secondary-col">
+          <div className="secondary-stat-card">
+            <div className="metric-label-inline">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+              </svg>
+              TOTAL PROJECTS
+            </div>
+            <div className="secondary-metric-val">{data.totalProjects}</div>
           </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(6,182,212,0.12)' }}>📁</div>
-          <div>
-            <div className="stat-number">{data.totalProjects}</div>
-            <div className="stat-label">Total Projects</div>
-          </div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'rgba(239,68,68,0.12)' }}>⚠️</div>
-          <div>
-            <div className="stat-number" style={{ color: data.overdue > 0 ? '#ef4444' : undefined }}>
+
+          <div className="secondary-stat-card">
+            <div className={`metric-label-inline ${data.overdue > 0 ? 'red-accent' : ''}`}>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+              </svg>
+              OVERDUE TASKS
+            </div>
+            <div className={`secondary-metric-val ${data.overdue > 0 ? 'red-accent' : ''}`}>
               {data.overdue}
             </div>
-            <div className="stat-label">Overdue</div>
           </div>
         </div>
       </div>
@@ -125,7 +164,12 @@ export default function Analytics() {
       {/* Weekly activity */}
       <div className="analytics-section">
         <div className="analytics-section-header">
-          <h2 className="analytics-section-title">📈 Weekly Activity</h2>
+          <h2 className="analytics-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+            </svg>
+            Weekly Activity
+          </h2>
           <div className="analytics-meta">
             <span className="text-sm text-muted">{totalCompleted} tasks completed</span>
             <span className="text-sm text-muted">•</span>
@@ -137,8 +181,8 @@ export default function Analytics() {
             <AreaChart data={weeklyData} margin={{ top: 16, right: 20, left: -10, bottom: 0 }}>
               <defs>
                 <linearGradient id="completedGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#2563eb" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="#2563eb" stopOpacity={0} />
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
@@ -149,10 +193,10 @@ export default function Analytics() {
                 type="monotone"
                 dataKey="completed"
                 name="Tasks Completed"
-                stroke="#6366f1"
+                stroke="#2563eb"
                 fill="url(#completedGrad)"
                 strokeWidth={2.5}
-                dot={{ fill: '#6366f1', r: 4 }}
+                dot={{ fill: '#2563eb', r: 4 }}
                 activeDot={{ r: 6 }}
               />
             </AreaChart>
@@ -165,12 +209,21 @@ export default function Analytics() {
         {/* Status Distribution */}
         <div className="analytics-section">
           <div className="analytics-section-header">
-            <h2 className="analytics-section-title">🎯 Task Status</h2>
+            <h2 className="analytics-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/>
+              </svg>
+              Task Status
+            </h2>
           </div>
           <div className="chart-card card" style={{ padding: '1.5rem' }}>
             {statusData.length === 0 ? (
               <div className="empty-state" style={{ padding: '2rem' }}>
-                <div className="empty-state-icon">📊</div>
+                <div className="empty-state-icon" style={{ marginBottom: '0.5rem' }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
                 <p className="empty-state-desc">No tasks yet</p>
               </div>
             ) : (
@@ -210,12 +263,21 @@ export default function Analytics() {
         {/* Priority Breakdown */}
         <div className="analytics-section">
           <div className="analytics-section-header">
-            <h2 className="analytics-section-title">⚡ Priority Breakdown</h2>
+            <h2 className="analytics-section-title" style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+              </svg>
+              Priority Breakdown
+            </h2>
           </div>
           <div className="chart-card card" style={{ padding: '1.5rem' }}>
             {priorityData.length === 0 ? (
               <div className="empty-state" style={{ padding: '2rem' }}>
-                <div className="empty-state-icon">📊</div>
+                <div className="empty-state-icon" style={{ marginBottom: '0.5rem' }}>
+                  <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+                  </svg>
+                </div>
                 <p className="empty-state-desc">No tasks yet</p>
               </div>
             ) : (

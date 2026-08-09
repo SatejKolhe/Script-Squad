@@ -60,7 +60,11 @@ function GlobalTimerWidget({ tasks }) {
     <div className={`global-timer-widget ${inProgress.length > 0 ? 'timer-active' : ''}`}>
       <div className="global-timer-header">
         {inProgress.length > 0 && <span className="global-timer-dot" />}
-        <span className="global-timer-icon">{inProgress.length > 0 ? '⏱️' : '🕐'}</span>
+        <span className="global-timer-icon">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </span>
         <span className="global-timer-label">Active Session</span>
       </div>
       <div className="global-timer-clock">{timeStr}</div>
@@ -168,7 +172,7 @@ export default function Dashboard() {
               if (res.data.data.title) setQuickTask(res.data.data.title);
               if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
               if (res.data.data.suggestions) setAiSuggestions(res.data.data.suggestions);
-              toast.success('✨ AI extracted task details from file!');
+              toast.success('AI extracted task details from file!');
             }
           } catch (err) {
             toast.error(err.response?.data?.message || 'Failed to analyze file with AI.');
@@ -187,7 +191,7 @@ export default function Dashboard() {
           if (res.data.data.title) setQuickTask(res.data.data.title);
           if (res.data.data.dueDate) setQuickDate(res.data.data.dueDate);
           if (res.data.data.suggestions) setAiSuggestions(res.data.data.suggestions);
-          toast.success(quickTask.trim() ? '✨ AI smart-parsed your task!' : '✨ AI generated a task suggestion!');
+          toast.success(quickTask.trim() ? 'AI smart-parsed your task!' : 'AI generated a task suggestion!');
         }
         setAiLoading(false);
       }
@@ -217,7 +221,7 @@ export default function Dashboard() {
           // Force context re-read on next render by dispatching storage event
           window.dispatchEvent(new StorageEvent('storage', { key: 'ss_user', newValue: JSON.stringify(merged) }));
         }
-        toast.success(`Task done! +${xpGained} XP ⚡`);
+        toast.success(`Task done! +${xpGained} XP`);
       }
     } catch (err) {
       toast.error('Failed to update task');
@@ -255,10 +259,15 @@ export default function Dashboard() {
     <div className="page-container animate-fadeIn">
       {/* Welcome Banner */}
       <div className="dashboard-banner">
-        <div className="banner-bg-glow banner-bg-glow-1" />
-        <div className="banner-bg-glow banner-bg-glow-2" />
         <div className="banner-content">
-          <div className="banner-emoji">👋</div>
+          <div className="banner-icon-badge">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M18 11V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v0"/>
+              <path d="M14 10V4a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v4"/>
+              <path d="M10 10.5V6a2 2 0 0 0-2-2v0a2 2 0 0 0-2 2v8"/>
+              <path d="M18 8a2 2 0 0 1 2 2v4a8 8 0 0 1-8 8h-2c-2.5 0-4.5-1-6.2-2.8L2.1 14.5a1.8 1.8 0 0 1 .3-2.6 1.8 1.8 0 0 1 2.5.4l2.1 2.7"/>
+            </svg>
+          </div>
           <div>
             <h2 className="banner-title">Good {getGreeting()}, {user?.name?.split(' ')[0]}!</h2>
             <p className="banner-subtitle">
@@ -292,14 +301,22 @@ export default function Dashboard() {
       {/* XP & Streak Banner */}
       <div className="dashboard-xp-row">
         <div className="dashboard-xp-card">
-          <span className="dashboard-xp-icon">⚡</span>
+          <span className="dashboard-xp-icon badge-neutral">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+            </svg>
+          </span>
           <div className="dashboard-xp-info">
             <div className="dashboard-xp-value">{user?.xp || 0} XP</div>
             <div className="dashboard-xp-label">Total earned</div>
           </div>
         </div>
-        <div className="dashboard-xp-card">
-          <span className="dashboard-xp-icon">🔥</span>
+        <div className={`dashboard-xp-card ${user?.streak ? 'streak-active' : ''}`}>
+          <span className={`dashboard-xp-icon ${user?.streak ? 'badge-amber' : 'badge-neutral'}`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M8.5 14.5A2.5 2.5 0 0011 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 11-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 002.5 3.5z"/>
+            </svg>
+          </span>
           <div className="dashboard-xp-info">
             <div className="dashboard-xp-value">{user?.streak || 0} day{user?.streak !== 1 ? 's' : ''}</div>
             <div className="dashboard-xp-label">Current streak</div>
@@ -315,7 +332,11 @@ export default function Dashboard() {
           </div>
         </div>
         <Link to="/profile" className="dashboard-xp-card dashboard-xp-profile-link">
-          <span className="dashboard-xp-icon">🏆</span>
+          <span className="dashboard-xp-icon badge-neutral">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M6 9H4.5a2.5 2.5 0 010-5H6"/><path d="M18 9h1.5a2.5 2.5 0 000-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0012 0V2z"/>
+            </svg>
+          </span>
           <div className="dashboard-xp-info">
             <div className="dashboard-xp-value">View Profile</div>
             <div className="dashboard-xp-label">Achievements →</div>
@@ -325,39 +346,51 @@ export default function Dashboard() {
 
       {/* Stats Grid */}
       <div className="grid-4 mt-4">
-        <div className="stat-card stat-card-purple">
-          <div className="stat-icon stat-icon-purple">📋</div>
+        <div className="stat-card stat-card-total">
+          <div className="stat-icon stat-icon-neutral">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="8" y="2" width="8" height="4" rx="1" ry="1"/><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>
+            </svg>
+          </div>
           <div>
             <div className="stat-number">{animTotal}</div>
             <div className="stat-label">Total Tasks</div>
           </div>
-          <div className="stat-card-bg-icon">📋</div>
         </div>
-        <div className="stat-card stat-card-cyan">
-          <div className="stat-icon stat-icon-cyan">🚀</div>
+        <div className="stat-card stat-card-inprogress">
+          <div className="stat-icon stat-icon-blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+          </div>
           <div>
             <div className="stat-number">{animInProgress}</div>
             <div className="stat-label">In Progress</div>
           </div>
-          <div className="stat-card-bg-icon">🚀</div>
         </div>
-        <div className="stat-card stat-card-green">
-          <div className="stat-icon stat-icon-green">✅</div>
+        <div className="stat-card stat-card-completed">
+          <div className="stat-icon stat-icon-green">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
           <div>
             <div className="stat-number">{animDone}</div>
             <div className="stat-label">Completed</div>
           </div>
-          <div className="stat-card-bg-icon">✅</div>
         </div>
-        <div className="stat-card stat-card-red">
-          <div className="stat-icon stat-icon-red">⚠️</div>
+        <div className={`stat-card stat-card-overdue ${(stats?.overdue || 0) > 0 ? 'has-overdue' : ''}`}>
+          <div className={`stat-icon ${(stats?.overdue || 0) > 0 ? 'stat-icon-red' : 'stat-icon-neutral'}`}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+          </div>
           <div>
             <div className="stat-number" style={{ color: (stats?.overdue || 0) > 0 ? '#ef4444' : undefined }}>
               {animOverdue}
             </div>
             <div className="stat-label">Overdue</div>
           </div>
-          <div className="stat-card-bg-icon">⚠️</div>
         </div>
       </div>
 
@@ -365,7 +398,12 @@ export default function Dashboard() {
       <div className="dashboard-grid mt-4">
         {/* Quick Add */}
         <div className="card p-6">
-          <h3 className="dashboard-section-title">⚡ Quick Add Task</h3>
+          <h3 className="dashboard-section-title">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '6px' }}>
+              <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/>
+            </svg>
+            Quick Add Task
+          </h3>
           <form onSubmit={handleQuickAdd} className="quick-add-form" style={{ marginTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', width: '100%' }}>
               <input
@@ -384,7 +422,7 @@ export default function Dashboard() {
                   style={{ 
                     width: '160px',
                     flexShrink: 0,
-                    paddingRight: '36px'
+                    paddingRight: '12px'
                   }}
                   value={quickDate}
                   onChange={(e) => setQuickDate(e.target.value)}
@@ -408,7 +446,6 @@ export default function Dashboard() {
                   className="btn btn-outline"
                   style={{ 
                     padding: '0 0.75rem', 
-                    fontSize: '1.2rem', 
                     minHeight: '40px',
                     display: 'flex', 
                     alignItems: 'center', 
@@ -419,7 +456,9 @@ export default function Dashboard() {
                   onClick={() => fileInputRef.current?.click()}
                   title="Attach file"
                 >
-                  +
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48"/>
+                  </svg>
                 </button>
 
                 {selectedFile && (
@@ -449,18 +488,24 @@ export default function Dashboard() {
                     minHeight: '40px',
                     display: 'flex', 
                     alignItems: 'center', 
-                    gap: '8px',
-                    borderColor: '#8b5cf6', 
-                    color: '#8b5cf6',
+                    gap: '6px',
+                    borderColor: '#2563eb', 
+                    color: '#2563eb',
                     borderRadius: '8px',
                     transition: 'all 0.15s ease'
                   }}
                   onClick={handleAIAnalyze}
                   disabled={aiLoading}
-                  title="Extract task from attached file"
+                  title="Extract task from attached file or prompt"
                 >
-                  <span>{aiLoading ? '⏳' : '✨'}</span> 
-                  <span style={{ fontWeight: '500' }}>AI</span>
+                  {aiLoading ? (
+                    <div className="spinner spinner-sm" style={{ width: '14px', height: '14px' }} />
+                  ) : (
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                    </svg>
+                  )} 
+                  <span style={{ fontWeight: '600' }}>AI</span>
                 </button>
               </div>
 
@@ -472,17 +517,25 @@ export default function Dashboard() {
                   minHeight: '40px',
                   display: 'flex', 
                   alignItems: 'center', 
-                  gap: '8px',
-                  background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(16, 185, 129, 0.1)',
-                  borderColor: isQuickPrivate ? 'var(--border-color)' : '#10b981',
-                  color: isQuickPrivate ? 'var(--text-muted)' : '#059669',
+                  gap: '6px',
+                  background: isQuickPrivate ? 'var(--bg-secondary)' : 'rgba(37, 99, 235, 0.06)',
+                  borderColor: isQuickPrivate ? 'var(--border-color)' : '#2563eb',
+                  color: isQuickPrivate ? 'var(--text-muted)' : '#2563eb',
                   borderRadius: '8px',
                   transition: 'all 0.15s ease'
                 }}
                 onClick={() => setIsQuickPrivate(!isQuickPrivate)}
                 title={isQuickPrivate ? "Private task" : "Public task"}
               >
-                <span>{isQuickPrivate ? '🔒' : '🌍'}</span>
+                {isQuickPrivate ? (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0110 0v4"/>
+                  </svg>
+                ) : (
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                  </svg>
+                )}
                 <span style={{ fontWeight: '500' }}>{isQuickPrivate ? 'Private' : 'Public'}</span>
               </button>
               
@@ -495,27 +548,36 @@ export default function Dashboard() {
                   minHeight: '40px',
                   display: 'flex',
                   alignItems: 'center',
-                  gap: '8px',
+                  gap: '6px',
                   borderRadius: '8px',
                   transition: 'all 0.15s ease',
-                  marginLeft: 'auto'
+                  marginLeft: 'auto',
+                  backgroundColor: '#2563eb',
+                  backgroundImage: 'none',
+                  border: 'none',
+                  color: '#ffffff'
                 }}
               >
-                <span style={{ fontSize: '1.1rem' }}>+</span>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
                 <span style={{ fontWeight: '600' }}>Add</span>
               </button>
             </div>
 
             {aiSuggestions.length > 0 && (
               <div style={{
-                background: 'rgba(99, 102, 241, 0.08)',
-                border: '1px solid rgba(99, 102, 241, 0.2)',
+                background: 'rgba(37, 99, 235, 0.05)',
+                border: '1px solid rgba(37, 99, 235, 0.18)',
                 borderRadius: '10px',
                 padding: '0.75rem 1rem',
                 marginTop: '0.25rem'
               }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#6366f1', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <span>✨</span> AI Extracted Action Steps & Suggestions:
+                <div style={{ fontSize: '0.8rem', fontWeight: '700', color: '#2563eb', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 2l2.4 6.6L21 11l-6.6 2.4L12 20l-2.4-6.6L3 11l6.6-2.4L12 2z"/>
+                  </svg>
+                  AI Extracted Action Steps & Suggestions:
                 </div>
                 <ul style={{ margin: 0, paddingLeft: '1.2rem', fontSize: '0.825rem', color: 'var(--text-color)' }}>
                   {aiSuggestions.map((sug, i) => (
@@ -529,8 +591,13 @@ export default function Dashboard() {
           {/* Project overview */}
           <div className="mt-4">
             <div className="section-title-row">
-              <h3 className="dashboard-section-title">📁 Projects</h3>
-              <Link to="/projects" className="text-sm" style={{ color: 'var(--brand-primary)' }}>View all →</Link>
+              <h3 className="dashboard-section-title">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '6px' }}>
+                  <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                </svg>
+                Projects
+              </h3>
+              <Link to="/projects" className="text-sm" style={{ color: '#2563eb', fontWeight: '600' }}>View all →</Link>
             </div>
             <div className="project-list">
               {projects.slice(0, 4).map((p) => (
@@ -544,7 +611,7 @@ export default function Dashboard() {
                     <div className="progress-bar">
                       <div
                         className="progress-fill"
-                        style={{ width: `${p.taskCount ? Math.round((p.completedCount / p.taskCount) * 100) : 0}%` }}
+                        style={{ width: `${p.taskCount ? Math.round((p.completedCount / p.taskCount) * 100) : 0}%`, background: '#2563eb' }}
                       />
                     </div>
                   </div>
@@ -552,7 +619,11 @@ export default function Dashboard() {
               ))}
               {projects.length === 0 && (
                 <div className="empty-state" style={{ padding: '2rem' }}>
-                  <div className="empty-state-icon">📁</div>
+                  <div className="empty-state-icon" style={{ marginBottom: '0.5rem' }}>
+                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/>
+                    </svg>
+                  </div>
                   <p className="empty-state-desc">No projects yet. <Link to="/projects">Create one!</Link></p>
                 </div>
               )}
@@ -563,13 +634,22 @@ export default function Dashboard() {
         {/* Recent Tasks */}
         <div className="card p-6">
           <div className="section-title-row">
-            <h3 className="dashboard-section-title">📋 Recent Tasks</h3>
-            <Link to="/projects" className="text-sm" style={{ color: 'var(--brand-primary)' }}>All projects →</Link>
+            <h3 className="dashboard-section-title">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '6px' }}>
+                <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12l2 2 4-4"/>
+              </svg>
+              Recent Tasks
+            </h3>
+            <Link to="/projects" className="text-sm" style={{ color: '#2563eb', fontWeight: '600' }}>All projects →</Link>
           </div>
           <div className="task-list">
             {recentTasks.length === 0 ? (
               <div className="empty-state" style={{ padding: '2rem' }}>
-                <div className="empty-state-icon">✅</div>
+                <div className="empty-state-icon" style={{ marginBottom: '0.5rem' }}>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+                  </svg>
+                </div>
                 <p className="empty-state-desc">No tasks yet. Create a project and start adding tasks!</p>
               </div>
             ) : (
@@ -602,6 +682,9 @@ export default function Dashboard() {
                         <span
                           className="task-due"
                           style={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
                             color: isPast(new Date(task.dueDate)) && task.status !== 'done'
                               ? '#ef4444'
                               : isToday(new Date(task.dueDate))
@@ -609,7 +692,10 @@ export default function Dashboard() {
                               : 'var(--text-muted)',
                           }}
                         >
-                          📅 {format(new Date(task.dueDate), 'MMM d')}
+                          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                          </svg>
+                          {format(new Date(task.dueDate), 'MMM d')}
                         </span>
                       )}
                     </div>

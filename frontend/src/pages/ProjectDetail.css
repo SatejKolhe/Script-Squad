@@ -31,11 +31,15 @@
 }
 
 .project-detail-title {
-  font-size: 1.5rem;
-  font-weight: 800;
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  letter-spacing: -0.025em;
-  color: var(--text-primary);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-family: 'Outfit', sans-serif;
+  letter-spacing: -0.02em;
+  color: #0f172a;
+}
+
+[data-theme='dark'] .project-detail-title {
+  color: #f8fafc;
 }
 
 .project-detail-desc {
@@ -71,22 +75,21 @@
   gap: 0.2rem;
   padding: 0.625rem 1rem;
   border-radius: var(--border-radius-md);
-  background: var(--bg-tertiary);
-  border: 1px solid var(--border-color);
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   min-width: 140px;
   transition: all var(--transition-base);
   margin-top: 0.25rem;
 }
 
-.project-time-panel-active {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(6, 182, 212, 0.08));
-  border-color: rgba(16, 185, 129, 0.35);
-  animation: timePanelGlow 2s ease-in-out infinite;
+[data-theme='dark'] .project-time-panel {
+  background: #1e293b;
+  border-color: #334155;
 }
 
-@keyframes timePanelGlow {
-  0%, 100% { box-shadow: 0 0 8px rgba(16, 185, 129, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(16, 185, 129, 0.45); }
+.project-time-panel-active {
+  background: #eff6ff;
+  border-color: #bfdbfe;
 }
 
 .project-time-panel-header {
@@ -99,13 +102,16 @@
   width: 7px;
   height: 7px;
   border-radius: 50%;
-  background: #10b981;
+  background: #2563eb;
   animation: timerPulse 1.4s ease-in-out infinite;
   flex-shrink: 0;
 }
 
 .project-time-panel-icon {
   font-size: 0.85rem;
+  color: #475569;
+  display: flex;
+  align-items: center;
 }
 
 .project-time-panel-label {
@@ -117,16 +123,19 @@
 }
 
 .project-time-panel-clock {
-  font-family:'Courier New',Courier,monospace;
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--text-primary);
-  letter-spacing: 0.05em;
-  line-height: 1.2;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.1;
+}
+
+[data-theme='dark'] .project-time-panel-clock {
+  color: #f8fafc;
 }
 
 .project-time-panel-active .project-time-panel-clock {
-  color: #10b981;
+  color: #2563eb;
 }
 
 .project-time-panel-sub {

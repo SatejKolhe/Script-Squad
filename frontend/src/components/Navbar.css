@@ -19,84 +19,49 @@
   position: fixed;
 }
 
-/* Top gradient accent line */
+/* Top border solid #e2e8f0 */
 .navbar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 1.5px;
-  background: linear-gradient(90deg, transparent 0%, #6366f1 25%, #7c3aed 50%, #ec4899 75%, transparent 100%);
-  opacity: 0.55;
+  display: none;
 }
 
-/* Bottom shadow for depth */
 .navbar::after {
-  content: '';
-  position: absolute;
-  bottom: -12px;
-  left: 0;
-  right: 0;
-  height: 12px;
-  background: linear-gradient(180deg, rgba(99, 102, 241, 0.04), transparent);
-  pointer-events: none;
+  display: none;
 }
 
 .navbar-left {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   align-items: center;
-  gap: 1rem;
-  pointer-events: none;
+  gap: 0.75rem;
 }
 
-.navbar-left>div {
-  position: relative;
+.navbar-left > div {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  align-items: center;
-  transform: translateY(-3px);
-  pointer-events: auto;
 }
 
 .navbar-title {
-  font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  font-size: 1.3rem;
-  font-weight: 900;
-  letter-spacing: -0.03em;
-  line-height: 1.25;
-  padding-bottom: 2px;
-  background: linear-gradient(135deg, #6366f1 0%, #a855f7 50%, #ec4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.45));
-  transition: filter var(--transition-fast);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  color: #0f172a;
 }
 
-.navbar-title:hover {
-  filter: drop-shadow(0 0 20px rgba(168, 85, 247, 0.65));
+[data-theme='dark'] .navbar-title {
+  color: #f8fafc;
 }
 
 .navbar-subtitle {
-  position: absolute;
-  top: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-top: 0px;
   font-size: 0.68rem;
   font-weight: 500;
   font-family: 'Plus Jakarta Sans', 'Inter', sans-serif;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--text-muted, #94a3b8);
-  -webkit-text-fill-color: var(--text-muted, #94a3b8);
-  opacity: 0.85;
+  margin-top: 1px;
 }
 
 .navbar-right {
