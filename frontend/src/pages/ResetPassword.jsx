@@ -30,7 +30,7 @@ export default function ResetPassword() {
     setServerError('');
     setLoading(true);
     try {
-      await axios.post(`/api/auth/reset-password/${token}`, { password: form.password });
+      await axios.post(`${import.meta.env.VITE_API_URL}/api/auth/reset-password/${token}`, { password: form.password });
       setSuccess(true);
       setTimeout(() => navigate('/login'), 3000);
     } catch (err) {
